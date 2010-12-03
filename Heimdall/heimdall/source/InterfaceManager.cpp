@@ -93,7 +93,7 @@ const char *InterfaceManager::usage = "Usage: heimdall <action> <arguments> [--v
 \n\
 action: flash\n\
 arguments:\n\
-    --repartition --pit <filename> --factoryfs <filename>]\n\
+    --repartition --pit <filename> --factoryfs <filename>\n\
     --cache <filename> --dbdata <filename> --primary-boot <filename>\n\
     --secondary-boot <filename> --param <filename> --kernel <filename>\n\
     --modem <filename>\n\
