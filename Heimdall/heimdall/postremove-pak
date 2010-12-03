@@ -1,0 +1,5 @@
+#!/bin/sh
+sudo rm /etc/udev/rules.d/60-heimdall-galaxy-s.rules
+sudo service udev reload
+exit 0
+

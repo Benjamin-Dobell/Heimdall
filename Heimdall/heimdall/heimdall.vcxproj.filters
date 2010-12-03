@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\BeginDumpPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\BridgeManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ControlPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DeviceInfoPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DeviceInfoResponse.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DumpPartFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DumpPartPitFilePacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DumpResponse.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndModemFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndPhoneFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FlashPartFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FlashPartPitFilePacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Heimdall.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\InboundPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\OutboundPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Packet.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PitFilePacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PitFileResponse.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\RebootDevicePacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ReceiveFilePartPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ResponsePacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SendFilePartPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SendFilePartResponse.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\InterfaceManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\BridgeManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\InterfaceManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
