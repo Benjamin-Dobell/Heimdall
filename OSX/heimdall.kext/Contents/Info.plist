@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"  "http://www.apple.com/DTDs/PropertyList-1.0.dtd";>
+<plist version="1.0">
+	<dict>
+		<key>CFBundleDevelopmentRegion</key> <string>English</string>
+		<key>CFBundleGetInfoString</key> <string>Galaxy S Download Mode (Heimdall)</string>
+		<key>CFBundleIdentifier</key> <string>au.com.glassechidna.heimdall_usb_shield</string>
+		<key>CFBundleInfoDictionaryVersion</key> <string>6.0</string>
+		<key>CFBundleName</key> <string>Galaxy S Download Mode (Heimdall)</string>
+		<key>CFBundlePackageType</key> <string>KEXT</string>
+		<key>CFBundleSignature</key> <string>????</string>
+		<key>CFBundleVersion</key> <string>6.0</string>
+		<key>IOKitPersonalities</key>
+		<dict>
+			<key>GalaxyS</key>
+			<dict>
+				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
+				<key>IOClass</key> <string>AppleUSBComposite</string>
+				<key>IOProviderClass</key> <string>IOUSBDevice</string>
+				<key>idVendor</key> <integer>1256</integer>
+				<key>idProduct</key> <integer>26113</integer>
+			</dict>
+		</dict>
+		<key>OSBundleCompatibleVersion</key> <string>1.8</string>
+		<key>OSBundleLibraries</key>
+		<dict>
+			<key>com.apple.kernel.iokit</key> <string>6.0</string>
+		</dict>
+	</dict>
+</plist>
