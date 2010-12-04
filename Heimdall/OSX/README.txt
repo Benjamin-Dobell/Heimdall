@@ -49,7 +49,12 @@ Installing Heimdall from Source:
             sudo make install
             cd ..
 
-    5. Done
+    5. If you haven't installed the driver before, enter the following:
+
+            cd OSX
+            sudo ./install-kext.sh
+
+    6. Done
 
 
 Installing Heimdall Frontend from Source (Optional):
@@ -68,12 +73,10 @@ Installing Heimdall Frontend from Source (Optional):
     4. This will produce an XCode project called heimdall-frontend.xcodeproj
        in the heimdall-frontend folder. Open this file in XCode.
 
-    5. From the menu bar select Build -> Build. This will output a OS X
-       application to the OSX sub-directory.
+    5. From the menu bar select Build -> Build. This outputs heimdall-frontend
+       to /Applications
 
-    6. Move the output application to Applications or your preferred location.
-
-    7. Done
+    6. Done
 
 
 

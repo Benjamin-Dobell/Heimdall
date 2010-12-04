@@ -59,8 +59,9 @@ Installing Heimdall Frontend from Source (Optional):
             cd heimdall-frontend
             qmake heimdall-frontend.pro
             make
+            sudo make install
 
-       NOTE: You can use "checkinstall make" instead of "make" in order to
+       NOTE: You can use "checkinstall" instead of "make install" in order to
              generate a redistributable package.
 
     4. Done
