@@ -32,7 +32,7 @@ namespace Heimdall
 
 			void PackInteger(unsigned int offset, unsigned int value)
 			{
-#ifdef PPC
+#ifdef WORDS_BIGENDIAN
 				data[offset] = (value & 0xFF000000) >> 24;
 				data[offset + 1] = (value & 0x00FF0000) >> 16;
 				data[offset + 2] = (value & 0x0000FF00) >> 8;
@@ -48,7 +48,7 @@ namespace Heimdall
 
 			void PackShort(unsigned int offset, unsigned short value)
 			{
-#ifdef PPC
+#ifdef WORDS_BIGENDIAN
 				data[offset] = (value & 0xFF00) >> 8;
 				data[offset + 1] = value & 0x00FF;
 #else

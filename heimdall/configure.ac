@@ -32,4 +32,6 @@ case $host in
 	AC_MSG_ERROR([unsupported operating system])
 esac
 
+AC_C_BIGENDIAN
+
 AC_OUTPUT
