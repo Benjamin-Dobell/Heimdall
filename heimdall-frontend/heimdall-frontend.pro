@@ -5,31 +5,35 @@
 TEMPLATE = app
 TARGET = heimdall-frontend
 
-macx {
-	DESTDIR = ../OSX
-} else win32 {	# It's recommended that Windows users compile via VS2010, but just in case...
-	DESTDIR = ../Win32
-} else {
-	DESTDIR = ../Linux
-}
+OUTPUTDIR = $$[FRONTENDOUTDIR]
 
 macx {
-	PROPOSEDINSTALLDIR = /Applications
+	isEqual(OUTPUTDIR, "") {
+		DESTDIR = /Applications
+	} else {
+		DESTDIR = $$OUTPUTDIR
+	}
+
 } else {
-	PROPOSEDINSTALLDIR = /usr/local/bin
+	win32 {	# It's recommended that Windows users compile via VS2010, but just in case...
+		DESTDIR = ../Win32
+
+		!isEqual(OUTPUTDIR, "") {
+			target.path = $$OUTPUTDIR
+			INSTALLS += target
+		}
+	} else {
+		DESTDIR = ../Linux
+
+		isEqual(OUTPUTDIR, "") {
+			target.path = /usr/local/bin
+		} else {
+			target.path = $$OUTPUTDIR
+		}
+
+		INSTALLS += target
+	}
 }
-
-message("Install location:" $$PROPOSEDINSTALLDIR)
-DESIREDINSTALLDIR = $$prompt("Press ENTER to use the default location or type an alternative")
-
-equals(DESIREDINSTALLDIR, "") {
-	target.path = $$PROPOSEDINSTALLDIR
-} else {
-	target.path = $$DESIREDINSTALLDIR
-}
-
-
-INSTALLS += target
 
 QT += core gui
 CONFIG += release
