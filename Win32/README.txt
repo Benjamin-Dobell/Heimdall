@@ -39,7 +39,7 @@ Driver Uninstallation Instructions:
 
     3. Open up Device Manager on your PC (Control Panel -> System -> Device Manager).
 
-    4. Under Universal Serial Bus Controllers right click on "Heimdall Galaxy S Driver" and chose Properties.
+    4. Under "Libusb (WinUSB) devices" right click on "Samsung USB Composite Device" and chose Properties.
 
     5. Go to the Driver tab and select Update Driver.
 

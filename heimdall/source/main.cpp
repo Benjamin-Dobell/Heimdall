@@ -161,6 +161,7 @@ bool flashFile(BridgeManager *bridgeManager, FILE *file, int fileIndex)
 			}
 
 		case kFileParam:
+
 			InterfaceManager::Print("Uploading param.lfs\n");
 			if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone,
 				EndPhoneFileTransferPacket::kFileParamLfs))
@@ -193,9 +194,9 @@ bool flashFile(BridgeManager *bridgeManager, FILE *file, int fileIndex)
 
 			InterfaceManager::Print("Uploading modem\n");
 			
-			/*if (bridgeManager->SendFile(file, EndModemFileTransferPacket::kDestinationModem))*/	// <-- Odin method
-			if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone,		// <-- Kies method
-				EndPhoneFileTransferPacket::kFileModem))
+			if (bridgeManager->SendFile(file, EndModemFileTransferPacket::kDestinationModem))     // <-- Odin method
+			/*if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone,    // <-- Kies method. WARNING: Doesn't work on Galaxy Tab!
+				EndPhoneFileTransferPacket::kFileModem))*/
 			{
 				InterfaceManager::Print("Modem upload successful\n");
 				return (true);

@@ -26,7 +26,10 @@ Installing Heimdall and Heimdall Frontend Binaries:
 
 Installing Heimdall from Source:
 
-    1. First make sure you have installed build-tools and pkgconfig.
+    1. First make sure you have installed XCode and pkgconfig.
+
+       NOTE: There are several different ways you can install pkgconfig, one
+             option is to use Macports (http://www.macports.org/).
 
     2. Open a terminal and navigate to the directory where you extracted
        Heimdall.

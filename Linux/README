@@ -79,7 +79,10 @@ Flashing Firmware with Heimdall Frontend:
 
        NOTE: If you want to use the CSC then extract it last.
 
-    3. Open Heimdall Frontend.
+    3. Open Heimdall Frontend, which can be done by entering the following
+       command in a terminal:
+
+            heimdall-frontend
 
     4. Put your Galaxy S device into download mode.
 
