@@ -5,9 +5,18 @@
 TEMPLATE = app
 TARGET = heimdall-frontend
 
-OUTPUTDIR = $$[FRONTENDOUTDIR]
-
 macx {
+	PRIVATE_FRAMEWORKS.files = /Library/Frameworks/QtCore.framework \
+		/Library/Frameworks/QtGui.framework
+	PRIVATE_FRAMEWORKS.path = Contents/Frameworks
+
+	QMAKE_BUNDLE_DATA += PRIVATE_FRAMEWORKS
+
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
+	QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+
+	config += x86 x86_64 ppc
+
 	isEqual(OUTPUTDIR, "") {
 		DESTDIR = /Applications
 	} else {
