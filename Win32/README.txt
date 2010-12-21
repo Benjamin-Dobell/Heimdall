@@ -12,7 +12,20 @@ DISCLAIMER:
 
 
 These instructions were written for Windows Vista / Server 2008 however the producedure
-should be essentially the same for all supported versions of Windows (XP onwards). 
+should be essentially the same for all supported versions of Windows (XP onwards).
+
+Troubleshooting:
+
+    1. You get an error as follows:
+
+            The program can't start because MSVCP100.dll is missing from your
+            computer.
+
+       This means that you haven't installed the Microsoft Visual C++ 2010
+       runtimes. The runtimes can be downloaded from:
+
+            http://www.microsoft.com/downloads/en/details.aspx?familyid=A7B7A05E-6DE6-4D3A-A423-37BF0912DB84&displaylang=en
+
 
 Driver Installation Instructions:
 
