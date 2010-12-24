@@ -71,7 +71,13 @@ Installing Heimdall Frontend from Source (Optional):
     3. Enter the following commands to compile and install Heimdall Frontend:
 
             cd heimdall-frontend
-            qmake heimdall-frontend.pro
+            qmake
+	   
+	   Note: If you are using Qt via homebrew you may need to do:
+
+			qmake -spec macx-xcode heimdall-frontend.pro
+
+	   Instead of just qmake. This forces qmake to create the XCode Project.
 
     4. This will produce an XCode project called heimdall-frontend.xcodeproj
        in the heimdall-frontend folder. Open this file in XCode.
