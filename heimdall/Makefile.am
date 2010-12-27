@@ -16,4 +16,12 @@ heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
 	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h
 heimdall_LDADD = $(DEPS_LIBS)
 
+if LINUXTARGET
+udevrulesdir = /lib/udev/rules.d
+udevrules_DATA = 60-heimdall-galaxy-s.rules
+
+install-data-hook:
+	sudo service udev reload
+endif
+
 dist_noinst_SCRIPTS = autogen.sh

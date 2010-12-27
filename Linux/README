@@ -40,10 +40,7 @@ Installing Heimdall from Source:
 	    NOTE: You can use "checkinstall" instead of "make install" in order
                   to generate a redistributable package.
 
-    5. If you're not installing from a package then run
-       Linux/install-udev-rules.sh to setup user-level permissions for libusb. 
-
-    6. Done
+    5. Done
 
 
 
