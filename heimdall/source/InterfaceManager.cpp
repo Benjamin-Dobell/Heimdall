@@ -29,18 +29,20 @@
 using namespace std;
 using namespace Heimdall;
 
-string InterfaceManager::actionNames[kActionCount] = { "flash", "close-pc-screen", "dump", "help" };
+string InterfaceManager::actionNames[kActionCount] = { "flash", "close-pc-screen", "dump", "print-pit", "help" };
 
 string InterfaceManager::flashArgumentNames[kFlashArgCount * 2] = {
 	// --- Long Names ---
 	"-repartition",
 
 	"-pit", "-factoryfs", "-cache", "-dbdata", "-primary-boot",	"-secondary-boot", "-secondary-boot-backup", "-param", "-kernel", "-recovery", "-efs", "-modem",
+	"-normal-boot", "-system", "-user-data", "-fota", "-hidden", "-movinand", "-data", "-ums", "-emmc", "-%d",
 
 	// --- Short Names ---
 	"r",
 
-	"pit",  "fs",         "cache",  "db",      "boot",           "sbl",            "sbl2",                   "param",  "z",       "rec",       "efs",  "m"
+	"pit",  "fs",         "cache",  "db",      "boot",           "sbl",            "sbl2",                   "param",  "z",       "rec",       "efs",  "m",
+	"norm",         "sys",     "udata",      "fota",  "hide",    "nand",      "data",  "ums",  "emmc",  "%d"
 };
 
 string InterfaceManager::dumpArgumentNames[kDumpArgCount * 2] = {
@@ -53,12 +55,12 @@ string InterfaceManager::dumpArgumentNames[kDumpArgCount * 2] = {
 
 string InterfaceManager::commonArgumentNames[kCommonArgCount * 2] = {
 	// --- Long Names ---
-	"-verbose",
+	"-verbose", "-no-reboot"
 
 	"-delay",
 
 	// --- Short Names ---
-	"v",
+	"v",        "nobt"
 
 	"d"
 };
@@ -74,6 +76,9 @@ string *InterfaceManager::actionArgumentNames[kActionCount + 1] = {
 	// kActionDump
 	dumpArgumentNames,
 
+	// kActionPrintPit
+	nullptr,
+
 	// kActionHelp
 	nullptr,
 
@@ -82,28 +87,36 @@ string *InterfaceManager::actionArgumentNames[kActionCount + 1] = {
 };
 
 int InterfaceManager::actionArgumentCounts[kActionCount + 1] = {
-	kFlashArgCount, 0, kDumpArgCount, 0, kCommonArgCount
+	kFlashArgCount, 0, kDumpArgCount, 0, 0, kCommonArgCount
 };
 
 int InterfaceManager::actionValuelessArgumentCounts[kActionCount + 1] = {
-	kFlashArgPit, 0, kDumpArgChipType, 0, kCommonArgDelay
+	kFlashArgPit, 0, kDumpArgChipType, 0, 0, kCommonArgDelay
 };
 
-const char *InterfaceManager::usage = "Usage: heimdall <action> <arguments> [--verbose] [--delay <ms>]\n\
+const char *InterfaceManager::usage = "Usage: heimdall <action> <arguments> [--verbose] [--no-reboot] [--delay <ms>]\n\
 \n\
 action: flash\n\
 arguments:\n\
-    --repartition --pit <filename> --factoryfs <filename>\n\
-    --cache <filename> --dbdata <filename> --primary-boot <filename>\n\
-    --secondary-boot <filename> --param <filename> --kernel <filename>\n\
-    --modem <filename>\n\
+    --repartition --pit <filename> [--factoryfs <filename>]\n\
+    [--cache <filename>] [--dbdata <filename>] [--primary-boot <filename>]\n\
+    [--secondary-boot <filename>] [--param <filename>] [--kernel <filename>]\n\
+	[--modem <filename>] [--normal-boot <filename>] [--system <filename>]\n\
+	[--user-data <filename>] [--fota <filename>] [--hidden <filename>]\n\
+	[--movinand <filename>] [--data <filename>] [--ums <filename>]\n\
+	[--emmc <filename>] [--<partition identifier> <filename>]\n\
   or:\n\
-    [--pit <filename>] [--factoryfs <filename>] [--cache <filename>]\n\
-    [--dbdata <filename>] [--primary-boot <filename>]\n\
-    [--secondary-boot <filename>] [--secondary-boot-backup <filename>]\n\
-    [--param <filename>] [--kernel <filename>] [--recovery <filename>]\n\
-    [--efs <filename>] [--modem <filename>]\n\
+    [--factoryfs <filename>] [--cache <filename>] [--dbdata <filename>]\n\
+    [--primary-boot <filename>] [--secondary-boot <filename>]\n\
+    [--secondary-boot-backup <filename>] [--param <filename>]\n\
+    [--kernel <filename>] [--recovery <filename>] [--efs <filename>]\n\
+    [--modem <filename>] [--normal-boot <filename>] [--system <filename>]\n\
+	[--user-data <filename>] [--fota <filename>] [--hidden <filename>]\n\
+	[--movinand <filename>] [--data <filename>] [--ums <filename>]\n\
+	[--emmc <filename>] [--<partition identifier> <filename>]\n\
 description: Flashes firmware files to your phone.\n\
+WARNING: If you're repartitioning it's strongly recommended you specify\n\
+         all files at your disposal, including bootloaders.\n\
 \n\
 action: close-pc-screen\n\
 description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
@@ -113,6 +126,10 @@ arguments: --chip-type <NAND | RAM> --chip-id <integer> --output <filename>\n\
 description: Attempts to dump data from the phone corresponding to the\n\
 	specified chip type and chip ID.\n\
 NOTE: Galaxy S phones don't appear to properly support this functionality.\n\
+\n\
+action: print-pit\n\
+description: Dumps the PIT file from the connected device and prints it in\n\
+    a human readable format.\n\
 \n\
 action: help\n\
 description: Display this dialogue.\n";
@@ -200,6 +217,25 @@ bool InterfaceManager::GetArguments(int argc, char **argv, map<string, string>& 
 		// Check if the argument is a valid regular argument
 		for (int i = actionValuelessArgumentCount; i < actionArgumentCount; i++)
 		{
+			// Support for --<integer> and -<integer> parameters.
+			if (argumentName.length() > 1 && argumentNames[i].compare("-%d") == 0)
+			{
+				if (atoi(argumentName.substr(1).c_str()) > 0 || argumentName.compare("-0") == 0)
+				{
+					valid = true;
+					break;
+				}
+			}
+			else if (argumentNames[i].compare("%d") == 0)
+			{
+				if (atoi(argumentName.c_str()) > 0 || argumentName.compare("0") == 0)
+				{
+					argumentName = "-" + argumentName;
+					valid = true;
+					break;
+				}
+			}
+
 			if (argumentName == argumentNames[i] || argumentName == argumentNames[actionArgumentCount + i])
 			{
 				argumentName = argumentNames[i];
@@ -213,6 +249,25 @@ bool InterfaceManager::GetArguments(int argc, char **argv, map<string, string>& 
 			// Check if it's a common regular argument
 			for (int i = commonValuelessArgumentCount; i < commonArgumentCount; i++)
 			{
+				// Support for --<integer> and -<integer> parameters.
+				if (argumentName.length() > 1 && argumentNames[i].compare("-%d"))
+				{
+					if (atoi(argumentName.substr(1).c_str()) > 0 || argumentName.compare("-0") == 0)
+					{
+						valid = true;
+						break;
+					}
+				}
+				else if (argumentNames[i].compare("%d"))
+				{
+					if (atoi(argumentName.c_str()) > 0 || argumentName.compare("0") == 0)
+					{
+						argumentName = "-" + argumentName;
+						valid = true;
+						break;
+					}
+				}
+
 				if (argumentName == commonArgumentNames[i] || argumentName == commonArgumentNames[commonArgumentCount + i])
 				{
 					argumentName = commonArgumentNames[i];

@@ -35,14 +35,14 @@ namespace Heimdall
 
 		protected:
 
-			int UnpackInteger(int offset)
+			unsigned int UnpackInteger(unsigned int offset) const
 			{
 #ifdef WORDS_BIGENDIAN
-				int value = (data[offset] << 24) | (data[offset + 1] << 16) |
+				unsigned int value = (data[offset] << 24) | (data[offset + 1] << 16) |
 					(data[offset + 2] << 8) | data[offset + 3];
 #else
 				// Flip endianness
-				int value = data[offset] | (data[offset + 1] << 8) |
+				unsigned int value = data[offset] | (data[offset + 1] << 8) |
 					(data[offset + 2] << 16) | (data[offset + 3] << 24);
 #endif
 				return (value);

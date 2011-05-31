@@ -67,9 +67,6 @@
     <ClInclude Include="source\PitFileResponse.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\RebootDevicePacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="source\ReceiveFilePartPacket.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -85,6 +82,12 @@
     <ClInclude Include="source\InterfaceManager.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="source\PitData.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndSessionPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\BridgeManager.cpp">
@@ -94,6 +97,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="source\InterfaceManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\PitData.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

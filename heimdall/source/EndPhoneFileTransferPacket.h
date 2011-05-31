@@ -30,7 +30,7 @@ namespace Heimdall
 	{
 		public:
 
-			enum
+			/*enum
 			{
 				kFilePrimaryBootloader			= 0x00,
 				kFilePit						= 0x01, // New 1.1 - Don't flash the pit this way!
@@ -38,6 +38,9 @@ namespace Heimdall
 				kFileSecondaryBootloaderBackup	= 0x04,	// New 1.1
 				kFileKernel						= 0x06,
 				kFileRecovery					= 0x07,	// New 1.1
+
+				kFileTabletModem				= 0x08, // New 1.2
+
 				kFileEfs						= 0x14, // New 1.1
 				kFileParamLfs					= 0x15,
 				kFileFactoryFilesystem			= 0x16,
@@ -45,7 +48,7 @@ namespace Heimdall
 				kFileCache						= 0x18,
 
 				kFileModem						= 0x0B	// New 1.1 - Kies flashes the modem this way rather than using the EndModemFileTransferPacket.
-			};
+			};*/
 
 		private:
 

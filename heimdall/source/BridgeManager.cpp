@@ -32,6 +32,7 @@
 #include "DumpResponse.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
+#include "EndSessionPacket.h"
 #include "FileTransferPacket.h"
 #include "FlashPartFileTransferPacket.h"
 #include "FlashPartPitFilePacket.h"
@@ -41,7 +42,6 @@
 #include "PitFilePacket.h"
 #include "PitFileResponse.h"
 #include "ReceiveFilePartPacket.h"
-#include "RebootDevicePacket.h"
 #include "ResponsePacket.h"
 #include "SendFilePartPacket.h"
 #include "SendFilePartResponse.h"
@@ -54,10 +54,9 @@
 using namespace Heimdall;
 
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxySDownloadMode)/*,
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxySInternational),
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxySNewInternational),
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidVibrantCanadaBell)*/
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS),
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS2),
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidDroidCharge)
 };
 
 enum
@@ -428,9 +427,9 @@ bool BridgeManager::EndSession(void) const
 {
 	InterfaceManager::Print("Ending session...\n");
 
-	RebootDevicePacket *rebootDevicePacket = new RebootDevicePacket(RebootDevicePacket::kRequestEndSession);
-	bool success = SendPacket(rebootDevicePacket);
-	delete rebootDevicePacket;
+	EndSessionPacket *endSessionPacket = new EndSessionPacket(EndSessionPacket::kRequestEndSession);
+	bool success = SendPacket(endSessionPacket);
+	delete endSessionPacket;
 
 	if (!success)
 	{
@@ -438,9 +437,9 @@ bool BridgeManager::EndSession(void) const
 		return (false);
 	}
 
-	ResponsePacket *rebootDeviceResponse = new ResponsePacket(ResponsePacket::kResponseTypeRebootDevice);
-	success = ReceivePacket(rebootDeviceResponse);
-	delete rebootDeviceResponse;
+	ResponsePacket *endSessionResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
+	success = ReceivePacket(endSessionResponse);
+	delete endSessionResponse;
 
 	if (!success)
 	{
@@ -539,7 +538,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 		}
 
 		if (verbose)
-				InterfaceManager::PrintError("\n");
+			InterfaceManager::PrintError("\n");
 	}
 
 	if (communicationDelay != 0)
@@ -1062,17 +1061,17 @@ bool BridgeManager::RebootDevice(void) const
 {
 	InterfaceManager::Print("Rebooting device...\n");
 
-	RebootDevicePacket *rebootDevicePacket = new RebootDevicePacket(RebootDevicePacket::kRequestRebootDevice);
+	EndSessionPacket *rebootDevicePacket = new EndSessionPacket(EndSessionPacket::kRequestRebootDevice);
 	bool success = SendPacket(rebootDevicePacket);
 	delete rebootDevicePacket;
 
 	if (!success)
 	{
-		InterfaceManager::PrintError("Failed to send end session packet!\n");
+		InterfaceManager::PrintError("Failed to send reboot device packet!\n");
 		return (false);
 	}
 
-	ResponsePacket *rebootDeviceResponse = new ResponsePacket(ResponsePacket::kResponseTypeRebootDevice);
+	ResponsePacket *rebootDeviceResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
 	success = ReceivePacket(rebootDeviceResponse);
 	delete rebootDeviceResponse;
 

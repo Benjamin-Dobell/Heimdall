@@ -38,6 +38,7 @@ namespace Heimdall
 				kActionFlash = 0,
 				kActionClosePcScreen,
 				kActionDump,
+				kActionPrintPit,
 				kActionHelp,
 				kActionCount
 			};
@@ -51,7 +52,7 @@ namespace Heimdall
 				kFlashArgPit,
 				kFlashArgFactoryFs,
 				kFlashArgCache,
-				kFlashArgData,
+				kFlashArgDatabaseData,
 				kFlashArgPrimaryBootloader,
 				kFlashArgSecondaryBootloader,
 				kFlashArgSecondaryBootloaderBackup,
@@ -60,6 +61,18 @@ namespace Heimdall
 				kFlashArgRecovery,
 				kFlashArgEfs,
 				kFlashArgModem,
+
+				kFlashArgNormalBoot,
+				kFlashArgSystem,
+				kFlashArgUserData,
+				kFlashArgFota,
+				kFlashArgHidden,
+				kFlashArgMovinand,
+				kFlashArgData,
+				kFlashArgUms,
+				kFlashArgEmmc,
+
+				kFlashArgPartitionIndex,
 
 				kFlashArgCount
 			};
@@ -78,6 +91,7 @@ namespace Heimdall
 			{
 				// Valueless arguments
 				kCommonArgVerbose = 0,
+				kCommonArgNoReboot,
 
 				// Regular arguments
 				kCommonArgDelay,

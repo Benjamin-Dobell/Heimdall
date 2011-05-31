@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heimdall-frontend", "heimdall-frontend\heimdall-frontend.vcxproj", "{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0} = {DC0D782C-8DB7-44CA-A984-D3A97483E0D0}
@@ -17,6 +17,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Release - Static MSVC|Win32 = Release - Static MSVC|Win32
+		Release - Static MSVC|x64 = Release - Static MSVC|x64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
@@ -24,12 +26,18 @@ Global
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Debug|Win32.ActiveCfg = Debug|Win32
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Debug|Win32.Build.0 = Debug|Win32
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Debug|x64.ActiveCfg = Debug|Win32
+		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release - Static MSVC|Win32.ActiveCfg = Release - Static MSVC|Win32
+		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release - Static MSVC|Win32.Build.0 = Release - Static MSVC|Win32
+		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release - Static MSVC|x64.ActiveCfg = Release - Static MSVC|Win32
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release|Win32.ActiveCfg = Release|Win32
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release|Win32.Build.0 = Release|Win32
 		{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}.Release|x64.ActiveCfg = Release|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Debug|Win32.Build.0 = Debug|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Debug|x64.ActiveCfg = Debug|Win32
+		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release - Static MSVC|Win32.ActiveCfg = Release - Static MSVC|Win32
+		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release - Static MSVC|Win32.Build.0 = Release - Static MSVC|Win32
+		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release - Static MSVC|x64.ActiveCfg = Release - Static MSVC|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release|Win32.ActiveCfg = Release|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release|Win32.Build.0 = Release|Win32
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}.Release|x64.ActiveCfg = Release|Win32
@@ -37,6 +45,10 @@ Global
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Debug|Win32.Build.0 = Debug|Win32
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Debug|x64.ActiveCfg = Debug|x64
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Debug|x64.Build.0 = Debug|x64
+		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release - Static MSVC|Win32.ActiveCfg = Release - Static MSVC|Win32
+		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release - Static MSVC|Win32.Build.0 = Release - Static MSVC|Win32
+		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release - Static MSVC|x64.ActiveCfg = Release - Static MSVC|x64
+		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release - Static MSVC|x64.Build.0 = Release - Static MSVC|x64
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|Win32.ActiveCfg = Release|Win32
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|Win32.Build.0 = Release|Win32
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|x64.ActiveCfg = Release|x64

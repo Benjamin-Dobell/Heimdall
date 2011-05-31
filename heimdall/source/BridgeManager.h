@@ -53,7 +53,7 @@ namespace Heimdall
 
 			enum
 			{
-				kSupportedDeviceCount		= 1,
+				kSupportedDeviceCount		= 3,
 
 				kCommunicationDelayDefault	= 0,
 				kDumpBufferSize				= 4096
@@ -66,10 +66,9 @@ namespace Heimdall
 
 			enum
 			{
-				kPidGalaxySDownloadMode		= 0x6601/*,
-				kPidGalaxySInternational	= 0x681C,
-				kPidGalaxySNewInternational	= 0x681D,
-				kPidVibrantCanadaBell		= 0x6877*/
+				kPidGalaxyS		    = 0x6601,
+				kPidGalaxyS2        = 0x685D,
+				kPidDroidCharge     = 0x68C3
 			};
 
 		private:
