@@ -304,10 +304,10 @@ bool attemptFlash(BridgeManager *bridgeManager, FILE **fileArray, bool repartiti
 		return (false);
 	}
 
-	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, and 3 on the Galaxy Tab.
-	if (unknown != 180 && unknown != 0 && unknown != 3)
+	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, and 3 on the Galaxy Tab. 190 for SHW-M110S(Korean Galaxy S)
+	if (unknown != 180 && unknown != 0 && unknown != 3 && unknown != 190)
 	{
-		InterfaceManager::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%i\n", unknown);
+		InterfaceManager::PrintError("Unexpected device info response!\nExpected: 180, 190, 0 or 3\nReceived:%i\n", unknown);
 
 		if (!bridgeManager->EndSession())
 			return (false);
