@@ -51,7 +51,9 @@ namespace Heimdall
 
 				// min(fileSize, size)
 				int bytesToRead = (fileSize < size) ? fileSize - position : size;
-				fread(data, 1, bytesToRead, file);
+				
+				// bytesRead is discarded (it's just there to stop GCC warnings)
+				int bytesRead = fread(data, 1, bytesToRead, file);
 			}
 
 			void Pack(void)

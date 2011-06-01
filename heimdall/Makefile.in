@@ -57,7 +57,8 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(udevrulesdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_heimdall_OBJECTS = source/BridgeManager.$(OBJEXT) \
-	source/InterfaceManager.$(OBJEXT) source/main.$(OBJEXT)
+	source/InterfaceManager.$(OBJEXT) source/main.$(OBJEXT) \
+	source/PitData.$(OBJEXT)
 heimdall_OBJECTS = $(am_heimdall_OBJECTS)
 am__DEPENDENCIES_1 =
 heimdall_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -247,6 +248,7 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+udevadminstalled = @udevadminstalled@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = $(DEPS_CFLAGS)
@@ -259,8 +261,9 @@ heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
 	source/FlashPartPitFilePacket.h source/Heimdall.h \
 	source/InboundPacket.h source/InterfaceManager.cpp source/InterfaceManager.h \
 	source/main.cpp source/OutboundPacket.h source/Packet.h source/PitFilePacket.h \
-	source/PitFileResponse.h source/RebootDevicePacket.h source/ReceiveFilePartPacket.h \
-	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h
+	source/PitFileResponse.h source/EndSessionPacket.h source/ReceiveFilePartPacket.h \
+	source/ResponsePacket.h source/SendFilePartPacket.h \
+        source/SendFilePartResponse.h source/PitData.cpp source/PitData.h
 
 heimdall_LDADD = $(DEPS_LIBS)
 @LINUXTARGET_TRUE@udevrulesdir = /lib/udev/rules.d
@@ -377,6 +380,8 @@ source/InterfaceManager.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/main.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
+source/PitData.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
 heimdall$(EXEEXT): $(heimdall_OBJECTS) $(heimdall_DEPENDENCIES) 
 	@rm -f heimdall$(EXEEXT)
 	$(CXXLINK) $(heimdall_OBJECTS) $(heimdall_LDADD) $(LIBS)
@@ -385,6 +390,7 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f source/BridgeManager.$(OBJEXT)
 	-rm -f source/InterfaceManager.$(OBJEXT)
+	-rm -f source/PitData.$(OBJEXT)
 	-rm -f source/main.$(OBJEXT)
 
 distclean-compile:
@@ -392,6 +398,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/BridgeManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/InterfaceManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/PitData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:
@@ -777,7 +784,8 @@ uninstall-am: uninstall-binPROGRAMS uninstall-udevrulesDATA
 
 
 @LINUXTARGET_TRUE@install-data-hook:
-@LINUXTARGET_TRUE@	sudo service udev reload
+@LINUXTARGET_TRUE@@UDEVADM_TRUE@	sudo udevadm control --reload_rules
+@LINUXTARGET_TRUE@@UDEVADM_FALSE@	sudo service udev restart
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

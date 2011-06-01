@@ -23,7 +23,12 @@ udevrulesdir = /lib/udev/rules.d
 udevrules_DATA = 60-heimdall-galaxy-s.rules
 
 install-data-hook:
+if UDEVADM
 	sudo udevadm control --reload_rules
+else
+	sudo service udev restart
+endif
+
 endif
 
 dist_noinst_SCRIPTS = autogen.sh

@@ -439,7 +439,8 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		long localPitFileSize = ftell(localPitFile);
 		rewind(localPitFile);
 
-		fread(pitFileBuffer, 1, localPitFileSize, localPitFile);
+		// dataRead is discarded, it's here to remove warnings.
+		int dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile);
 		rewind(localPitFile);
 
 		pitData = new PitData();
@@ -566,7 +567,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	InterfaceManager::Print("\nHeimdall v, Copyright (c) 2010, Benjamin Dobell, Glass Echidna\n");
+	InterfaceManager::Print("\nHeimdall v1.0.2b, Copyright (c) 2010-2011, Benjamin Dobell, Glass Echidna\n");
 	InterfaceManager::Print("http://www.glassechidna.com.au\n\n");
 	InterfaceManager::Print("This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n");
 	InterfaceManager::Print("If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n");

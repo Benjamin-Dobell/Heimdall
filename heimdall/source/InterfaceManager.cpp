@@ -20,6 +20,7 @@
 
 // C/C++ Standard Library
 #include <cstdarg>
+#include <cstdlib>
 #include <stdio.h>
 
 // Heimdall
@@ -94,7 +95,8 @@ int InterfaceManager::actionValuelessArgumentCounts[kActionCount + 1] = {
 	kFlashArgPit, 0, kDumpArgChipType, 0, 0, kCommonArgDelay
 };
 
-const char *InterfaceManager::usage = "Usage: heimdall <action> <arguments> [--verbose] [--no-reboot] [--delay <ms>]\n\
+const char *InterfaceManager::usage = "\nHeimdall v1.0.2b, Copyright (c) 2010-2011, Benjamin Dobell, Glass Echidna\n\n\
+Usage: heimdall <action> <arguments> [--verbose] [--no-reboot] [--delay <ms>]\n\
 \n\
 action: flash\n\
 arguments:\n\
