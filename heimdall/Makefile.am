@@ -12,8 +12,10 @@ heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
 	source/FlashPartPitFilePacket.h source/Heimdall.h \
 	source/InboundPacket.h source/InterfaceManager.cpp source/InterfaceManager.h \
 	source/main.cpp source/OutboundPacket.h source/Packet.h source/PitFilePacket.h \
-	source/PitFileResponse.h source/RebootDevicePacket.h source/ReceiveFilePartPacket.h \
-	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h
+	source/PitFileResponse.h source/EndSessionPacket.h source/ReceiveFilePartPacket.h \
+	source/ResponsePacket.h source/SendFilePartPacket.h \
+        source/SendFilePartResponse.h source/PitData.cpp source/PitData.h
+
 heimdall_LDADD = $(DEPS_LIBS)
 
 if LINUXTARGET
@@ -21,7 +23,7 @@ udevrulesdir = /lib/udev/rules.d
 udevrules_DATA = 60-heimdall-galaxy-s.rules
 
 install-data-hook:
-	sudo service udev reload
+	sudo udevadm control --reload_rules
 endif
 
 dist_noinst_SCRIPTS = autogen.sh
