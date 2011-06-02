@@ -1,2 +1,3 @@
 SUBSYSTEM=="usb", SYSFS{idVendor}=="04e8", SYSFS{idProduct}=="6601", MODE="0666"
-
+SUBSYSTEM=="usb", SYSFS{idVendor}=="04e8", SYSFS{idProduct}=="685D", MODE="0666"
+SUBSYSTEM=="usb", SYSFS{idVendor}=="04e8", SYSFS{idProduct}=="68C3", MODE="0666"
