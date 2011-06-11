@@ -56,12 +56,12 @@ string InterfaceManager::dumpArgumentNames[kDumpArgCount * 2] = {
 
 string InterfaceManager::commonArgumentNames[kCommonArgCount * 2] = {
 	// --- Long Names ---
-	"-verbose", "-no-reboot"
+	"-verbose", "-no-reboot",
 
 	"-delay",
 
 	// --- Short Names ---
-	"v",        "nobt"
+	"v",        "nobt",
 
 	"d"
 };
@@ -216,33 +216,36 @@ bool InterfaceManager::GetArguments(int argc, char **argv, map<string, string>& 
 			continue;
 		}
 
-		// Check if the argument is a valid regular argument
-		for (int i = actionValuelessArgumentCount; i < actionArgumentCount; i++)
+		if (argumentNames != nullptr)
 		{
-			// Support for --<integer> and -<integer> parameters.
-			if (argumentName.length() > 1 && argumentNames[i].compare("-%d") == 0)
+			// Check if the argument is a valid regular argument
+			for (int i = actionValuelessArgumentCount; i < actionArgumentCount; i++)
 			{
-				if (atoi(argumentName.substr(1).c_str()) > 0 || argumentName.compare("-0") == 0)
+				// Support for --<integer> and -<integer> parameters.
+				if (argumentName.length() > 1 && argumentNames[i].compare("-%d") == 0)
 				{
-					valid = true;
-					break;
+					if (atoi(argumentName.substr(1).c_str()) > 0 || argumentName.compare("-0") == 0)
+					{
+						valid = true;
+						break;
+					}
 				}
-			}
-			else if (argumentNames[i].compare("%d") == 0)
-			{
-				if (atoi(argumentName.c_str()) > 0 || argumentName.compare("0") == 0)
+				else if (argumentNames[i].compare("%d") == 0)
 				{
-					argumentName = "-" + argumentName;
-					valid = true;
-					break;
+					if (atoi(argumentName.c_str()) > 0 || argumentName.compare("0") == 0)
+					{
+						argumentName = "-" + argumentName;
+						valid = true;
+						break;
+					}
 				}
-			}
 
-			if (argumentName == argumentNames[i] || argumentName == argumentNames[actionArgumentCount + i])
-			{
-				argumentName = argumentNames[i];
-				valid = true;
-				break;
+				if (argumentName == argumentNames[i] || argumentName == argumentNames[actionArgumentCount + i])
+				{
+					argumentName = argumentNames[i];
+					valid = true;
+					break;
+				}
 			}
 		}
 
@@ -252,7 +255,7 @@ bool InterfaceManager::GetArguments(int argc, char **argv, map<string, string>& 
 			for (int i = commonValuelessArgumentCount; i < commonArgumentCount; i++)
 			{
 				// Support for --<integer> and -<integer> parameters.
-				if (argumentName.length() > 1 && argumentNames[i].compare("-%d"))
+				if (argumentName.length() > 1 && commonArgumentNames[i].compare("-%d"))
 				{
 					if (atoi(argumentName.substr(1).c_str()) > 0 || argumentName.compare("-0") == 0)
 					{
@@ -260,7 +263,7 @@ bool InterfaceManager::GetArguments(int argc, char **argv, map<string, string>& 
 						break;
 					}
 				}
-				else if (argumentNames[i].compare("%d"))
+				else if (commonArgumentNames[i].compare("%d"))
 				{
 					if (atoi(argumentName.c_str()) > 0 || argumentName.compare("0") == 0)
 					{
