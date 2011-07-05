@@ -18,20 +18,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-// Heimdall Frontend
-#include "mainwindow.h"
-
 // Qt
 #include <QtGui/QApplication>
+
+// Heimdall Frontend
+#include "mainwindow.h"
 
 using namespace HeimdallFrontend;
 
 int main(int argc, char *argv[])
 {
-	QApplication a(argc, argv);
+	QApplication application(argc, argv);
 	
-	MainWindow w;
-	w.show();
+	MainWindow window;
+	window.show();
 
-	return a.exec();
+	return (application.exec());
 }

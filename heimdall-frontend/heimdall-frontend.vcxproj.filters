@@ -49,6 +49,15 @@
     <ClCompile Include="Source\aboutform.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Packaging.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PackageData.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\FirmwareInfo.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">
@@ -72,6 +81,15 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\aboutform.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Packaging.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PackageData.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FirmwareInfo.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

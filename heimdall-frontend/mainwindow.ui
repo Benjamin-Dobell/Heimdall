@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>902</width>
-    <height>523</height>
+    <width>788</width>
+    <height>505</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,18 +18,18 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>902</width>
-    <height>523</height>
+    <width>788</width>
+    <height>505</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>902</width>
-    <height>523</height>
+    <width>788</width>
+    <height>505</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string notr="true">Heimdall Frontend 1.1</string>
+   <string notr="true">Heimdall Frontend</string>
   </property>
   <property name="toolTip">
    <string notr="true"/>
@@ -65,12 +65,15 @@
     </font>
    </property>
    <widget class="QTabWidget" name="functionTabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>5</x>
       <y>0</y>
-      <width>881</width>
-      <height>491</height>
+      <width>780</width>
+      <height>481</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -79,464 +82,403 @@
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
+    <property name="minimumSize">
+     <size>
+      <width>780</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>780</width>
+      <height>780</height>
+     </size>
+    </property>
     <property name="currentIndex">
      <number>0</number>
     </property>
+    <property name="usesScrollButtons">
+     <bool>false</bool>
+    </property>
+    <widget class="QWidget" name="loadPackageTab">
+     <attribute name="title">
+      <string>Load Package</string>
+     </attribute>
+     <widget class="QGroupBox" name="includedFilesGroup">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>20</y>
+        <width>251</width>
+        <height>341</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Included Files</string>
+      </property>
+      <widget class="QListWidget" name="includedFilesListWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>231</width>
+         <height>311</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="platformGroup">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>80</y>
+        <width>151</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Platform</string>
+      </property>
+      <widget class="QLineEdit" name="platformLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>131</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="supportedDevicesGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>491</width>
+        <height>231</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Supported Devices</string>
+      </property>
+      <widget class="QListWidget" name="supportedDevicesListWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>471</width>
+         <height>201</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QRadioButton" name="repartitionRadioButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>370</y>
+        <width>241</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Repartition Recommended</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="loadFirmwareButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>580</x>
+        <y>410</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load / Customise</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="firmwareNameGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>221</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Firmware Name</string>
+      </property>
+      <widget class="QLineEdit" name="firmwareNameLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>201</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="firmwarePackageGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>491</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Heimdall Firmware Package</string>
+      </property>
+      <widget class="QLineEdit" name="firmwarePackageLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>391</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="browseFirmwarePackageButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>20</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Browse</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="versionGroup">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>80</y>
+        <width>101</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Version</string>
+      </property>
+      <widget class="QLineEdit" name="versionLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="developerGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>150</y>
+        <width>491</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Developer(s)</string>
+      </property>
+      <widget class="QLineEdit" name="developerNamesLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>311</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="developerDonateButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>20</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Donate</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="developerHomepageButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>20</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Homepage</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
     <widget class="QWidget" name="flashTab">
      <attribute name="title">
       <string>Flash</string>
      </attribute>
-     <widget class="QGroupBox" name="pdaGroupBox">
+     <widget class="QGroupBox" name="statusGroup">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
-        <width>421</width>
-        <height>331</height>
+        <y>290</y>
+        <width>751</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
-       <string>PDA/Code</string>
+       <string>Status</string>
       </property>
-      <widget class="QGroupBox" name="factoryfsGroupBox">
+      <widget class="QProgressBar" name="flashProgressBar">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>120</y>
+         <width>311</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+      <widget class="QPlainTextEdit" name="outputPlainTextEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>401</width>
-         <height>61</height>
+         <width>731</width>
+         <height>91</height>
         </rect>
        </property>
-       <property name="title">
-        <string>FactoryFS</string>
-       </property>
-       <widget class="QLineEdit" name="factoryfsLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="factoryfsBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="factoryfsCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
       </widget>
-      <widget class="QGroupBox" name="kernelGroupBox">
+      <widget class="QLabel" name="flashLabel">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>80</y>
-         <width>401</width>
-         <height>61</height>
+         <y>120</y>
+         <width>301</width>
+         <height>21</height>
         </rect>
        </property>
-       <property name="title">
-        <string>Kernel (zImage)</string>
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
        </property>
-       <widget class="QLineEdit" name="kernelLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="kernelBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="kernelCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
+       <property name="text">
+        <string notr="true">Ready</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::PlainText</enum>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+       </property>
       </widget>
-      <widget class="QGroupBox" name="primaryBootGroupBox">
+      <widget class="QPushButton" name="startFlashButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>200</y>
-         <width>401</width>
-         <height>61</height>
+         <x>640</x>
+         <y>120</y>
+         <width>91</width>
+         <height>31</height>
         </rect>
        </property>
-       <property name="title">
-        <string>Primary Bootloader</string>
+       <property name="text">
+        <string>Start</string>
        </property>
-       <widget class="QLineEdit" name="primaryBootLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="primaryBootBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="primaryBootCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QGroupBox" name="secondaryBootGroupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>260</y>
-         <width>401</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Secondary Bootloader</string>
-       </property>
-       <widget class="QLineEdit" name="secondaryBootLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="secondaryBootBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="secondaryBootCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QGroupBox" name="paramGroupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>140</y>
-         <width>401</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Param.lfs</string>
-       </property>
-       <widget class="QLineEdit" name="paramLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="paramBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="paramCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="cscGroupBox">
-      <property name="geometry">
-       <rect>
-        <x>440</x>
-        <y>10</y>
-        <width>421</width>
-        <height>151</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>CSC</string>
-      </property>
-      <widget class="QGroupBox" name="cacheGroupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>401</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Cache</string>
-       </property>
-       <widget class="QLineEdit" name="cacheLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="cacheBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="cacheCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QGroupBox" name="databaseGroupBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>401</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Database Data</string>
-       </property>
-       <widget class="QLineEdit" name="databaseLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="databaseBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="databaseCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </widget>
-     </widget>
-     <widget class="QGroupBox" name="repartitionGroupBox">
+     <widget class="QGroupBox" name="optionsGroup">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>421</width>
-        <height>111</height>
+        <width>751</width>
+        <height>271</height>
        </rect>
       </property>
       <property name="title">
-       <string>Repartition</string>
+       <string>Options</string>
       </property>
-      <widget class="QGroupBox" name="pitGroupBox">
+      <widget class="QGroupBox" name="pitGroup">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>401</width>
-         <height>81</height>
+         <width>381</width>
+         <height>91</height>
         </rect>
        </property>
        <property name="title">
@@ -550,7 +492,7 @@
          <rect>
           <x>10</x>
           <y>50</y>
-          <width>301</width>
+          <width>281</width>
           <height>21</height>
          </rect>
         </property>
@@ -564,7 +506,7 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>300</x>
           <y>50</y>
           <width>71</width>
           <height>23</height>
@@ -582,86 +524,136 @@
          <rect>
           <x>10</x>
           <y>20</y>
-          <width>381</width>
+          <width>91</width>
           <height>17</height>
          </rect>
         </property>
         <property name="text">
-         <string>Repartition Device</string>
+         <string>Repartition</string>
         </property>
        </widget>
       </widget>
-     </widget>
-     <widget class="QPushButton" name="startFlashButton">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>780</x>
-        <y>410</y>
-        <width>91</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Start</string>
-      </property>
-     </widget>
-     <widget class="QProgressBar" name="flashProgressBar">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>460</x>
-        <y>410</y>
-        <width>311</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-     <widget class="QGroupBox" name="otherGroupBox">
-      <property name="geometry">
-       <rect>
-        <x>440</x>
-        <y>160</y>
-        <width>421</width>
-        <height>151</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>MS Shell Dlg 2</family>
-       </font>
-      </property>
-      <property name="title">
-       <string>Other</string>
-      </property>
-      <widget class="QGroupBox" name="recoveryGroupBox">
+      <widget class="QPushButton" name="removePartitionButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>230</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Remove</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="partitionGroup">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>80</y>
-         <width>401</width>
-         <height>61</height>
+         <y>120</y>
+         <width>381</width>
+         <height>141</height>
         </rect>
        </property>
        <property name="title">
-        <string>Recovery</string>
+        <string>File / Partition</string>
        </property>
-       <widget class="QLineEdit" name="recoveryLineEdit">
+       <widget class="QComboBox" name="partitionNameComboBox">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
+          <x>110</x>
+          <y>20</y>
+          <width>261</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="partitionNameLabel">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>91</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Partition Name</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="partitionIdLabel">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>91</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Partition ID</string>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="partitionFileGroup">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>80</y>
+          <width>361</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>File</string>
+        </property>
+        <widget class="QLineEdit" name="partitionFileLineEdit">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>20</y>
+           <width>261</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="partitionFileBrowseButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>280</x>
+           <y>20</y>
+           <width>71</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Browse</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QLineEdit" name="partitionIdLineEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>50</y>
+          <width>261</width>
           <height>21</height>
          </rect>
         </property>
@@ -669,159 +661,502 @@
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="recoveryBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="recoveryCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
       </widget>
-      <widget class="QGroupBox" name="modemGroupBox">
+      <widget class="QPushButton" name="addPartitionButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>400</x>
+         <y>230</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Add</string>
+       </property>
+      </widget>
+      <widget class="QListWidget" name="partitionsListWidget">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>400</x>
+         <y>20</y>
+         <width>341</width>
+         <height>201</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="createPackageTab">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="title">
+      <string>Create Package</string>
+     </attribute>
+     <widget class="QGroupBox" name="createSupportedDevicesGroup">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>230</y>
+        <width>491</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Supported Devices</string>
+      </property>
+      <widget class="QListWidget" name="createDevicesListWidget">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>401</width>
-         <height>61</height>
+         <width>471</width>
+         <height>151</height>
         </rect>
        </property>
-       <property name="title">
-        <string>Modem</string>
+      </widget>
+      <widget class="QPushButton" name="removeDeviceButton">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
-       <widget class="QLineEdit" name="modemLineEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>30</x>
-          <y>30</y>
-          <width>281</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="modemBrowseButton">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>30</y>
-          <width>71</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="modemCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>21</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>180</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Remove Device</string>
+       </property>
       </widget>
      </widget>
-     <widget class="QLabel" name="flashLabel">
+     <widget class="QGroupBox" name="createFirmwareVersionGroup">
       <property name="geometry">
        <rect>
-        <x>460</x>
-        <y>380</y>
-        <width>411</width>
-        <height>21</height>
+        <x>240</x>
+        <y>10</y>
+        <width>111</width>
+        <height>61</height>
        </rect>
       </property>
-      <property name="text">
-       <string notr="true">Ready</string>
+      <property name="title">
+       <string>Firmware Version</string>
       </property>
-      <property name="textFormat">
-       <enum>Qt::PlainText</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-      </property>
+      <widget class="QLineEdit" name="createFirmwareVersionLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
      </widget>
-    </widget>
-    <widget class="QWidget" name="firmwareTab">
-     <attribute name="title">
-      <string>Download Firmware</string>
-     </attribute>
-     <widget class="QGroupBox" name="groupBox_2">
+     <widget class="QGroupBox" name="createPlatformNameGroup">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>10</y>
+        <width>151</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Platform Name</string>
+      </property>
+      <widget class="QLineEdit" name="createPlatformNameLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>131</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="createFirmwareNameGroup">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>851</width>
-        <height>441</height>
+        <width>221</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="title">
-       <string/>
+       <string>Firmware Name</string>
       </property>
-      <widget class="QLabel" name="label">
+      <widget class="QLineEdit" name="createFirmwareNameLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>10</y>
-         <width>831</width>
-         <height>391</height>
+         <y>20</y>
+         <width>201</width>
+         <height>21</height>
         </rect>
        </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="text">
-        <string>This functionality is still under development and will be included in a future release.</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
+       <property name="readOnly">
+        <bool>false</bool>
        </property>
       </widget>
+     </widget>
+     <widget class="QGroupBox" name="createDevelopersGroup">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>751</width>
+        <height>141</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Developers</string>
+      </property>
+      <widget class="QListWidget" name="createDevelopersListWidget">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>550</x>
+         <y>20</y>
+         <width>191</width>
+         <height>81</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="createDeveloperInfoGroup">
+       <property name="geometry">
+        <rect>
+         <x>300</x>
+         <y>20</y>
+         <width>241</width>
+         <height>101</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Developer Info</string>
+       </property>
+       <widget class="QLabel" name="createDeveloperNameLabel">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>41</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="createDeveloperNameLineEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>30</y>
+          <width>171</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="addDeveloperButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>60</y>
+          <width>91</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Add Developer</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="removeDeveloperButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>630</x>
+         <y>110</y>
+         <width>111</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Remove Developer</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="createUrlsGroup">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>281</width>
+         <height>101</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>URLs (Optional)</string>
+       </property>
+       <widget class="QLabel" name="createDonateLabel">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Donate</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="createHomepageLabel">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Homepage</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="createHomepageLineEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>30</y>
+          <width>181</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="createDonateLineEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>60</y>
+          <width>181</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="createPlatformVersionGroup">
+      <property name="geometry">
+       <rect>
+        <x>650</x>
+        <y>10</y>
+        <width>111</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Platform Version</string>
+      </property>
+      <widget class="QLineEdit" name="createPlatformVersionLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="createDeviceInfoGroup">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>250</y>
+        <width>271</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Device Info</string>
+      </property>
+      <widget class="QLabel" name="deviceNameLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>91</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Name</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="deviceNameLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>50</y>
+         <width>151</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="deviceManufacturerLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>91</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Manufacturer</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="deviceManufacturerLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>20</y>
+         <width>151</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="productCodeLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>91</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Product Code</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="deviceProductCodeLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>80</y>
+         <width>151</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="addDeviceButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>110</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Add Device</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="buildPackageButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>580</x>
+        <y>410</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Build</string>
+      </property>
      </widget>
     </widget>
    </widget>
@@ -831,7 +1166,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>902</width>
+     <width>788</width>
      <height>21</height>
     </rect>
    </property>
@@ -865,8 +1200,57 @@
     <string>Donate to Glass Echidna</string>
    </property>
   </action>
+  <action name="actionPackage_Creation">
+   <property name="text">
+    <string>Package Creation</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>functionTabWidget</tabstop>
+  <tabstop>firmwarePackageLineEdit</tabstop>
+  <tabstop>browseFirmwarePackageButton</tabstop>
+  <tabstop>firmwareNameLineEdit</tabstop>
+  <tabstop>versionLineEdit</tabstop>
+  <tabstop>platformLineEdit</tabstop>
+  <tabstop>developerNamesLineEdit</tabstop>
+  <tabstop>developerHomepageButton</tabstop>
+  <tabstop>developerDonateButton</tabstop>
+  <tabstop>supportedDevicesListWidget</tabstop>
+  <tabstop>includedFilesListWidget</tabstop>
+  <tabstop>repartitionRadioButton</tabstop>
+  <tabstop>loadFirmwareButton</tabstop>
+  <tabstop>repartitionCheckBox</tabstop>
+  <tabstop>pitLineEdit</tabstop>
+  <tabstop>pitBrowseButton</tabstop>
+  <tabstop>partitionNameComboBox</tabstop>
+  <tabstop>partitionIdLineEdit</tabstop>
+  <tabstop>partitionFileLineEdit</tabstop>
+  <tabstop>partitionFileBrowseButton</tabstop>
+  <tabstop>partitionsListWidget</tabstop>
+  <tabstop>addPartitionButton</tabstop>
+  <tabstop>removePartitionButton</tabstop>
+  <tabstop>outputPlainTextEdit</tabstop>
+  <tabstop>startFlashButton</tabstop>
+  <tabstop>createFirmwareNameLineEdit</tabstop>
+  <tabstop>createFirmwareVersionLineEdit</tabstop>
+  <tabstop>createPlatformNameLineEdit</tabstop>
+  <tabstop>createPlatformVersionLineEdit</tabstop>
+  <tabstop>createHomepageLineEdit</tabstop>
+  <tabstop>createDonateLineEdit</tabstop>
+  <tabstop>createDeveloperNameLineEdit</tabstop>
+  <tabstop>addDeveloperButton</tabstop>
+  <tabstop>createDevelopersListWidget</tabstop>
+  <tabstop>removeDeveloperButton</tabstop>
+  <tabstop>createDevicesListWidget</tabstop>
+  <tabstop>removeDeviceButton</tabstop>
+  <tabstop>deviceManufacturerLineEdit</tabstop>
+  <tabstop>deviceNameLineEdit</tabstop>
+  <tabstop>deviceProductCodeLineEdit</tabstop>
+  <tabstop>addDeviceButton</tabstop>
+  <tabstop>buildPackageButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

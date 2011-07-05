@@ -21,13 +21,21 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+// Qt
+#include <QList>
+#include <QMainWindow>
+#include <QProcess>
+#include <QTemporaryFile>
+
+// libpit
+#include "libpit.h"
+
 // Heimdall Frontend
 #include "aboutform.h"
 #include "ui_mainwindow.h"
+#include "PackageData.h"
 
-// Qt
-#include <QMainWindow>
-#include <QProcess>
+using namespace libpit;
 
 namespace HeimdallFrontend
 {
@@ -45,10 +53,28 @@ namespace HeimdallFrontend
 			bool heimdallRunning;
 			QProcess process;
 
+			PackageData loadedPackageData;
+			
+			PitData currentPitData;
+			PackageData workingPackageData;
+
+			bool populatingPartitionNames;
+			QList<unsigned int> unusedPartitionIds;
+
+			void UpdateUnusedPartitionIds(void);
+			bool ReadPit(QFile *file);
+
+			void UpdatePackageUserInterface(void);
+
 			bool IsArchive(QString path);
 
 			QString PromptFileSelection(void);
+			QString PromptFileCreation(void);
+
+			void UpdatePartitionNamesInterface(void);
 			void UpdateStartButton(void);
+
+			void UpdateBuildPackageButton(void);
 
 		public:
 
@@ -60,29 +86,42 @@ namespace HeimdallFrontend
 			void OpenDonationWebpage(void);
 			void ShowAbout(void);
 
-			void SelectPit(void);
-			void SelectFactoryfs(void);
-			void SelectKernel(void);
-			void SelectParam(void);
-			void SelectPrimaryBootloader(void);
-			void SelectSecondaryBootloader(void);
-			void SelectCache(void);
-			void SelectDatabase(void);
-			void SelectModem(void);
-			void SelectRecovery(void);
+			void SelectFirmwarePackage(void);
+			void OpenDeveloperHomepage(void);
+			void OpenDeveloperDonationWebpage(void);
+			void LoadFirmwarePackage(void);
 
-			void SetRepartionEnabled(int enabled);
-			void SetFactoryfsEnabled(int enabled);
-			void SetKernelEnabled(int enabled);
-			void SetParamEnabled(int enabled);
-			void SetPrimaryBootloaderEnabled(int enabled);
-			void SetSecondaryBootloaderEnabled(int enabled);
-			void SetCacheEnabled(int enabled);
-			void SetDatabaseEnabled(int enabled);
-			void SetModemEnabled(int enabled);
-			void SetRecoveryEnabled(int enabled);
+			void SelectPartitionName(int index);
+			void SelectPartitionFile(void);
+
+			void SelectPartition(int row);
+			void AddPartition(void);
+			void RemovePartition(void);
+
+			void SelectPit(void);
+			void SetRepartition(int enabled);
 
 			void StartFlash(void);
+
+			void FirmwareNameChanged(const QString& text);
+			void FirmwareVersionChanged(const QString& text);
+			void PlatformNameChanged(const QString& text);
+			void PlatformVersionChanged(const QString& text);
+
+			void HomepageUrlChanged(const QString& text);
+			void DonateUrlChanged(const QString& text);
+
+			void DeveloperNameChanged(const QString& text);
+			void SelectDeveloper(int row);
+			void AddDeveloper(void);
+			void RemoveDeveloper(void);
+
+			void DeviceInfoChanged(const QString& text);
+			void SelectDevice(int row);
+			void AddDevice(void);
+			void RemoveDevice(void);
+			
+			void BuildPackage(void);
 
 			void HandleHeimdallStdout(void);
 			void HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus);

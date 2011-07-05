@@ -18,12 +18,10 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-// Heimdall
-#include "Heimdall.h"
-#include "InterfaceManager.h"
-#include "PitData.h"
+// libpit
+#include "libpit.h"
 
-using namespace Heimdall;
+using namespace libpit;
 
 PitEntry::PitEntry()
 {
@@ -31,11 +29,11 @@ PitEntry::PitEntry()
 	partitionType = 0;
 	partitionIdentifier = 0;
 	partitionFlags = 0;
-	unknown2 = 0;
+	unknown1 = 0;
 	partitionBlockSize = 0;
 	partitionBlockCount = 0;
+	unknown2 = 0;
 	unknown3 = 0;
-	unknown4 = 0;
 
 	memset(partitionName, 0, 32);
 	memset(filename, 0, 64);
@@ -43,42 +41,6 @@ PitEntry::PitEntry()
 
 PitEntry::~PitEntry()
 {
-}
-
-void PitEntry::Print(void) const
-{
-	InterfaceManager::Print("Unused: %s\n", (unused) ? "Yes" : "No");
-
-	const char *partitionTypeText = "Unknown";
-
-	if (partitionType == PitEntry::kPartitionTypeRfs)
-		partitionTypeText = "RFS";
-	else if (partitionType == PitEntry::kPartitionTypeExt4)
-		partitionTypeText = "EXT4";
-
-	InterfaceManager::Print("Partition Type: %d (%s)\n", partitionType, partitionTypeText);
-
-	InterfaceManager::Print("Partition Identifier: %d\n", partitionIdentifier);
-
-	InterfaceManager::Print("Partition Flags: %d (", partitionFlags);
-
-	if (partitionFlags & PitEntry::kPartitionFlagWrite)
-		InterfaceManager::Print("R/W");
-	else
-		InterfaceManager::Print("R");
-
-	InterfaceManager::Print(")\n");
-
-	InterfaceManager::Print("Unknown 2: %d\n", unknown2);
-
-	InterfaceManager::Print("Partition Block Size: %d\n", partitionBlockSize);
-	InterfaceManager::Print("Partition Block Count: %d\n", partitionBlockCount);
-
-	InterfaceManager::Print("Unknown 3: %d\n", unknown3);
-	InterfaceManager::Print("Unknown 4: %d\n", unknown4);
-
-	InterfaceManager::Print("Partition Name: %s\n", partitionName);
-	InterfaceManager::Print("Filename: %s\n", filename);
 }
 
 
@@ -153,7 +115,7 @@ bool PitData::Unpack(const unsigned char *data)
 		entries[i]->SetPartitionFlags(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 16);
-		entries[i]->SetUnknown2(integerValue);
+		entries[i]->SetUnknown1(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 20);
 		entries[i]->SetPartitionBlockSize(integerValue);
@@ -162,10 +124,10 @@ bool PitData::Unpack(const unsigned char *data)
 		entries[i]->SetPartitionBlockCount(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 28);
-		entries[i]->SetUnknown3(integerValue);
+		entries[i]->SetUnknown2(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 32);
-		entries[i]->SetUnknown4(integerValue);
+		entries[i]->SetUnknown3(integerValue);
 
 		entries[i]->SetPartitionName((const char *)data + entryOffset + 36);
 		entries[i]->SetFilename((const char *)data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength);
@@ -204,24 +166,56 @@ void PitData::Pack(unsigned char *data) const
 		PitData::PackInteger(data, entryOffset + 8, entries[i]->GetPartitionIdentifier());
 		PitData::PackInteger(data, entryOffset + 12, entries[i]->GetPartitionFlags());
 
-		PitData::PackInteger(data, entryOffset + 16, entries[i]->GetUnknown2());
+		PitData::PackInteger(data, entryOffset + 16, entries[i]->GetUnknown1());
 
 		PitData::PackInteger(data, entryOffset + 20, entries[i]->GetPartitionBlockSize());
 		PitData::PackInteger(data, entryOffset + 24, entries[i]->GetPartitionBlockCount());
 
-		PitData::PackInteger(data, entryOffset + 28, entries[i]->GetUnknown3());
-		PitData::PackInteger(data, entryOffset + 32, entries[i]->GetUnknown4());
+		PitData::PackInteger(data, entryOffset + 28, entries[i]->GetUnknown2());
+		PitData::PackInteger(data, entryOffset + 32, entries[i]->GetUnknown3());
 
 		memcpy(data + entryOffset + 36, entries[i]->GetPartitionName(), PitEntry::kPartitionNameMaxLength);
 		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetPartitionName(), PitEntry::kFilenameMaxLength);
 	}
 }
 
+void PitData::Clear(void)
+{
+	entryCount = 0;
+
+	unknown1 = 0;
+	unknown2 = 0;
+
+	unknown3 = 0;
+	unknown4 = 0;
+
+	unknown5 = 0;
+	unknown6 = 0;
+
+	unknown7 = 0;
+	unknown8 = 0;
+
+	for (unsigned int i = 0; i < entries.size(); i++)
+		delete entries[i];
+
+	entries.clear();
+}
+
+PitEntry *PitData::GetEntry(unsigned int index)
+{
+	return (entries[index]);
+}
+
+const PitEntry *PitData::GetEntry(unsigned int index) const
+{
+	return (entries[index]);
+}
+
 PitEntry *PitData::FindEntry(const char *partitionName)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (!entries[i]->GetUnused() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -232,7 +226,7 @@ const PitEntry *PitData::FindEntry(const char *partitionName) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (!entries[i]->GetUnused() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -243,7 +237,7 @@ PitEntry *PitData::FindEntry(unsigned int partitionIdentifier)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetPartitionIdentifier() == partitionIdentifier)
+		if (!entries[i]->GetUnused() && entries[i]->GetPartitionIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
@@ -254,31 +248,9 @@ const PitEntry *PitData::FindEntry(unsigned int partitionIdentifier) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetPartitionIdentifier() == partitionIdentifier)
+		if (!entries[i]->GetUnused() && entries[i]->GetPartitionIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
 	return (nullptr);
-}
-
-void PitData::Print(void) const
-{
-	InterfaceManager::Print("Entry Count: %d\n", entryCount);
-
-	InterfaceManager::Print("Unknown 1: %d\n", unknown1);
-	InterfaceManager::Print("Unknown 2: %d\n", unknown2);
-	InterfaceManager::Print("Unknown 3: %d\n", unknown3);
-	InterfaceManager::Print("Unknown 4: %d\n", unknown4);
-	InterfaceManager::Print("Unknown 5: %d\n", unknown5);
-	InterfaceManager::Print("Unknown 6: %d\n", unknown6);
-	InterfaceManager::Print("Unknown 7: %d\n", unknown7);
-	InterfaceManager::Print("Unknown 8: %d\n", unknown8);
-
-	for (unsigned int i = 0; i < entryCount; i++)
-	{
-		InterfaceManager::Print("\n\n--- Entry #%d ---\n", i);
-		entries[i]->Print();
-	}
-
-	InterfaceManager::Print("\n");
 }

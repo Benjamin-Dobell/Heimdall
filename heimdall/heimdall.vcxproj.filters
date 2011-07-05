@@ -79,13 +79,10 @@
     <ClInclude Include="source\SendFilePartResponse.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\InterfaceManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\PitData.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="source\EndSessionPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Interface.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -96,10 +93,7 @@
     <ClCompile Include="source\main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="source\InterfaceManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\PitData.cpp">
+    <ClCompile Include="source\Interface.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

@@ -24,14 +24,16 @@
 #include <stdio.h>
 #include <string>
 
+// libpit
+#include "libpit.h"
+
 // Heimdall
 #include "BridgeManager.h"
 #include "DeviceInfoPacket.h"
 #include "DeviceInfoResponse.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
-#include "InterfaceManager.h"
-#include "PitData.h"
+#include "Interface.h"
 
 using namespace std;
 using namespace Heimdall;
@@ -110,6 +112,26 @@ void initialiseKnownPartitionNames(void)
 	knownPartitionNames[kKnownPartitionEmmc].push_back("GANG");
 }
 
+bool isKnownPartition(const char *partitionName, unsigned int knownPartitionIndex)
+{
+	for (unsigned int i = 0; i < knownPartitionNames[knownPartitionIndex].size(); i++)
+	{
+		if (strcmp(partitionName, knownPartitionNames[knownPartitionIndex][i]) == 0)
+			return (true);
+	}
+
+	return (false);
+}
+
+bool isKnownBootPartition(const char *partitionName)
+{
+	return (isKnownPartition(partitionName, kKnownPartitionPrimaryBootloader) ||
+		isKnownPartition(partitionName, kKnownPartitionSecondaryBootloader) ||
+		isKnownPartition(partitionName, kKnownPartitionSecondaryBootloaderBackup) ||
+		isKnownPartition(partitionName, kKnownPartitionParam) ||
+		isKnownPartition(partitionName, kKnownPartitionNormalBoot));
+}
+
 bool openFiles(const map<string, string>& argumentMap, map<string, FILE *>& argumentFileMap)
 {
 	map<string, string>::const_iterator it = argumentMap.begin();
@@ -130,7 +152,7 @@ bool openFiles(const map<string, string>& argumentMap, map<string, FILE *>& argu
 			// The argument wasn't a partition index, check if it's a known partition name.
 			for (int knownPartition = 0; knownPartition < kKnownPartitionCount; knownPartition++)
 			{
-				if (it->first.compare(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgPit + knownPartition]) == 0)
+				if (it->first == Interface::actions[Interface::kActionFlash].valueArguments[knownPartition])
 				{
 					isFileArgument = true;
 					break;
@@ -147,7 +169,7 @@ bool openFiles(const map<string, string>& argumentMap, map<string, FILE *>& argu
 
 		if (!argumentFilePair.second)
 		{
-			InterfaceManager::PrintError("Failed to open file \"%s\"\n", it->second.c_str());
+			Interface::PrintError("Failed to open file \"%s\"\n", it->second.c_str());
 			return (false);
 		}
 
@@ -179,7 +201,7 @@ bool mapFilesToPartitions(const map<string, FILE *>& argumentFileMap, const PitD
 
 			for (knownPartition = 0; knownPartition < kKnownPartitionCount; knownPartition++)
 			{
-				if (it->first.compare(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgPit + knownPartition]) == 0)
+				if (it->first == Interface::actions[Interface::kActionFlash].valueArguments[knownPartition])
 					break;
 			}
 
@@ -195,7 +217,7 @@ bool mapFilesToPartitions(const map<string, FILE *>& argumentFileMap, const PitD
 
 		if (!pitEntry)
 		{
-			InterfaceManager::PrintError("Partition corresponding to %s argument could not be located\n", it->first.c_str());
+			Interface::PrintError("Partition corresponding to %s argument could not be located\n", it->first.c_str());
 			return (false);
 		}
 
@@ -216,18 +238,18 @@ void closeFiles(map<string, FILE *> argumentfileMap)
 
 int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
 {
-	InterfaceManager::Print("Downloading device's PIT file...\n");
+	Interface::Print("Downloading device's PIT file...\n");
 
 	int devicePitFileSize = bridgeManager->ReceivePitFile(pitBuffer);
 
 	if (!*pitBuffer)
 	{
-		InterfaceManager::PrintError("Failed to download PIT file!\n");
+		Interface::PrintError("Failed to download PIT file!\n");
 
 		return (-1);
 	}
 
-	InterfaceManager::Print("PIT file download sucessful\n\n");
+	Interface::Print("PIT file download sucessful\n\n");
 	return devicePitFileSize;
 }
 
@@ -247,16 +269,16 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 
 	if (isPit)
 	{
-		InterfaceManager::Print("Uploading %s\n", partitionName);
+		Interface::Print("Uploading %s\n", partitionName);
 
 		if (bridgeManager->SendPitFile(file))
 		{
-			InterfaceManager::Print("%s upload successful\n", partitionName);
+			Interface::Print("%s upload successful\n", partitionName);
 			return (true);
 		}
 		else
 		{
-			InterfaceManager::PrintError("%s upload failed!\n", partitionName);
+			Interface::PrintError("%s upload failed!\n", partitionName);
 			return (false);
 		}
 	}
@@ -276,34 +298,34 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 
 		if (isModem)
 		{			
-			InterfaceManager::Print("Uploading %s\n", partitionName);
+			Interface::Print("Uploading %s\n", partitionName);
 
 			//if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone,    // <-- Kies method. WARNING: Doesn't work on Galaxy Tab!
 			//	EndPhoneFileTransferPacket::kFileModem))
 			if (bridgeManager->SendFile(file, EndModemFileTransferPacket::kDestinationModem))     // <-- Odin method
 			{
-				InterfaceManager::Print("%s upload successful\n", partitionName);
+				Interface::Print("%s upload successful\n", partitionName);
 				return (true);
 			}
 			else
 			{
-				InterfaceManager::PrintError("%s upload failed!\n", partitionName);
+				Interface::PrintError("%s upload failed!\n", partitionName);
 				return (false);
 			}
 		}
 		else
 		{
 			// We're uploading to a phone partition
-			InterfaceManager::Print("Uploading %s\n", partitionName);
+			Interface::Print("Uploading %s\n", partitionName);
 
 			if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone, partitionIndex))
 			{
-				InterfaceManager::Print("%s upload successful\n", partitionName);
+				Interface::Print("%s upload successful\n", partitionName);
 				return (true);
 			}
 			else
 			{
-				InterfaceManager::PrintError("%s upload failed!\n", partitionName);
+				Interface::PrintError("%s upload failed!\n", partitionName);
 				return (false);
 			}
 		}
@@ -318,63 +340,31 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	
 	// ---------- GET DEVICE INFORMATION ----------
 
-	DeviceInfoPacket *deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kUnknown1);
-	success = bridgeManager->SendPacket(deviceInfoPacket);
-	delete deviceInfoPacket;
-
-	if (!success)
-	{
-		InterfaceManager::PrintError("Failed to send device info packet!\nFailed Request: kUnknown1\n");
+	int deviceInfoResult;
+	
+	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown1, &deviceInfoResult))
 		return (false);
-	}
-
-	DeviceInfoResponse *deviceInfoResponse = new DeviceInfoResponse();
-	success = bridgeManager->ReceivePacket(deviceInfoResponse);
-	int unknown = deviceInfoResponse->GetUnknown();
-	delete deviceInfoResponse;
-
-	if (!success)
-	{
-		InterfaceManager::PrintError("Failed to receive device info response!\n");
-		return (false);
-	}
 
 	// 131072 for Galaxy S II, 0 for other devices.
-	if (unknown != 0 && unknown != 131072)
+	if (deviceInfoResult != 0 && deviceInfoResult != 131072)
 	{
-		InterfaceManager::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", unknown);
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", deviceInfoResult);
 		return (false);
 	}
 
 	// -------------------- KIES DOESN'T DO THIS --------------------
-	deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kUnknown2);
-	success = bridgeManager->SendPacket(deviceInfoPacket);
-	delete deviceInfoPacket;
 
-	if (!success)
-	{
-		InterfaceManager::PrintError("Failed to send device info packet!\nFailed Request: kUnknown2\n");
+	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown2, &deviceInfoResult))
 		return (false);
-	}	
-
-	deviceInfoResponse = new DeviceInfoResponse();
-	success = bridgeManager->ReceivePacket(deviceInfoResponse);
-	unknown = deviceInfoResponse->GetUnknown();
-	delete deviceInfoResponse;
-
-	if (!success)
-	{
-		InterfaceManager::PrintError("Failed to receive device info response!\n");
-		return (false);
-	}
 
 	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
-	if (unknown != 180 && unknown != 0 && unknown != 3 && unknown != 190)
+	if (deviceInfoResult != 180 && deviceInfoResult != 0 && deviceInfoResult != 3 && deviceInfoResult != 190)
 	{
-		InterfaceManager::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%i\n", unknown);
+		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%i\n", deviceInfoResult);
 		return (false);
 	}
-	// --------------------------------------------------------------
+
+	// ------------- SEND TOTAL BYTES TO BE TRANSFERRED -------------
 
 	int totalBytes = 0;
 	for (map<string, FILE *>::const_iterator it = argumentFileMap.begin(); it != argumentFileMap.end(); it++)
@@ -384,30 +374,30 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		rewind(it->second);
 	}
 	
-	deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kTotalBytes, totalBytes);
+	DeviceInfoPacket *deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kTotalBytes, totalBytes);
 	success = bridgeManager->SendPacket(deviceInfoPacket);
 	delete deviceInfoPacket;
 
 	if (!success)
 	{
-		InterfaceManager::PrintError("Failed to send total bytes device info packet!\n");
+		Interface::PrintError("Failed to send total bytes device info packet!\n");
 		return (false);
 	}
 
-	deviceInfoResponse = new DeviceInfoResponse();
+	DeviceInfoResponse *deviceInfoResponse = new DeviceInfoResponse();
 	success = bridgeManager->ReceivePacket(deviceInfoResponse);
-	unknown = deviceInfoResponse->GetUnknown();
+	deviceInfoResult = deviceInfoResponse->GetUnknown();
 	delete deviceInfoResponse;
 
 	if (!success)
 	{
-		InterfaceManager::PrintError("Failed to receive device info response!\n");
+		Interface::PrintError("Failed to receive device info response!\n");
 		return (false);
 	}
 
-	if (unknown != 0)
+	if (deviceInfoResult != 0)
 	{
-		InterfaceManager::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", unknown);
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", deviceInfoResult);
 		return (false);
 	}
 
@@ -419,13 +409,12 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	if (repartition)
 	{
 		// If we're repartitioning then we need to unpack the information from the specified PIT file.
-
-		map<string, FILE *>::iterator it = argumentFileMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgPit]);
+		map<string, FILE *>::iterator it = argumentFileMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]);
 
 		// This shouldn't ever happen due to early checks, but we'll check again just in case...
 		if (it == argumentFileMap.end())
 		{
-			InterfaceManager::PrintError("Attempt was made to repartition without specifying a PIT file!\n");
+			Interface::PrintError("Attempt was made to repartition without specifying a PIT file!\n");
 			return (false);
 		}
 
@@ -451,7 +440,6 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	else
 	{
 		// If we're not repartitioning then we need to retrieve the device's PIT file and unpack it.
-
 		unsigned char *pitFileBuffer;
 		downloadPitFile(bridgeManager, &pitFileBuffer);
 
@@ -463,9 +451,13 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 
 	map<unsigned int, PartitionNameFilePair> partitionFileMap;
 
-	// Map the files being flashed to partitions stored in PIT file.
-	mapFilesToPartitions(argumentFileMap, pitData, partitionFileMap);
-	
+	// Map the files being flashed to partitions stored in the PIT file.
+	if (!mapFilesToPartitions(argumentFileMap, pitData, partitionFileMap))
+	{
+		delete pitData;
+		return (false);
+	}
+
 	delete pitData;
 
 	// If we're repartitioning then we need to flash the PIT file first.
@@ -477,14 +469,26 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 			{
 				if (!flashFile(bridgeManager, it->first, it->second.partitionName.c_str(), it->second.file))
 					return (false);
+
+				break;
 			}
 		}
 	}
 
-	// Flash all other files
+	// Flash partitions not involved in the boot process second.
 	for (map<unsigned int, PartitionNameFilePair>::iterator it = partitionFileMap.begin(); it != partitionFileMap.end(); it++)
 	{
-		if (it->second.file != localPitFile)
+		if (!isKnownPartition(it->second.partitionName.c_str(), kKnownPartitionPit) && !isKnownBootPartition(it->second.partitionName.c_str()))
+		{
+			if (!flashFile(bridgeManager, it->first, it->second.partitionName.c_str(), it->second.file))
+				return (false);
+		}
+	}
+
+	// Flash boot partitions last.
+	for (map<unsigned int, PartitionNameFilePair>::iterator it = partitionFileMap.begin(); it != partitionFileMap.end(); it++)
+	{
+		if (isKnownBootPartition(it->second.partitionName.c_str()))
 		{
 			if (!flashFile(bridgeManager, it->first, it->second.partitionName.c_str(), it->second.file))
 				return (false);
@@ -499,7 +503,7 @@ int main(int argc, char **argv)
 	map<string, string> argumentMap;
 	int actionIndex;
 
-	if (!InterfaceManager::GetArguments(argc, argv, argumentMap, &actionIndex))
+	if (!Interface::GetArguments(argc, argv, argumentMap, &actionIndex))
 	{
 		Sleep(250);
 		return (0);
@@ -507,82 +511,94 @@ int main(int argc, char **argv)
 
 	initialiseKnownPartitionNames();
 
-	if (actionIndex == InterfaceManager::kActionHelp)
+	switch (actionIndex)
 	{
-		InterfaceManager::Print(InterfaceManager::usage);
-		return (0);
+		case Interface::kActionFlash:
+			if (argumentMap.find(Interface::actions[Interface::kActionFlash].valuelessArguments[Interface::kFlashValuelessArgRepartition]) != argumentMap.end()
+				&& argumentMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]) == argumentMap.end())
+			{
+				Interface::Print("If you wish to repartition then a PIT file must be specified.\n");
+				return (0);
+			}
+
+			if (argumentMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]) != argumentMap.end()
+				&& argumentMap.find(Interface::actions[Interface::kActionFlash].valuelessArguments[Interface::kFlashValuelessArgRepartition]) == argumentMap.end())
+			{
+				Interface::Print("A PIT file should only be used when repartitioning.\n");
+				return (0);
+			}
+
+			break;
+
+		case Interface::kActionDump:
+		{
+			if (argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgOutput]) == argumentMap.end())
+			{
+				Interface::Print("Output file not specified.\n\n");
+				Interface::PrintUsage();
+				return (0);
+			}
+
+			if (argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipType]) == argumentMap.end())
+			{
+				Interface::Print("You must specify a chip type.\n\n");
+				Interface::PrintUsage();
+				return (0);
+			}
+
+			string chipType = argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipType])->second;
+			if (!(chipType == "RAM" || chipType == "ram" || chipType == "NAND" || chipType == "nand"))
+			{
+				Interface::Print("Unknown chip type: %s.\n\n", chipType.c_str());
+				Interface::PrintUsage();
+				return (0);
+			}
+
+			if (argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId]) == argumentMap.end())
+			{
+				Interface::Print("You must specify a Chip ID.\n\n");
+				Interface::PrintUsage();
+				return (0);
+			}
+
+			int chipId = atoi(argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId])->second.c_str());
+			if (chipId < 0)
+			{
+				Interface::Print("Chip ID must be a non-negative integer.\n");
+				return (0);
+			}
+
+			break;
+		}
+
+		case Interface::kActionVersion:
+			Interface::PrintVersion();
+			return (0);
+
+		case Interface::kActionHelp:
+			Interface::PrintUsage();
+			return (0);
 	}
-	else if (actionIndex == InterfaceManager::kActionFlash)
-	{
-		if (argumentMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgRepartition]) != argumentMap.end()
-			&& argumentMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgPit]) == argumentMap.end())
-		{
-			InterfaceManager::Print("If you wish to repartition then a PIT file must be specified.\n");
-			return (0);
-		}
 
-		if (argumentMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgPit]) != argumentMap.end()
-			&& argumentMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgRepartition]) == argumentMap.end())
-		{
-			InterfaceManager::Print("A PIT file should only be used when repartitioning.\n");
-			return (0);
-		}
-	}
-	else if (actionIndex == InterfaceManager::kActionDump)
-	{
-		if (argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgOutput]) == argumentMap.end())
-		{
-			InterfaceManager::Print("Output file not specified.\n\n");
-			InterfaceManager::Print(InterfaceManager::usage);
-			return (0);
-		}
-
-		if (argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipType]) == argumentMap.end())
-		{
-			InterfaceManager::Print("You must specify a chip type.\n\n");
-			InterfaceManager::Print(InterfaceManager::usage);
-			return (0);
-		}
-
-		string chipType = argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipType])->second;
-		if (!(chipType == "RAM" || chipType == "ram" || chipType == "NAND" || chipType == "nand"))
-		{
-			InterfaceManager::Print("Unknown chip type: %s.\n\n", chipType.c_str());
-			InterfaceManager::Print(InterfaceManager::usage);
-			return (0);
-		}
-
-		if (argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipId]) == argumentMap.end())
-		{
-			InterfaceManager::Print("You must specify a Chip ID.\n\n");
-			InterfaceManager::Print(InterfaceManager::usage);
-			return (0);
-		}
-
-		int chipId = atoi(argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipId])->second.c_str());
-		if (chipId < 0)
-		{
-			InterfaceManager::Print("Chip ID must be a non-negative integer.\n");
-			return (0);
-		}
-	}
-
-	InterfaceManager::Print("\nHeimdall v1.2.0, Copyright (c) 2010-2011, Benjamin Dobell, Glass Echidna\n");
-	InterfaceManager::Print("http://www.glassechidna.com.au\n\n");
-	InterfaceManager::Print("This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n");
-	InterfaceManager::Print("If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n");
-	InterfaceManager::Print("http://www.glassechidna.com.au/donate/\n\n");
-	
-	Sleep(1000);
-
-	bool verbose = argumentMap.find(InterfaceManager::commonArgumentNames[InterfaceManager::kCommonArgVerbose]) != argumentMap.end();
-	bool noReboot = argumentMap.find(InterfaceManager::commonArgumentNames[InterfaceManager::kCommonArgNoReboot]) != argumentMap.end();
+	bool verbose = argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgVerbose]) != argumentMap.end();
+	bool reboot = argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgNoReboot]) == argumentMap.end();
 
 	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
-	if (argumentMap.find(InterfaceManager::commonArgumentNames[InterfaceManager::kCommonArgDelay]) != argumentMap.end())
-		communicationDelay = atoi(argumentMap.find(InterfaceManager::commonArgumentNames[InterfaceManager::kCommonArgDelay])->second.c_str());
+	if (argumentMap.find(Interface::commonValueArguments[Interface::kCommonValueArgDelay]) != argumentMap.end())
+		communicationDelay = atoi(argumentMap.find(Interface::commonValueArguments[Interface::kCommonValueArgDelay])->second.c_str());
 
 	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+
+	if (actionIndex == Interface::kActionDetect)
+	{
+		bridgeManager->DetectDevice();
+
+		delete bridgeManager;
+		return (0);
+	}
+
+	Interface::PrintReleaseInfo();
+	Sleep(1000);
 
 	if (!bridgeManager->Initialise())
 	{
@@ -594,7 +610,7 @@ int main(int argc, char **argv)
 
 	switch (actionIndex)
 	{
-		case InterfaceManager::kActionFlash:
+		case Interface::kActionFlash:
 		{
 			map<string, FILE *> argumentFileMap;
 
@@ -615,20 +631,17 @@ int main(int argc, char **argv)
 				return (-1);
 			}
 
-			bool repartition = argumentMap.find(InterfaceManager::flashArgumentNames[InterfaceManager::kFlashArgRepartition]) != argumentMap.end();
+			bool repartition = argumentMap.find(Interface::actions[Interface::kActionFlash].valuelessArguments[Interface::kFlashValuelessArgRepartition]) != argumentMap.end();
 			success = attemptFlash(bridgeManager, argumentFileMap, repartition);
 
-			if (noReboot)
-				success = bridgeManager->EndSession() && success;
-			else
-				success = bridgeManager->EndSession() && bridgeManager->RebootDevice() && success;
+			success = bridgeManager->EndSession(reboot) && success;
 
 			closeFiles(argumentFileMap);
 
 			break;
 		}
 
-		case InterfaceManager::kActionClosePcScreen:
+		case Interface::kActionClosePcScreen:
 		{
 			if (!bridgeManager->BeginSession())
 			{
@@ -636,37 +649,34 @@ int main(int argc, char **argv)
 				return (-1);
 			}
 
-			InterfaceManager::Print("Attempting to close connect to pc screen...\n");
+			Interface::Print("Attempting to close connect to pc screen...\n");
 
-			if (noReboot)
-				success = bridgeManager->EndSession();
-			else
-				success = bridgeManager->EndSession() && bridgeManager->RebootDevice();
+			success = bridgeManager->EndSession(reboot);
 
 			if (success)
-				InterfaceManager::Print("Attempt complete\n");
+				Interface::Print("Attempt complete\n");
 
 			break;
 		}
 
-		case InterfaceManager::kActionDump:
+		case Interface::kActionDump:
 		{
-			const char *outputFilename = argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgOutput])->second.c_str();
+			const char *outputFilename = argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgOutput])->second.c_str();
 			FILE *dumpFile = fopen(outputFilename, "wb");
 			if (!dumpFile)
 			{
-				InterfaceManager::PrintError("Failed to open file \"%s\"\n", outputFilename);
+				Interface::PrintError("Failed to open file \"%s\"\n", outputFilename);
 
 				delete bridgeManager;
 				return (-1);
 			}
 
 			int chipType = 0;
-			string chipTypeName = argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipType])->second;
+			string chipTypeName = argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipType])->second;
 			if (chipTypeName == "NAND" || chipTypeName == "nand")
 				chipType = 1;
 
-			int chipId = atoi(argumentMap.find(InterfaceManager::dumpArgumentNames[InterfaceManager::kDumpArgChipId])->second.c_str());
+			int chipId = atoi(argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId])->second.c_str());
 
 			if (!bridgeManager->BeginSession())
 			{
@@ -680,15 +690,12 @@ int main(int argc, char **argv)
 
 			fclose(dumpFile);
 
-			if (noReboot)
-				success = bridgeManager->EndSession() && success;
-			else
-				success = bridgeManager->EndSession() && bridgeManager->RebootDevice() && success;
+			success = bridgeManager->EndSession(reboot) && success;
 
 			break;
 		}
 
-		case InterfaceManager::kActionPrintPit:
+		case Interface::kActionPrintPit:
 		{
 			if (!bridgeManager->BeginSession())
 			{
@@ -700,11 +707,7 @@ int main(int argc, char **argv)
 
 			if (downloadPitFile(bridgeManager, &devicePit) < -1)
 			{
-				if (!bridgeManager->EndSession())
-					return (-1);
-
-				if (!noReboot)
-					bridgeManager->RebootDevice();
+				bridgeManager->EndSession(reboot);
 
 				delete bridgeManager;
 				return (-1);
@@ -714,21 +717,18 @@ int main(int argc, char **argv)
 
 			if (pitData->Unpack(devicePit))
 			{
-				pitData->Print();
+				Interface::PrintPit(pitData);
 				success = true;
 			}
 			else
 			{
-				InterfaceManager::PrintError("Failed to unpack device's PIT file!\n");
+				Interface::PrintError("Failed to unpack device's PIT file!\n");
 				success = false;
 			}
 
 			delete pitData;
 
-			if (noReboot)
-				success = bridgeManager->EndSession() && success;
-			else
-				success = bridgeManager->EndSession() && bridgeManager->RebootDevice() && success;
+			success = bridgeManager->EndSession(reboot) && success;
 
 			break;
 		}

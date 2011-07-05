@@ -32,7 +32,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>About Heimdall Frontend 1.1</string>
+   <string>About Heimdall Frontend</string>
   </property>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
@@ -50,14 +50,15 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>190</y>
+      <y>160</y>
       <width>581</width>
-      <height>241</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>9</pointsize>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="autoFillBackground">
@@ -156,21 +157,17 @@ THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRES
       <x>10</x>
       <y>10</y>
       <width>581</width>
-      <height>101</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
     <property name="text">
      <string>Heimdall Frontend
-Version 1.1.0
-Copyright © 2010 Benjamin Dobell, Glass Echidna
-
-Heimdall
-Version 1.1.0
+Version 1.3.0
 Copyright © 2010 Benjamin Dobell, Glass Echidna</string>
     </property>
     <property name="textFormat">
@@ -190,7 +187,7 @@ Copyright © 2010 Benjamin Dobell, Glass Echidna</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>118</y>
+      <y>70</y>
       <width>581</width>
       <height>16</height>
      </rect>
@@ -217,7 +214,7 @@ Copyright © 2010 Benjamin Dobell, Glass Echidna</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>90</y>
       <width>581</width>
       <height>21</height>
      </rect>
@@ -246,7 +243,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>110</y>
       <width>581</width>
       <height>16</height>
      </rect>
@@ -273,7 +270,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>162</y>
+      <y>130</y>
       <width>581</width>
       <height>21</height>
      </rect>

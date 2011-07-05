@@ -21,7 +21,7 @@
 #ifndef OUTBOUNDPACKET_H
 #define OUTBOUNDPACKET_H
 
-// Heimdall include
+// Heimdall
 #include "Packet.h"
 
 namespace Heimdall

@@ -18,11 +18,11 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-// Heimdall
-#include "ui_aboutform.h"
-
 // Qt
 #include <QWidget>
+
+// Heimdall Frontend
+#include "ui_aboutform.h"
 
 namespace HeimdallFrontend
 {

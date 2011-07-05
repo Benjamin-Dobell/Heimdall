@@ -18,9 +18,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-// Heimdall Frontend
-#include "mainwindow.h"
-
 // Qt
 #include <QCoreApplication>
 #include <QDesktopServices>
@@ -30,7 +27,119 @@
 #include <QRegExp>
 #include <QUrl>
 
+// Heimdall Frontend
+#include "mainwindow.h"
+#include "Packaging.h"
+
 using namespace HeimdallFrontend;
+
+void MainWindow::UpdateUnusedPartitionIds(void)
+{
+	unusedPartitionIds.clear();
+
+	// Initially populate unusedPartitionIds with all possible partition IDs. 
+	for (unsigned int i = 0; i < currentPitData.GetEntryCount(); i++)
+	{
+		const PitEntry *pitEntry = currentPitData.GetEntry(i);
+
+		if (!pitEntry->GetUnused() && strcmp(pitEntry->GetPartitionName(), "PIT") != 0)
+			unusedPartitionIds.append(pitEntry->GetPartitionIdentifier());
+	}
+
+	// Remove any used partition IDs from unusedPartitionIds
+	QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
+
+	for (int i = 0; i < fileList.length(); i++)
+		unusedPartitionIds.removeOne(fileList[i].GetPartitionId());
+}
+
+bool MainWindow::ReadPit(QFile *file)
+{
+	if(!file->open(QIODevice::ReadOnly))
+		return (false);
+
+	unsigned char *buffer = new unsigned char[file->size()];
+
+	file->read(reinterpret_cast<char *>(buffer), file->size());
+	file->close();
+
+	bool success = currentPitData.Unpack(buffer);
+	delete buffer;
+
+	if (!success)
+		currentPitData.Clear();
+
+	return (success);
+}
+
+void MainWindow::UpdatePackageUserInterface(void)
+{
+	supportedDevicesListWidget->clear();
+	includedFilesListWidget->clear();
+
+	if (loadedPackageData.IsCleared())
+	{
+		// Package Interface
+		firmwareNameLineEdit->clear();
+		versionLineEdit->clear();
+
+		developerNamesLineEdit->clear();
+
+		platformLineEdit->clear();
+
+		developerHomepageButton->setEnabled(false);
+		developerDonateButton->setEnabled(false);
+		
+		repartitionRadioButton->setChecked(false);
+
+		loadFirmwareButton->setEnabled(false);
+	}
+	else
+	{
+		firmwareNameLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetName());
+		versionLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetVersion());
+
+		QString developerNames;
+
+		if (!loadedPackageData.GetFirmwareInfo().GetDevelopers().isEmpty())
+		{
+			developerNames = loadedPackageData.GetFirmwareInfo().GetDevelopers()[0];
+			for (int i = 1; i < loadedPackageData.GetFirmwareInfo().GetDevelopers().length(); i++)
+				developerNames += ", " + loadedPackageData.GetFirmwareInfo().GetDevelopers()[i];
+		}
+
+		developerNamesLineEdit->setText(developerNames);
+
+		platformLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetName() + " ("
+			+ loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetVersion() + ")");
+
+		if (!loadedPackageData.GetFirmwareInfo().GetUrl().isEmpty())
+			developerHomepageButton->setEnabled(true);
+		else
+			developerHomepageButton->setEnabled(false);
+
+		if (!loadedPackageData.GetFirmwareInfo().GetDonateUrl().isEmpty())
+			developerDonateButton->setEnabled(true);
+		else
+			developerDonateButton->setEnabled(false);
+
+		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetDeviceInfos().length(); i++)
+		{
+			const DeviceInfo& deviceInfo = loadedPackageData.GetFirmwareInfo().GetDeviceInfos()[i];
+			supportedDevicesListWidget->addItem(deviceInfo.GetManufacturer() + " " + deviceInfo.GetName() + " (" + deviceInfo.GetProduct() + ")");
+		}
+
+		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetFileInfos().length(); i++)
+		{
+			const FileInfo& fileInfo = loadedPackageData.GetFirmwareInfo().GetFileInfos()[i];
+			includedFilesListWidget->addItem(fileInfo.GetFilename());
+		}
+
+		repartitionRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetRepartition());
+
+		loadFirmwareButton->setEnabled(true);
+	}
+}
 
 bool MainWindow::IsArchive(QString path)
 {
@@ -49,6 +158,44 @@ QString MainWindow::PromptFileSelection(void)
 	return (path);
 }
 
+QString MainWindow::PromptFileCreation(void)
+{
+	QString path = QFileDialog::getSaveFileName(this, "Save File", lastDirectory);
+
+	if (path != "")
+		lastDirectory = path.left(path.lastIndexOf('/') + 1);
+
+	return (path);
+}
+
+void MainWindow::UpdatePartitionNamesInterface(void)
+{
+	populatingPartitionNames = true;
+
+	partitionNameComboBox->clear();
+
+	int partitionsListWidgetRow = partitionsListWidget->currentRow();
+
+	if (partitionsListWidgetRow >= 0)
+	{
+		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
+
+		for (int i = 0; i < unusedPartitionIds.length(); i++)
+			partitionNameComboBox->addItem(currentPitData.FindEntry(unusedPartitionIds[i])->GetPartitionName());
+
+		partitionNameComboBox->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
+		partitionNameComboBox->setCurrentIndex(unusedPartitionIds.length());
+
+		partitionNameComboBox->setEnabled(true);
+	}
+	else
+	{
+		partitionNameComboBox->setEnabled(false);
+	}
+
+	populatingPartitionNames = false;
+}
+
 void MainWindow::UpdateStartButton(void)
 {
 	if (heimdallRunning)
@@ -57,124 +204,37 @@ void MainWindow::UpdateStartButton(void)
 		return;
 	}
 
-	if (repartitionCheckBox->isChecked())
+	bool allPartitionsValid = true;
+
+	QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
+
+	for (int i = 0; i < fileList.length(); i++)
 	{
-		if (!IsArchive(pitLineEdit->text()) && factoryfsCheckBox->isChecked() && !IsArchive(factoryfsLineEdit->text()) && kernelCheckBox->isChecked()
-			&& !IsArchive(kernelLineEdit->text()) && paramCheckBox->isChecked() && !IsArchive(paramLineEdit->text())
-			&& primaryBootCheckBox->isChecked() && !IsArchive(primaryBootLineEdit->text()) && secondaryBootCheckBox->isChecked()
-			&& !IsArchive(secondaryBootLineEdit->text()) && modemCheckBox->isChecked() && !IsArchive(modemLineEdit->text()))
+		if (fileList[i].GetFilename().isEmpty())
 		{
-			startFlashButton->setEnabled(true);
+			allPartitionsValid = false;
+			break;
 		}
-		else
-		{
-			startFlashButton->setEnabled(false);
-		}
+	}
+
+	bool validSettings = allPartitionsValid && fileList.length() > 0;
+
+	startFlashButton->setEnabled(validSettings);
+	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), validSettings);
+}
+
+void MainWindow::UpdateBuildPackageButton(void)
+{
+	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
+
+	if (firmwareInfo.GetName().isEmpty() || firmwareInfo.GetVersion().isEmpty() || firmwareInfo.GetPlatformInfo().GetName().isEmpty()
+		|| firmwareInfo.GetPlatformInfo().GetVersion().isEmpty() || firmwareInfo.GetDevelopers().isEmpty() || firmwareInfo.GetDeviceInfos().isEmpty())
+	{
+		buildPackageButton->setEnabled(false);
 	}
 	else
 	{
-		bool atLeastOneFile = false;
-
-		if (factoryfsCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(factoryfsLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (kernelCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(kernelLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (paramCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(paramLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (primaryBootCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(primaryBootLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (secondaryBootCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(secondaryBootLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (cacheCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(cacheLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (databaseCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(databaseLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (modemCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(modemLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		if (recoveryCheckBox->isChecked())
-		{
-			atLeastOneFile = true;
-
-			if (IsArchive(recoveryLineEdit->text()))
-			{
-				startFlashButton->setEnabled(false);
-				return;
-			}
-		}
-
-		startFlashButton->setEnabled(atLeastOneFile);
+		buildPackageButton->setEnabled(true);
 	}
 }
 
@@ -186,32 +246,51 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	lastDirectory = QDir::toNativeSeparators(QApplication::applicationDirPath());
 
+	populatingPartitionNames = false;
+
+	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), false);
+
 	QObject::connect(actionDonate, SIGNAL(triggered()), this, SLOT(OpenDonationWebpage()));
 	QObject::connect(actionAboutHeimdall, SIGNAL(triggered()), this, SLOT(ShowAbout()));
 
-	QObject::connect(pitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPit()));
-	QObject::connect(factoryfsBrowseButton, SIGNAL(clicked()), this, SLOT(SelectFactoryfs()));
-	QObject::connect(kernelBrowseButton, SIGNAL(clicked()), this, SLOT(SelectKernel()));
-	QObject::connect(paramBrowseButton, SIGNAL(clicked()), this, SLOT(SelectParam()));
-	QObject::connect(primaryBootBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPrimaryBootloader()));
-	QObject::connect(secondaryBootBrowseButton, SIGNAL(clicked()), this, SLOT(SelectSecondaryBootloader()));
-	QObject::connect(cacheBrowseButton, SIGNAL(clicked()), this, SLOT(SelectCache()));
-	QObject::connect(databaseBrowseButton, SIGNAL(clicked()), this, SLOT(SelectDatabase()));
-	QObject::connect(modemBrowseButton, SIGNAL(clicked()), this, SLOT(SelectModem()));
-	QObject::connect(recoveryBrowseButton, SIGNAL(clicked()), this, SLOT(SelectRecovery()));
+	QObject::connect(browseFirmwarePackageButton, SIGNAL(clicked()), this, SLOT(SelectFirmwarePackage()));
+	QObject::connect(developerHomepageButton, SIGNAL(clicked()), this, SLOT(OpenDeveloperHomepage()));
+	QObject::connect(developerDonateButton, SIGNAL(clicked()), this, SLOT(OpenDeveloperDonationWebpage()));
+	QObject::connect(loadFirmwareButton, SIGNAL(clicked()), this, SLOT(LoadFirmwarePackage()));
 
-	QObject::connect(repartitionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRepartionEnabled(int)));
-	QObject::connect(factoryfsCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetFactoryfsEnabled(int)));
-	QObject::connect(kernelCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetKernelEnabled(int)));
-	QObject::connect(paramCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetParamEnabled(int)));
-	QObject::connect(primaryBootCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetPrimaryBootloaderEnabled(int)));
-	QObject::connect(secondaryBootCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetSecondaryBootloaderEnabled(int)));
-	QObject::connect(cacheCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetCacheEnabled(int)));
-	QObject::connect(databaseCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetDatabaseEnabled(int)));
-	QObject::connect(modemCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetModemEnabled(int)));
-	QObject::connect(recoveryCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRecoveryEnabled(int)));
+	QObject::connect(partitionsListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(SelectPartition(int)));
+	QObject::connect(addPartitionButton, SIGNAL(clicked()), this, SLOT(AddPartition()));
+	QObject::connect(removePartitionButton, SIGNAL(clicked()), this, SLOT(RemovePartition()));
+
+	QObject::connect(partitionNameComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectPartitionName(int)));
+	QObject::connect(partitionFileBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPartitionFile()));
+
+	QObject::connect(pitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPit()));
+	QObject::connect(repartitionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRepartition(int)));
 	
 	QObject::connect(startFlashButton, SIGNAL(clicked()), this, SLOT(StartFlash()));
+
+	QObject::connect(createFirmwareNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(FirmwareNameChanged(const QString&)));
+	QObject::connect(createFirmwareVersionLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(FirmwareVersionChanged(const QString&)));
+	QObject::connect(createPlatformNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(PlatformNameChanged(const QString&)));
+	QObject::connect(createPlatformVersionLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(PlatformVersionChanged(const QString&)));
+
+	QObject::connect(createHomepageLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(HomepageUrlChanged(const QString&)));
+	QObject::connect(createDonateLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(DonateUrlChanged(const QString&)));
+
+	QObject::connect(createDevelopersListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(SelectDeveloper(int)));
+	QObject::connect(createDeveloperNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(DeveloperNameChanged(const QString&)));
+	QObject::connect(addDeveloperButton, SIGNAL(clicked()), this, SLOT(AddDeveloper()));
+	QObject::connect(removeDeveloperButton, SIGNAL(clicked()), this, SLOT(RemoveDeveloper()));
+
+	QObject::connect(createDevicesListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(SelectDevice(int)));
+	QObject::connect(deviceManufacturerLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(DeviceInfoChanged(const QString&)));
+	QObject::connect(deviceNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(DeviceInfoChanged(const QString&)));
+	QObject::connect(deviceProductCodeLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(DeviceInfoChanged(const QString&)));
+	QObject::connect(addDeviceButton, SIGNAL(clicked()), this, SLOT(AddDevice()));
+	QObject::connect(removeDeviceButton, SIGNAL(clicked()), this, SLOT(RemoveDevice()));
+			
+	QObject::connect(buildPackageButton, SIGNAL(clicked()), this, SLOT(BuildPackage()));
 
 	QObject::connect(&process, SIGNAL(readyRead()), this, SLOT(HandleHeimdallStdout()));
 	QObject::connect(&process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(HandleHeimdallReturned(int, QProcess::ExitStatus)));
@@ -232,284 +311,314 @@ void MainWindow::ShowAbout(void)
 	aboutForm.show();
 }
 
+void MainWindow::SelectFirmwarePackage(void)
+{
+	loadedPackageData.Clear();
+	UpdatePackageUserInterface();
+
+	QString path = PromptFileSelection();
+	firmwarePackageLineEdit->setText(path);
+
+	if (firmwarePackageLineEdit->text() != "")
+	{
+		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), &loadedPackageData))
+		{
+			UpdatePackageUserInterface();
+		}
+		else
+		{
+			// TODO: Error?
+			loadedPackageData.Clear();
+		}
+	}
+}
+
+void MainWindow::OpenDeveloperHomepage(void)
+{
+	QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetUrl(), QUrl::TolerantMode));
+}
+
+void MainWindow::OpenDeveloperDonationWebpage(void)
+{
+	QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetDonateUrl(), QUrl::TolerantMode));
+}
+
+void MainWindow::LoadFirmwarePackage(void)
+{
+	workingPackageData.Clear();
+	currentPitData.Clear();
+	
+	// Make flashSettings responsible for the temporary files
+	workingPackageData.GetFiles().append(loadedPackageData.GetFiles());
+	loadedPackageData.RemoveAllFiles();
+
+	const QList<FileInfo> packageFileInfos = loadedPackageData.GetFirmwareInfo().GetFileInfos();
+
+	for (int i = 0; i < packageFileInfos.length(); i++)
+	{
+		for (int j = 0; j < workingPackageData.GetFiles().length(); j++)
+		{
+			if (workingPackageData.GetFiles()[j]->fileTemplate() == ("XXXXXX-" + packageFileInfos[i].GetFilename()))
+			{
+				FileInfo partitionInfo(packageFileInfos[i].GetPartitionId(), QDir::current().absoluteFilePath(workingPackageData.GetFiles()[j]->fileName()));
+				workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
+
+				break;
+			}
+		}
+	}
+
+	// Find the PIT file and read it
+	for (int i = 0; i < workingPackageData.GetFiles().length(); i++)
+	{
+		QTemporaryFile *file = workingPackageData.GetFiles()[i];
+
+		if (file->fileTemplate() == ("XXXXXX-" + loadedPackageData.GetFirmwareInfo().GetPitFilename()))
+		{
+			workingPackageData.GetFirmwareInfo().SetPitFilename(QDir::current().absoluteFilePath(file->fileName()));
+
+			if (!ReadPit(file))
+			{
+				// TODO: Error
+				loadedPackageData.Clear();
+				UpdatePackageUserInterface();
+
+				workingPackageData.Clear();
+				UpdateUnusedPartitionIds();
+				return;
+			}
+
+			break;
+		}
+	}
+
+	UpdateUnusedPartitionIds();
+	workingPackageData.GetFirmwareInfo().SetRepartition(loadedPackageData.GetFirmwareInfo().GetRepartition());
+
+	loadedPackageData.Clear();
+	UpdatePackageUserInterface();
+	firmwarePackageLineEdit->clear();
+
+	partitionsListWidget->clear();
+
+	// Populate partitionsListWidget with partition names (from the PIT file)
+	for (int i = 0; i < workingPackageData.GetFirmwareInfo().GetFileInfos().length(); i++)
+	{
+		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[i];
+
+		const PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo.GetPartitionId());
+
+		if (pitEntry)
+		{
+			partitionsListWidget->addItem(pitEntry->GetPartitionName());
+		}
+		else
+		{
+			// TODO: "Firmware package includes invalid partition IDs."
+			loadedPackageData.GetFirmwareInfo().Clear();
+			currentPitData.Clear();
+			UpdateUnusedPartitionIds();
+
+			partitionsListWidget->clear();
+			return;
+		}
+	}
+
+	partitionNameComboBox->clear();
+	partitionIdLineEdit->clear();
+	partitionFileLineEdit->clear();
+	partitionFileBrowseButton->setEnabled(false);
+
+	repartitionCheckBox->setEnabled(true);
+	repartitionCheckBox->setChecked(workingPackageData.GetFirmwareInfo().GetRepartition());
+	partitionsListWidget->setEnabled(true);
+	addPartitionButton->setEnabled(true);
+	removePartitionButton->setEnabled(true && partitionsListWidget->currentRow() >= 0);
+
+	pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
+
+	functionTabWidget->setCurrentWidget(flashTab);
+
+	UpdateStartButton();
+}
+
+void MainWindow::SelectPartitionName(int index)
+{
+	if (!populatingPartitionNames && index != -1 && index != unusedPartitionIds.length())
+	{
+		unsigned int newPartitionIndex = unusedPartitionIds[index];
+		unusedPartitionIds.removeAt(index);
+
+		FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
+		unusedPartitionIds.append(partitionInfo.GetPartitionId());
+		partitionInfo.SetPartitionId(newPartitionIndex);
+
+		partitionNameComboBox->clear();
+
+		// Update interface
+		UpdatePartitionNamesInterface();
+		partitionIdLineEdit->setText(QString::number(newPartitionIndex));
+		partitionsListWidget->currentItem()->setText(currentPitData.FindEntry(newPartitionIndex)->GetPartitionName());
+	}
+}
+
+void MainWindow::SelectPartitionFile(void)
+{
+	QString path = PromptFileSelection();
+
+	if (path != "")
+	{
+		workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()].SetFilename(path);
+		partitionFileLineEdit->setText(path);
+
+		pitBrowseButton->setEnabled(true);
+		partitionsListWidget->setEnabled(true);
+		UpdateStartButton();
+
+		if (unusedPartitionIds.length() > 0)
+			addPartitionButton->setEnabled(true);
+	}
+}
+
+void MainWindow::SelectPartition(int row)
+{
+	if (row >= 0)
+	{
+		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[row];
+
+		UpdatePartitionNamesInterface();
+
+		partitionIdLineEdit->setText(QString::number(partitionInfo.GetPartitionId()));
+		partitionFileLineEdit->setText(partitionInfo.GetFilename());
+		partitionFileBrowseButton->setEnabled(true);
+
+		removePartitionButton->setEnabled(true);
+	}
+	else
+	{
+		UpdatePartitionNamesInterface();
+
+		partitionIdLineEdit->clear();
+		partitionFileLineEdit->clear();
+		partitionFileBrowseButton->setEnabled(false);
+
+		removePartitionButton->setEnabled(false);
+	}
+}
+
+void MainWindow::AddPartition(void)
+{
+	FileInfo partitionInfo(unusedPartitionIds.first(), "");
+	workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
+	UpdateUnusedPartitionIds();
+
+	pitBrowseButton->setEnabled(false);
+	addPartitionButton->setEnabled(false);
+
+	partitionsListWidget->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
+	partitionsListWidget->setCurrentRow(partitionsListWidget->count() - 1);
+	partitionsListWidget->setEnabled(false);
+	UpdateStartButton();
+}
+
+void MainWindow::RemovePartition(void)
+{
+	workingPackageData.GetFirmwareInfo().GetFileInfos().removeAt(partitionsListWidget->currentRow());
+	UpdateUnusedPartitionIds();
+
+	QListWidgetItem *item = partitionsListWidget->currentItem();
+	partitionsListWidget->setCurrentRow(-1);
+	delete item;
+
+	pitBrowseButton->setEnabled(true);
+	addPartitionButton->setEnabled(true);
+	partitionsListWidget->setEnabled(true);
+	UpdateStartButton();
+}
+
 void MainWindow::SelectPit(void)
 {
 	QString path = PromptFileSelection();
-	pitLineEdit->setText(path);
+	bool validPit = path != "";
 
-	SetRepartionEnabled(path != "");
-}
+	// In order to map files in the old PIT to file in the new one, we first must use partition names instead of IDs.
+	QList<FileInfo> fileInfos = workingPackageData.GetFirmwareInfo().GetFileInfos();
 
-void MainWindow::SelectFactoryfs(void)
-{
-	QString path = PromptFileSelection();
-	factoryfsLineEdit->setText(path);
+	int partitionNamesCount = fileInfos.length();
+	QString *partitionNames = new QString[fileInfos.length()];
+	for (int i = 0; i < fileInfos.length(); i++)
+		partitionNames[i] = currentPitData.FindEntry(fileInfos[i].GetPartitionId())->GetPartitionName();
 
-	SetFactoryfsEnabled(path != "");
-}
+	currentPitData.Clear();
 
-void MainWindow::SelectKernel(void)
-{
-	QString path = PromptFileSelection();
-	kernelLineEdit->setText(path);
-
-	SetKernelEnabled(path != "");
-}
-
-void MainWindow::SelectParam(void)
-{
-	QString path = PromptFileSelection();
-	paramLineEdit->setText(path);
-
-	SetParamEnabled(path != "");
-}
-
-void MainWindow::SelectPrimaryBootloader(void)
-{
-	QString path = PromptFileSelection();
-	primaryBootLineEdit->setText(path);
-
-	SetPrimaryBootloaderEnabled(path != "");
-}
-
-void MainWindow::SelectSecondaryBootloader(void)
-{
-	QString path = PromptFileSelection();
-	secondaryBootLineEdit->setText(path);
-
-	SetSecondaryBootloaderEnabled(path != "");
-}
-
-void MainWindow::SelectCache(void)
-{
-	QString path = PromptFileSelection();
-	cacheLineEdit->setText(path);
-
-	SetCacheEnabled(path != "");
-}
-
-void MainWindow::SelectDatabase(void)
-{
-	QString path = PromptFileSelection();
-	databaseLineEdit->setText(path);
-
-	SetDatabaseEnabled(path != "");
-}
-
-void MainWindow::SelectModem(void)
-{
-	QString path = PromptFileSelection();
-	modemLineEdit->setText(path);
-
-	SetModemEnabled(path != "");
-}
-
-void MainWindow::SelectRecovery(void)
-{
-	QString path = PromptFileSelection();
-	recoveryLineEdit->setText(path);
-
-	SetRecoveryEnabled(path != "");
-}
-
-void MainWindow::SetRepartionEnabled(int enabled)
-{
-	if (repartitionCheckBox->isChecked() != (enabled != 0))
-		repartitionCheckBox->setChecked(enabled);
-
-	if (enabled)
+	if (validPit)
 	{
-		repartitionCheckBox->setEnabled(true);
-		pitLineEdit->setEnabled(true);
-		repartitionCheckBox->setChecked(true);
-	}
-	else
-	{
-		repartitionCheckBox->setEnabled(pitLineEdit->text() != "");
-		pitLineEdit->setEnabled(false);
+		QFile pitFile(path);
+
+		if (ReadPit(&pitFile))
+		{
+			workingPackageData.GetFirmwareInfo().SetPitFilename(path);
+
+			partitionsListWidget->clear();
+			int partitionInfoIndex = 0;
+
+			for (int i = 0; i < partitionNamesCount; i++)
+			{
+				const PitEntry *pitEntry = currentPitData.FindEntry(partitionNames[i].toAscii().constData());
+				
+				if (pitEntry)
+				{
+					fileInfos[partitionInfoIndex++].SetPartitionId(pitEntry->GetPartitionIdentifier());
+					partitionsListWidget->addItem(pitEntry->GetPartitionName());
+				}
+				else
+				{
+					fileInfos.removeAt(partitionInfoIndex);
+				}
+			}
+		}
+		else
+		{
+			validPit = false;
+		}
 	}
 	
+	// If the selected PIT was invalid, attempt to reload the old one.
+	if (!validPit)
+	{
+		// TODO: "The file selected was not a valid PIT file."
+		QFile originalPitFile(workingPackageData.GetFirmwareInfo().GetPitFilename());
+
+		if (ReadPit(&originalPitFile))
+		{
+			validPit = true;
+		}
+		else
+		{
+			// TODO: "Failed to reload working PIT data."
+			workingPackageData.Clear();
+			partitionsListWidget->clear();
+		}
+	}
+
+	UpdateUnusedPartitionIds();
+
+	delete [] partitionNames;
+
+	pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
+
+	repartitionCheckBox->setEnabled(validPit);
+	partitionsListWidget->setEnabled(validPit);
+
+	addPartitionButton->setEnabled(validPit);
+	removePartitionButton->setEnabled(validPit && partitionsListWidget->currentRow() >= 0);
+
 	UpdateStartButton();
 }
 
-void MainWindow::SetFactoryfsEnabled(int enabled)
+void MainWindow::SetRepartition(int enabled)
 {
-	if (factoryfsCheckBox->isChecked() != (enabled != 0))
-		factoryfsCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		factoryfsCheckBox->setEnabled(true);
-		factoryfsLineEdit->setEnabled(true);
-		factoryfsCheckBox->setChecked(true);
-	}
-	else
-	{
-		factoryfsCheckBox->setEnabled(factoryfsLineEdit->text() != "");
-		factoryfsLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetKernelEnabled(int enabled)
-{
-	if (kernelCheckBox->isChecked() != (enabled != 0))
-		kernelCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		kernelCheckBox->setEnabled(true);
-		kernelLineEdit->setEnabled(true);
-		kernelCheckBox->setChecked(true);
-	}
-	else
-	{
-		kernelCheckBox->setEnabled(kernelLineEdit->text() != "");
-		kernelLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetParamEnabled(int enabled)
-{
-	if (paramCheckBox->isChecked() != (enabled != 0))
-		paramCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		paramCheckBox->setEnabled(true);
-		paramLineEdit->setEnabled(true);
-		paramCheckBox->setChecked(true);
-	}
-	else
-	{
-		paramCheckBox->setEnabled(paramLineEdit->text() != "");
-		paramLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetPrimaryBootloaderEnabled(int enabled)
-{
-	if (primaryBootCheckBox->isChecked() != (enabled != 0))
-		primaryBootCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		primaryBootCheckBox->setEnabled(true);
-		primaryBootLineEdit->setEnabled(true);
-		primaryBootCheckBox->setChecked(true);
-	}
-	else
-	{
-		primaryBootCheckBox->setEnabled(primaryBootLineEdit->text() != "");
-		primaryBootLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetSecondaryBootloaderEnabled(int enabled)
-{
-	if (secondaryBootCheckBox->isChecked() != (enabled != 0))
-		secondaryBootCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		secondaryBootCheckBox->setEnabled(true);
-		secondaryBootLineEdit->setEnabled(true);
-		secondaryBootCheckBox->setChecked(true);
-	}
-	else
-	{
-		secondaryBootCheckBox->setEnabled(secondaryBootLineEdit->text() != "");
-		secondaryBootLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetCacheEnabled(int enabled)
-{
-	if (cacheCheckBox->isChecked() != (enabled != 0))
-		cacheCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		cacheCheckBox->setEnabled(true);
-		cacheLineEdit->setEnabled(true);
-		cacheCheckBox->setChecked(true);
-	}
-	else
-	{
-		cacheCheckBox->setEnabled(cacheLineEdit->text() != "");
-		cacheLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetDatabaseEnabled(int enabled)
-{
-	if (databaseCheckBox->isChecked() != (enabled != 0))
-		databaseCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		databaseCheckBox->setEnabled(true);
-		databaseLineEdit->setEnabled(true);
-		databaseCheckBox->setChecked(true);
-	}
-	else
-	{
-		databaseCheckBox->setEnabled(databaseLineEdit->text() != "");
-		databaseLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetModemEnabled(int enabled)
-{
-	if (modemCheckBox->isChecked() != (enabled != 0))
-		modemCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		modemCheckBox->setEnabled(true);
-		modemLineEdit->setEnabled(true);
-		modemCheckBox->setChecked(true);
-	}
-	else
-	{
-		modemCheckBox->setEnabled(databaseLineEdit->text() != "");
-		modemLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
-}
-
-void MainWindow::SetRecoveryEnabled(int enabled)
-{
-	if (recoveryCheckBox->isChecked() != (enabled != 0))
-		recoveryCheckBox->setChecked(enabled);
-
-	if (enabled)
-	{
-		recoveryCheckBox->setEnabled(true);
-		recoveryLineEdit->setEnabled(true);
-		recoveryCheckBox->setChecked(true);
-	}
-	else
-	{
-		recoveryCheckBox->setEnabled(databaseLineEdit->text() != "");
-		recoveryLineEdit->setEnabled(false);
-	}
-	
-	UpdateStartButton();
+	workingPackageData.GetFirmwareInfo().SetRepartition(enabled);
 }
 
 void MainWindow::StartFlash(void)
@@ -522,68 +631,13 @@ void MainWindow::StartFlash(void)
 
 	if (repartitionCheckBox->isChecked())
 	{
+		arguments.append("--repartition");
+
 		arguments.append("--pit");
 		arguments.append(pitLineEdit->text());
 	}
 
-	if (factoryfsCheckBox->isChecked())
-	{
-		arguments.append("--factoryfs");
-		arguments.append(factoryfsLineEdit->text());
-	}
-
-	if (kernelCheckBox->isChecked())
-	{
-		arguments.append("--kernel");
-		arguments.append(kernelLineEdit->text());
-	}
-
-	if (paramCheckBox->isChecked())
-	{
-		arguments.append("--param");
-		arguments.append(paramLineEdit->text());
-	}
-
-	if (primaryBootCheckBox->isChecked())
-	{
-		arguments.append("--primary-boot");
-		arguments.append(primaryBootLineEdit->text());
-	}
-
-	if (secondaryBootCheckBox->isChecked())
-	{
-		arguments.append("--secondary-boot");
-		arguments.append(secondaryBootLineEdit->text());
-	}
-
-	if (cacheCheckBox->isChecked())
-	{
-		arguments.append("--cache");
-		arguments.append(cacheLineEdit->text());
-	}
-
-	if (databaseCheckBox->isChecked())
-	{
-		arguments.append("--dbdata");
-		arguments.append(databaseLineEdit->text());
-	}
-
-	if (modemCheckBox->isChecked())
-	{
-		arguments.append("--modem");
-		arguments.append(modemLineEdit->text());
-	}
-
-	if (recoveryCheckBox->isChecked())
-	{
-		arguments.append("--recovery");
-		arguments.append(recoveryLineEdit->text());
-	}
-
-	if (repartitionCheckBox->isChecked())
-	{
-		arguments.append("--repartition");
-	}
+	// TODO: Loop through partitions and append them.
 
 	flashProgressBar->setEnabled(true);
 	UpdateStartButton();
@@ -600,13 +654,13 @@ void MainWindow::StartFlash(void)
 		QStringList environment = QProcess::systemEnvironment();
 		
 		QStringList paths;
-		// Ensure /usr/local/bin is in PATH
+		// Ensure /usr/bin is in PATH
 		for (int i = 0; i < environment.length(); i++)
 		{
 			if (environment[i].left(5) == "PATH=")
 			{
 				paths = environment[i].mid(5).split(':');
-				paths.prepend("/usr/local/bin");
+				paths.prepend("/usr/bin");
 				break;
 			}
 		}
@@ -638,6 +692,140 @@ void MainWindow::StartFlash(void)
 			UpdateStartButton();
 		}
 	}
+}
+
+void MainWindow::FirmwareNameChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().SetName(text);
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::FirmwareVersionChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().SetVersion(text);
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::PlatformNameChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetName(text);
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::PlatformVersionChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetVersion(text);
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::HomepageUrlChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().SetUrl(text);
+}
+
+void MainWindow::DonateUrlChanged(const QString& text)
+{
+	workingPackageData.GetFirmwareInfo().SetDonateUrl(text);
+}
+
+void MainWindow::DeveloperNameChanged(const QString& text)
+{
+	if (text.isEmpty())
+		addDeveloperButton->setEnabled(false);
+	else
+		addDeveloperButton->setEnabled(true);
+}
+
+void MainWindow::SelectDeveloper(int row)
+{
+	if (row >= 0)
+		removeDeveloperButton->setEnabled(true);
+	else
+		removeDeveloperButton->setEnabled(false);
+}
+
+void MainWindow::AddDeveloper(void)
+{
+	workingPackageData.GetFirmwareInfo().GetDevelopers().append(createDeveloperNameLineEdit->text());
+
+	createDevelopersListWidget->addItem(createDeveloperNameLineEdit->text());
+	createDeveloperNameLineEdit->clear();
+
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::RemoveDeveloper(void)
+{
+	workingPackageData.GetFirmwareInfo().GetDevelopers().removeAt(createDevelopersListWidget->currentRow());
+
+	QListWidgetItem *item = createDevelopersListWidget->currentItem();
+	createDevelopersListWidget->setCurrentRow(-1);
+	delete item;
+
+	removeDeveloperButton->setEnabled(false);
+
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::DeviceInfoChanged(const QString& text)
+{
+	if (deviceManufacturerLineEdit->text().isEmpty() || deviceNameLineEdit->text().isEmpty() || deviceProductCodeLineEdit->text().isEmpty())
+		addDeviceButton->setEnabled(false);
+	else
+		addDeviceButton->setEnabled(true);
+}
+
+void MainWindow::SelectDevice(int row)
+{
+	if (row >= 0)
+		removeDeviceButton->setEnabled(true);
+	else
+		removeDeviceButton->setEnabled(false);
+}
+
+void MainWindow::AddDevice(void)
+{
+	workingPackageData.GetFirmwareInfo().GetDeviceInfos().append(DeviceInfo(deviceManufacturerLineEdit->text(), deviceNameLineEdit->text(),
+		deviceProductCodeLineEdit->text()));
+
+	createDevicesListWidget->addItem(deviceManufacturerLineEdit->text() + " " + deviceNameLineEdit->text() + " (" + deviceProductCodeLineEdit->text() + ")");
+	deviceManufacturerLineEdit->clear();
+	deviceNameLineEdit->clear();
+	deviceProductCodeLineEdit->clear();
+
+	UpdateBuildPackageButton();
+}
+
+void MainWindow::RemoveDevice(void)
+{
+	workingPackageData.GetFirmwareInfo().GetDeviceInfos().removeAt(createDevicesListWidget->currentRow());
+
+	QListWidgetItem *item = createDevicesListWidget->currentItem();
+	createDevicesListWidget->setCurrentRow(-1);
+	delete item;
+
+	removeDeviceButton->setEnabled(false);
+
+	UpdateBuildPackageButton();
+}
+			
+void MainWindow::BuildPackage(void)
+{
+	QString packagePath = PromptFileCreation();
+
+	if (!packagePath.endsWith(".tar.gz", Qt::CaseInsensitive))
+	{
+		if (packagePath.endsWith(".tar", Qt::CaseInsensitive))
+			packagePath.append(".gz");
+		else if (packagePath.endsWith(".gz", Qt::CaseInsensitive))
+			packagePath.replace(packagePath.length() - 3, ".tar.gz");
+		else if (packagePath.endsWith(".tgz", Qt::CaseInsensitive))
+			packagePath.replace(packagePath.length() - 4, ".tar.gz");
+		else
+			packagePath.append(".tar.gz");
+	}
+
+	Packaging::BuildPackage(packagePath, workingPackageData);
 }
 
 void MainWindow::HandleHeimdallStdout(void)

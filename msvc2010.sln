@@ -1,17 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
+# Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heimdall-frontend", "heimdall-frontend\heimdall-frontend.vcxproj", "{EAD352DF-7CDE-478C-8D70-B0E42A951DEF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DC0D782C-8DB7-44CA-A984-D3A97483E0D0} = {DC0D782C-8DB7-44CA-A984-D3A97483E0D0}
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D} = {9506FFE4-3A78-4BEE-A15E-62C5A138E61D}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heimdall", "heimdall\heimdall.vcxproj", "{DC0D782C-8DB7-44CA-A984-D3A97483E0D0}"
 	ProjectSection(ProjectDependencies) = postProject
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D} = {9506FFE4-3A78-4BEE-A15E-62C5A138E61D}
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187} = {349EE8F9-7D25-4909-AAF5-FF3FADE72187}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0 (static)", "libusb-1.0\_libusb_static_2010.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpit", "libpit\libpit.vcxproj", "{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,15 @@ Global
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|Win32.Build.0 = Release|Win32
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|x64.ActiveCfg = Release|x64
 		{349EE8F9-7D25-4909-AAF5-FF3FADE72187}.Release|x64.Build.0 = Release|x64
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Debug|Win32.Build.0 = Debug|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Debug|x64.ActiveCfg = Debug|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release - Static MSVC|Win32.ActiveCfg = Release - Static MSVC|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release - Static MSVC|Win32.Build.0 = Release - Static MSVC|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release - Static MSVC|x64.ActiveCfg = Release|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release|Win32.ActiveCfg = Release|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release|Win32.Build.0 = Release|Win32
+		{9506FFE4-3A78-4BEE-A15E-62C5A138E61D}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

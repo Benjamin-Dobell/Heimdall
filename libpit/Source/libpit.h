@@ -18,14 +18,14 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef PITDATA_H
-#define PITDATA_H
+#ifndef LIBPIT_H
+#define LIBPIT_H
 
 // C Standard Library
 #include <string.h>
 #include <vector>
 
-namespace Heimdall
+namespace libpit
 {
 	class PitEntry
 	{
@@ -58,13 +58,13 @@ namespace Heimdall
 			unsigned int partitionIdentifier;
 			unsigned int partitionFlags;
 
-			unsigned int unknown2;
+			unsigned int unknown1;
 
 			unsigned int partitionBlockSize;
 			unsigned int partitionBlockCount;
 
+			unsigned int unknown2;
 			unsigned int unknown3;
-			unsigned int unknown4;
 
 			char partitionName[kPartitionNameMaxLength];
 			char filename[kFilenameMaxLength];
@@ -73,8 +73,6 @@ namespace Heimdall
 
 			PitEntry();
 			~PitEntry();
-
-			void Print(void) const;
 
 			bool GetUnused(void) const
 			{
@@ -116,14 +114,14 @@ namespace Heimdall
 				this->partitionFlags = partitionFlags;
 			}
 
-			unsigned int GetUnknown2(void) const
+			unsigned int GetUnknown1(void) const
 			{
-				return unknown2;
+				return unknown1;
 			}
 
-			void SetUnknown2(unsigned int unknown2)
+			void SetUnknown1(unsigned int unknown1)
 			{
-				this->unknown2 = unknown2;
+				this->unknown1 = unknown1;
 			}
 
 			unsigned int GetPartitionBlockSize(void) const
@@ -146,6 +144,16 @@ namespace Heimdall
 				this->partitionBlockCount = partitionBlockCount;
 			}
 
+			unsigned int GetUnknown2(void) const
+			{
+				return unknown2;
+			}
+
+			void SetUnknown2(unsigned int unknown2)
+			{
+				this->unknown2 = unknown2;
+			}
+
 			unsigned int GetUnknown3(void) const
 			{
 				return unknown3;
@@ -154,16 +162,6 @@ namespace Heimdall
 			void SetUnknown3(unsigned int unknown3)
 			{
 				this->unknown3 = unknown3;
-			}
-
-			unsigned int GetUnknown4(void) const
-			{
-				return unknown4;
-			}
-
-			void SetUnknown4(unsigned int unknown4)
-			{
-				this->unknown4 = unknown4;
 			}
 
 			const char *GetPartitionName(void) const
@@ -287,13 +285,16 @@ namespace Heimdall
 			bool Unpack(const unsigned char *data);
 			void Pack(unsigned char *data) const;
 
+			void Clear(void);
+
+			PitEntry *GetEntry(unsigned int index);
+			const PitEntry *GetEntry(unsigned int index) const;
+
 			PitEntry *FindEntry(const char *partitionName);
 			const PitEntry *FindEntry(const char *partitionName) const;
 
 			PitEntry *FindEntry(unsigned int partitionIdentifier);
 			const PitEntry *FindEntry(unsigned int partitionIdentifier) const;
-
-			void Print(void) const;
 
 			unsigned int GetEntryCount(void) const
 			{

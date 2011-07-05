@@ -97,21 +97,22 @@ namespace Heimdall
 			BridgeManager(bool verbose, int communicationDelay);
 			~BridgeManager();
 
+			bool DetectDevice(void);
 			bool Initialise(void);
 
 			bool BeginSession(void) const;
-			bool EndSession(void) const;
+			bool EndSession(bool reboot) const;
 
 			bool SendPacket(OutboundPacket *packet, int timeout = 3000) const;
 			bool ReceivePacket(InboundPacket *packet, int timeout = 3000) const;
+
+			bool RequestDeviceInfo(unsigned int request, int *result) const;
 
 			bool SendPitFile(FILE *file) const;
 			int ReceivePitFile(unsigned char **pitBuffer) const;
 
 			bool SendFile(FILE *file, int destination, int fileIdentifier = -1) const;
 			bool ReceiveDump(int chipType, int chipId, FILE *file) const;
-
-			bool RebootDevice(void) const;
 
 			bool IsVerbose(void) const
 			{
