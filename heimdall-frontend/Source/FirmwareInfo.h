@@ -42,6 +42,7 @@ namespace HeimdallFrontend
 			DeviceInfo(const QString& manufacturer, const QString& product, const QString& name);
 
 			bool ParseXml(QXmlStreamReader& xml);
+			void WriteXml(QXmlStreamWriter& xml) const;
 
 			const QString& GetManufacturer(void) const
 			{
@@ -89,6 +90,7 @@ namespace HeimdallFrontend
 			bool IsCleared(void) const;
 
 			bool ParseXml(QXmlStreamReader& xml);
+			void WriteXml(QXmlStreamWriter& xml) const;
 
 			const QString& GetName(void) const
 			{
@@ -124,6 +126,7 @@ namespace HeimdallFrontend
 			FileInfo(unsigned int partitionId, const QString& filename);
 
 			bool ParseXml(QXmlStreamReader& xml);
+			void WriteXml(QXmlStreamWriter& xml) const;
 
 			unsigned int GetPartitionId(void) const
 			{
@@ -170,6 +173,8 @@ namespace HeimdallFrontend
 			QString pitFilename;
 			bool repartition;
 
+			bool noReboot;
+
 			QList<FileInfo> fileInfos;
 
 		public:
@@ -180,6 +185,7 @@ namespace HeimdallFrontend
 			bool IsCleared(void) const;
 
 			bool ParseXml(QXmlStreamReader& xml);
+			void WriteXml(QXmlStreamWriter& xml) const;
 
 			const QString& GetName(void) const
 			{
@@ -269,6 +275,16 @@ namespace HeimdallFrontend
 			void SetRepartition(bool repartition)
 			{
 				this->repartition = repartition;
+			}
+
+			bool GetNoReboot(void) const
+			{
+				return (noReboot);
+			}
+
+			void SetNoReboot(bool noReboot)
+			{
+				this->noReboot = noReboot;
 			}
 
 			const QList<FileInfo>& GetFileInfos(void) const

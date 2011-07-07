@@ -108,9 +108,9 @@
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>20</y>
+        <y>10</y>
         <width>251</width>
-        <height>341</height>
+        <height>331</height>
        </rect>
       </property>
       <property name="title">
@@ -122,7 +122,7 @@
          <x>10</x>
          <y>20</y>
          <width>231</width>
-         <height>311</height>
+         <height>301</height>
         </rect>
        </property>
       </widget>
@@ -186,7 +186,7 @@
       <property name="geometry">
        <rect>
         <x>520</x>
-        <y>370</y>
+        <y>350</y>
         <width>241</width>
         <height>21</height>
        </rect>
@@ -375,6 +375,22 @@
        </property>
       </widget>
      </widget>
+     <widget class="QRadioButton" name="noRebootRadioButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>380</y>
+        <width>241</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>No Reboot Recommended</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="flashTab">
      <attribute name="title">
@@ -410,7 +426,7 @@
       </widget>
       <widget class="QPlainTextEdit" name="outputPlainTextEdit">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -419,6 +435,15 @@
          <width>731</width>
          <height>91</height>
         </rect>
+       </property>
+       <property name="undoRedoEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="plainText">
+        <string notr="true"/>
        </property>
       </widget>
       <widget class="QLabel" name="flashLabel">
@@ -478,7 +503,7 @@
          <x>10</x>
          <y>20</y>
          <width>381</width>
-         <height>91</height>
+         <height>51</height>
         </rect>
        </property>
        <property name="title">
@@ -491,7 +516,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>50</y>
+          <y>20</y>
           <width>281</width>
           <height>21</height>
          </rect>
@@ -507,29 +532,13 @@
         <property name="geometry">
          <rect>
           <x>300</x>
-          <y>50</y>
+          <y>20</y>
           <width>71</width>
           <height>23</height>
          </rect>
         </property>
         <property name="text">
          <string>Browse</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="repartitionCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>91</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Repartition</string>
         </property>
        </widget>
       </widget>
@@ -540,7 +549,7 @@
        <property name="geometry">
         <rect>
          <x>670</x>
-         <y>230</y>
+         <y>240</y>
          <width>71</width>
          <height>23</height>
         </rect>
@@ -669,7 +678,7 @@
        <property name="geometry">
         <rect>
          <x>400</x>
-         <y>230</y>
+         <y>240</y>
          <width>71</width>
          <height>23</height>
         </rect>
@@ -687,8 +696,40 @@
          <x>400</x>
          <y>20</y>
          <width>341</width>
-         <height>201</height>
+         <height>211</height>
         </rect>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="noRebootCheckBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>80</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>No Reboot</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="repartitionCheckBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>80</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Repartition</string>
        </property>
       </widget>
      </widget>
@@ -1221,7 +1262,6 @@
   <tabstop>includedFilesListWidget</tabstop>
   <tabstop>repartitionRadioButton</tabstop>
   <tabstop>loadFirmwareButton</tabstop>
-  <tabstop>repartitionCheckBox</tabstop>
   <tabstop>pitLineEdit</tabstop>
   <tabstop>pitBrowseButton</tabstop>
   <tabstop>partitionNameComboBox</tabstop>

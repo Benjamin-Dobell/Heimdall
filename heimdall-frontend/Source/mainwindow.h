@@ -99,7 +99,9 @@ namespace HeimdallFrontend
 			void RemovePartition(void);
 
 			void SelectPit(void);
+
 			void SetRepartition(int enabled);
+			void SetNoReboot(int enabled);
 
 			void StartFlash(void);
 

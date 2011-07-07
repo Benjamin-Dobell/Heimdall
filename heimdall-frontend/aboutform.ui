@@ -167,7 +167,7 @@ THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRES
     </property>
     <property name="text">
      <string>Heimdall Frontend
-Version 1.3.0
+Version 1.3 (beta)
 Copyright © 2010 Benjamin Dobell, Glass Echidna</string>
     </property>
     <property name="textFormat">

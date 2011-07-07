@@ -31,7 +31,7 @@ using namespace std;
 using namespace libpit;
 using namespace Heimdall;
 
-const char *Interface::version = "v1.3.0";
+const char *Interface::version = "v1.3 (beta)";
 
 const char *Interface::usage = "Usage: heimdall <action> <arguments> [--verbose] [--no-reboot] [--delay <ms>]\n\
 \n\

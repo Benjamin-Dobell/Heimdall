@@ -43,6 +43,21 @@ PitEntry::~PitEntry()
 {
 }
 
+bool PitEntry::Matches(const PitEntry *otherPitEntry) const
+{
+	if (unused == otherPitEntry->unused && partitionType == otherPitEntry->partitionType && partitionIdentifier == otherPitEntry->partitionIdentifier
+		&& partitionFlags == otherPitEntry->partitionFlags && unknown1 == otherPitEntry->unknown1 && partitionBlockSize == otherPitEntry->partitionBlockSize
+		&& partitionBlockCount == otherPitEntry->partitionBlockCount && unknown2 == otherPitEntry->unknown2 && unknown3 == otherPitEntry->unknown3
+		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(filename, otherPitEntry->filename) == 0)
+	{
+		return (true);
+	}
+	else
+	{
+		return (false);
+	}
+}
+
 
 
 PitData::PitData()
@@ -176,6 +191,26 @@ void PitData::Pack(unsigned char *data) const
 
 		memcpy(data + entryOffset + 36, entries[i]->GetPartitionName(), PitEntry::kPartitionNameMaxLength);
 		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetPartitionName(), PitEntry::kFilenameMaxLength);
+	}
+}
+
+bool PitData::Matches(const PitData *otherPitData) const
+{
+	if (entryCount == otherPitData->entryCount && unknown1 == otherPitData->unknown1 && unknown2 == otherPitData->unknown2
+		&& unknown3 == otherPitData->unknown3 && unknown4 == otherPitData->unknown4 && unknown5 == otherPitData->unknown5
+		&& unknown6 == otherPitData->unknown6 && unknown7 == otherPitData->unknown7 && unknown8 == otherPitData->unknown8)
+	{
+		for (unsigned int i = 0; i < entryCount; i++)
+		{
+			if (!entries[i]->Matches(otherPitData->entries[i]))
+				return (false);
+		}
+
+		return (true);
+	}
+	else
+	{
+		return (false);
 	}
 }
 

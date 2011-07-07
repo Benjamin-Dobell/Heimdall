@@ -116,7 +116,7 @@ bool BridgeManager::DetectDevice(void)
 	int result = libusb_init(&libusbContext);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to initialise libusb. Error: %i\n", result);
+		Interface::PrintError("Failed to initialise libusb. Error: %d\n", result);
 		return (false);
 	}
 
@@ -153,7 +153,7 @@ bool BridgeManager::Initialise(void)
 	int result = libusb_init(&libusbContext);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to initialise libusb. Error: %i\n", result);
+		Interface::PrintError("Failed to initialise libusb. Error: %d\n", result);
 		return (false);
 	}
 
@@ -191,7 +191,7 @@ bool BridgeManager::Initialise(void)
 	result = libusb_open(heimdallDevice, &deviceHandle);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to access device. Error: %i\n", result);
+		Interface::PrintError("Failed to access device. Error: %d\n", result);
 		return (false);
 	}
 
@@ -528,7 +528,7 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
 		if (verbose)
-			Interface::PrintError("Error %i whilst sending packet. ", result);
+			Interface::PrintError("Error %d whilst sending packet. ", result);
 
 		// Retry
 		for (int i = 0; i < 5; i++)
@@ -546,7 +546,7 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 				break;
 
 			if (verbose)
-				Interface::PrintError("Error %i whilst sending packet. ", result);
+				Interface::PrintError("Error %d whilst sending packet. ", result);
 		}
 
 		if (verbose)
@@ -574,7 +574,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
 		if (verbose)
-			Interface::PrintError("Error %i whilst receiving packet. ", result);
+			Interface::PrintError("Error %d whilst receiving packet. ", result);
 
 		// Retry
 		for (int i = 0; i < 5; i++)
@@ -592,7 +592,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 				break;
 
 			if (verbose)
-				Interface::PrintError("Error %i whilst receiving packet. ", result);
+				Interface::PrintError("Error %d whilst receiving packet. ", result);
 
 			if (i >= 3)
 			{
@@ -750,7 +750,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 
 		if (!success)
 		{
-			Interface::PrintError("Failed to request PIT file part #%i!\n", i);
+			Interface::PrintError("Failed to request PIT file part #%d!\n", i);
 			delete [] buffer;
 			return (0);
 		}
@@ -760,7 +760,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 		
 		if (!success)
 		{
-			Interface::PrintError("Failed to receive PIT file part #%i!\n", i);
+			Interface::PrintError("Failed to receive PIT file part #%d!\n", i);
 			delete receiveFilePartPacket;
 			delete [] buffer;
 			return (0);
@@ -906,7 +906,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 			if (verbose)
 			{
 				const unsigned char *data = sendFilePartResponse->GetData();
-				Interface::Print("File Part #%i... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
+				Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
 					data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 			}
 
@@ -939,7 +939,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 					if (verbose)
 					{
 						const unsigned char *data = sendFilePartResponse->GetData();
-						Interface::Print("File Part #%i... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
+						Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
 							data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 					}
 
@@ -947,7 +947,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 					if (receivedPartIndex != filePartIndex)
 					{
-						Interface::PrintError("\nERROR: Expected file part index: %i Received: %i\n",
+						Interface::PrintError("\nERROR: Expected file part index: %d Received: %d\n",
 							filePartIndex, receivedPartIndex);
 						return (false);
 					}
@@ -962,7 +962,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (receivedPartIndex != filePartIndex)
 			{
-				Interface::PrintError("\nERROR: Expected file part index: %i Received: %i\n",
+				Interface::PrintError("\nERROR: Expected file part index: %d Received: %d\n",
 					filePartIndex, receivedPartIndex);
 				return (false);
 			}
@@ -978,9 +978,9 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 				if (currentPercent != previousPercent)
 				{
 					if (previousPercent < 10)
-						Interface::Print("\b\b%i%%", currentPercent);
+						Interface::Print("\b\b%d%%", currentPercent);
 					else
-						Interface::Print("\b\b\b%i%%", currentPercent);
+						Interface::Print("\b\b\b%d%%", currentPercent);
 				}
 			}
 
@@ -1076,7 +1076,7 @@ bool BridgeManager::ReceiveDump(int chipType, int chipId, FILE *file) const
 
 		if (!success)
 		{
-			Interface::PrintError("Failed to request dump part #%i!\n", i);
+			Interface::PrintError("Failed to request dump part #%d!\n", i);
 			delete [] buffer;
 			return (false);
 		}
@@ -1086,7 +1086,7 @@ bool BridgeManager::ReceiveDump(int chipType, int chipId, FILE *file) const
 		
 		if (!success)
 		{
-			Interface::PrintError("Failed to receive dump part #%i!\n", i);
+			Interface::PrintError("Failed to receive dump part #%d!\n", i);
 			continue;
 			delete receiveFilePartPacket;
 			delete [] buffer;

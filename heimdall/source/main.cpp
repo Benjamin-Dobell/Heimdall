@@ -348,7 +348,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	// 131072 for Galaxy S II, 0 for other devices.
 	if (deviceInfoResult != 0 && deviceInfoResult != 131072)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", deviceInfoResult);
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", deviceInfoResult);
 		return (false);
 	}
 
@@ -360,7 +360,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
 	if (deviceInfoResult != 180 && deviceInfoResult != 0 && deviceInfoResult != 3 && deviceInfoResult != 190)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%i\n", deviceInfoResult);
+		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceInfoResult);
 		return (false);
 	}
 
@@ -369,9 +369,12 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 	int totalBytes = 0;
 	for (map<string, FILE *>::const_iterator it = argumentFileMap.begin(); it != argumentFileMap.end(); it++)
 	{
-		fseek(it->second, 0, SEEK_END);
-		totalBytes += ftell(it->second);
-		rewind(it->second);
+		if (repartition || it->first != Interface::GetPitArgument())
+		{
+			fseek(it->second, 0, SEEK_END);
+			totalBytes += ftell(it->second);
+			rewind(it->second);
+		}
 	}
 	
 	DeviceInfoPacket *deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kTotalBytes, totalBytes);
@@ -397,27 +400,22 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 
 	if (deviceInfoResult != 0)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%i\n", deviceInfoResult);
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", deviceInfoResult);
 		return (false);
 	}
 
 	// -----------------------------------------------------
 
 	PitData *pitData;
+	PitData *localPitData = nullptr;
+
 	FILE *localPitFile = nullptr;
 
-	if (repartition)
+	// If a PIT file was passed as an argument then we must unpack it.
+	map<string, FILE *>::iterator it = argumentFileMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]);
+
+	if (it != argumentFileMap.end())
 	{
-		// If we're repartitioning then we need to unpack the information from the specified PIT file.
-		map<string, FILE *>::iterator it = argumentFileMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]);
-
-		// This shouldn't ever happen due to early checks, but we'll check again just in case...
-		if (it == argumentFileMap.end())
-		{
-			Interface::PrintError("Attempt was made to repartition without specifying a PIT file!\n");
-			return (false);
-		}
-
 		localPitFile = it->second;
 
 		// Load the local pit file into memory.
@@ -432,10 +430,16 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		int dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile);
 		rewind(localPitFile);
 
-		pitData = new PitData();
-		pitData->Unpack(pitFileBuffer);
+		localPitData = new PitData();
+		localPitData->Unpack(pitFileBuffer);
 
 		delete [] pitFileBuffer;
+	}
+	
+	if (repartition)
+	{
+		// Use the local PIT file data.
+		pitData = localPitData;
 	}
 	else
 	{
@@ -447,6 +451,21 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		pitData->Unpack(pitFileBuffer);
 
 		delete [] pitFileBuffer;
+
+		if (localPitData != nullptr)
+		{
+			// The user has specified a PIT without repartitioning, we should verify the local and device PIT data match!
+			bool pitsMatch = pitData->Matches(localPitData);
+			delete localPitData;
+
+			if (!pitsMatch)
+			{
+				Interface::PrintError("Local and device PIT files don't match and repartition wasn't specified!\n");
+				
+				delete pitData;
+				return (false);
+			}
+		}
 	}
 
 	map<unsigned int, PartitionNameFilePair> partitionFileMap;
@@ -518,13 +537,6 @@ int main(int argc, char **argv)
 				&& argumentMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]) == argumentMap.end())
 			{
 				Interface::Print("If you wish to repartition then a PIT file must be specified.\n");
-				return (0);
-			}
-
-			if (argumentMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]) != argumentMap.end()
-				&& argumentMap.find(Interface::actions[Interface::kActionFlash].valuelessArguments[Interface::kFlashValuelessArgRepartition]) == argumentMap.end())
-			{
-				Interface::Print("A PIT file should only be used when repartitioning.\n");
 				return (0);
 			}
 

@@ -91,6 +91,7 @@ void MainWindow::UpdatePackageUserInterface(void)
 		developerDonateButton->setEnabled(false);
 		
 		repartitionRadioButton->setChecked(false);
+		noRebootRadioButton->setChecked(false);
 
 		loadFirmwareButton->setEnabled(false);
 	}
@@ -126,7 +127,7 @@ void MainWindow::UpdatePackageUserInterface(void)
 		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetDeviceInfos().length(); i++)
 		{
 			const DeviceInfo& deviceInfo = loadedPackageData.GetFirmwareInfo().GetDeviceInfos()[i];
-			supportedDevicesListWidget->addItem(deviceInfo.GetManufacturer() + " " + deviceInfo.GetName() + " (" + deviceInfo.GetProduct() + ")");
+			supportedDevicesListWidget->addItem(deviceInfo.GetManufacturer() + " " + deviceInfo.GetName() + ": " + deviceInfo.GetProduct());
 		}
 
 		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetFileInfos().length(); i++)
@@ -136,6 +137,7 @@ void MainWindow::UpdatePackageUserInterface(void)
 		}
 
 		repartitionRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetRepartition());
+		noRebootRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetNoReboot());
 
 		loadFirmwareButton->setEnabled(true);
 	}
@@ -143,7 +145,7 @@ void MainWindow::UpdatePackageUserInterface(void)
 
 bool MainWindow::IsArchive(QString path)
 {
-	// Not a real check but hopefully it gets the message across, don't flash archives!
+	// Not a real check but hopefully it gets the message across, don't directly flash archives!
 	return (path.endsWith(".tar", Qt::CaseInsensitive) || path.endsWith(".gz", Qt::CaseInsensitive) || path.endsWith(".zip", Qt::CaseInsensitive)
 		|| path.endsWith(".bz2", Qt::CaseInsensitive) || path.endsWith(".7z", Qt::CaseInsensitive) || path.endsWith(".rar", Qt::CaseInsensitive));
 }
@@ -266,7 +268,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	QObject::connect(partitionFileBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPartitionFile()));
 
 	QObject::connect(pitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPit()));
+
 	QObject::connect(repartitionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRepartition(int)));
+	QObject::connect(noRebootCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetNoReboot(int)));
 	
 	QObject::connect(startFlashButton, SIGNAL(clicked()), this, SLOT(StartFlash()));
 
@@ -394,6 +398,7 @@ void MainWindow::LoadFirmwarePackage(void)
 
 	UpdateUnusedPartitionIds();
 	workingPackageData.GetFirmwareInfo().SetRepartition(loadedPackageData.GetFirmwareInfo().GetRepartition());
+	workingPackageData.GetFirmwareInfo().SetNoReboot(loadedPackageData.GetFirmwareInfo().GetNoReboot());
 
 	loadedPackageData.Clear();
 	UpdatePackageUserInterface();
@@ -431,6 +436,9 @@ void MainWindow::LoadFirmwarePackage(void)
 
 	repartitionCheckBox->setEnabled(true);
 	repartitionCheckBox->setChecked(workingPackageData.GetFirmwareInfo().GetRepartition());
+	noRebootCheckBox->setEnabled(true);
+	noRebootCheckBox->setChecked(workingPackageData.GetFirmwareInfo().GetNoReboot());
+
 	partitionsListWidget->setEnabled(true);
 	addPartitionButton->setEnabled(true);
 	removePartitionButton->setEnabled(true && partitionsListWidget->currentRow() >= 0);
@@ -466,7 +474,7 @@ void MainWindow::SelectPartitionFile(void)
 {
 	QString path = PromptFileSelection();
 
-	if (path != "")
+	if (path != "" && !IsArchive(path))
 	{
 		workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()].SetFilename(path);
 		partitionFileLineEdit->setText(path);
@@ -608,6 +616,7 @@ void MainWindow::SelectPit(void)
 	pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
 
 	repartitionCheckBox->setEnabled(validPit);
+	noRebootCheckBox->setEnabled(validPit);
 	partitionsListWidget->setEnabled(validPit);
 
 	addPartitionButton->setEnabled(validPit);
@@ -620,24 +629,41 @@ void MainWindow::SetRepartition(int enabled)
 {
 	workingPackageData.GetFirmwareInfo().SetRepartition(enabled);
 }
+void MainWindow::SetNoReboot(int enabled)
+{
+	workingPackageData.GetFirmwareInfo().SetNoReboot(enabled);
+}
 
 void MainWindow::StartFlash(void)
 {
+	outputPlainTextEdit->clear();
+
 	heimdallRunning = true;
 	heimdallFailed = false;
+
+	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
+	const QList<FileInfo>& fileInfos = firmwareInfo.GetFileInfos();
 	
 	QStringList arguments;
 	arguments.append("flash");
 
-	if (repartitionCheckBox->isChecked())
-	{
+	if (firmwareInfo.GetRepartition())
 		arguments.append("--repartition");
 
-		arguments.append("--pit");
-		arguments.append(pitLineEdit->text());
+	arguments.append("--pit");
+	arguments.append(firmwareInfo.GetPitFilename());
+
+	for (int i = 0; i < fileInfos.length(); i++)
+	{
+		QString flag;
+		flag.sprintf("--%u", fileInfos[i].GetPartitionId());
+
+		arguments.append(flag);
+		arguments.append(fileInfos[i].GetFilename());
 	}
 
-	// TODO: Loop through partitions and append them.
+	if (firmwareInfo.GetNoReboot())
+		arguments.append("--no-reboot");
 
 	flashProgressBar->setEnabled(true);
 	UpdateStartButton();
@@ -785,10 +811,10 @@ void MainWindow::SelectDevice(int row)
 
 void MainWindow::AddDevice(void)
 {
-	workingPackageData.GetFirmwareInfo().GetDeviceInfos().append(DeviceInfo(deviceManufacturerLineEdit->text(), deviceNameLineEdit->text(),
-		deviceProductCodeLineEdit->text()));
+	workingPackageData.GetFirmwareInfo().GetDeviceInfos().append(DeviceInfo(deviceManufacturerLineEdit->text(), deviceProductCodeLineEdit->text(),
+		deviceNameLineEdit->text()));
 
-	createDevicesListWidget->addItem(deviceManufacturerLineEdit->text() + " " + deviceNameLineEdit->text() + " (" + deviceProductCodeLineEdit->text() + ")");
+	createDevicesListWidget->addItem(deviceManufacturerLineEdit->text() + " " + deviceNameLineEdit->text() + ": " + deviceProductCodeLineEdit->text());
 	deviceManufacturerLineEdit->clear();
 	deviceNameLineEdit->clear();
 	deviceProductCodeLineEdit->clear();
@@ -825,12 +851,12 @@ void MainWindow::BuildPackage(void)
 			packagePath.append(".tar.gz");
 	}
 
-	Packaging::BuildPackage(packagePath, workingPackageData);
+	Packaging::BuildPackage(packagePath, workingPackageData.GetFirmwareInfo());
 }
 
 void MainWindow::HandleHeimdallStdout(void)
 {
-	QString output = process.read(1024);
+	QString output = process.readAll();
 
 	// We often receive multiple lots of output from Heimdall at one time. So we use regular expressions
 	// to ensure we don't miss out on any important information.
@@ -845,35 +871,10 @@ void MainWindow::HandleHeimdallStdout(void)
 		flashProgressBar->setValue(percentString.mid(1, percentString.length() - 2).toInt());
 	}
 
-	/*// Handle other information
-
-	int endOfLastLine = output.length() - 1;
-	for (; endOfLastLine > -1; endOfLastLine--)
-	{
-		if (output[endOfLastLine] != '\n')
-			break;
-	}
-
-	if (endOfLastLine < 0)
-		return;	// Output was blank or just a bunch of new line characters.
-
-	int startOfLastLine = endOfLastLine - 1;
-	for (; startOfLastLine > -1; startOfLastLine--)
-	{
-		if (output[startOfLastLine] == '\n')
-			break;
-	}
-
-	startOfLastLine++;
-
-	// Just look at the last line of the output
-	output = output.mid(startOfLastLine, endOfLastLine - startOfLastLine + 1);	// Work with the last line only
-
-	percentExp.setPattern("[0-9]+%");
-	
-	// If the last line wasn't a uploading message or a percentage transferred then display it.
-	if (output.lastIndexOf(uploadingExp) < 0 && output.lastIndexOf(percentExp) < 0)
-		flashLabel->setText(output);*/
+	output.remove(QChar('\b'));
+	output.replace(QChar('%'), QString("%\n"));
+	outputPlainTextEdit->insertPlainText(output);
+	outputPlainTextEdit->ensureCursorVisible();
 }
 
 void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus)
@@ -893,6 +894,9 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 	else
 	{
 		QString error = process.readAllStandardError();
+
+		outputPlainTextEdit->insertPlainText(error);
+		outputPlainTextEdit->ensureCursorVisible();
 
 		int firstNewLineChar = error.indexOf('\n');
 

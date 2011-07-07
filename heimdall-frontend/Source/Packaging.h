@@ -93,17 +93,25 @@ namespace HeimdallFrontend
 	class Packaging
 	{
 		private:
+
+			enum
+			{
+				kExtractBufferLength = 262144,
+				kCompressBufferLength = 262144
+			};
 			
 			// TODO: Add support for sparse files to both methods.
-			static bool ExtractTar(QTemporaryFile& tarFile, PackageData *outputPackageData);
-			static bool CreateTar(const PackageData& packageData, QTemporaryFile *outputTarFile); // Uses original TAR format.
+			static bool ExtractTar(QTemporaryFile& tarFile, PackageData *packageData);
+
+			static bool WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, bool firmwareXml = false);
+			static bool CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarFile); // Uses original TAR format.
 
 		public:
 
 			static const char *ustarMagic;
 
-			static bool ExtractPackage(const QString& packagePath, PackageData *outputPackageData);
-			static bool BuildPackage(const QString& packagePath, const PackageData& packageData);
+			static bool ExtractPackage(const QString& packagePath, PackageData *packageData);
+			static bool BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo);
 	};
 }
 

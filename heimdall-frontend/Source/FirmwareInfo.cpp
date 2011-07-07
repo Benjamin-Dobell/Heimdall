@@ -50,7 +50,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundManufacturer)
 				{
-					// TODO: "found multiple device manufacturers."
+					// TODO: "Found multiple device manufacturers."
 					return (false);
 				}
 
@@ -62,7 +62,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundProduct)
 				{
-					// TODO: "found multiple device product identifiers."
+					// TODO: "Found multiple device product identifiers."
 					return (false);
 				}
 
@@ -74,7 +74,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "found multiple device names."));
+					// TODO: "Found multiple device names."));
 					return (false);
 				}
 
@@ -99,6 +99,25 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 	}
 
 	return (false);
+}
+
+void DeviceInfo::WriteXml(QXmlStreamWriter& xml) const
+{
+	xml.writeStartElement("device");
+
+	xml.writeStartElement("manufacturer");
+	xml.writeCharacters(manufacturer);
+	xml.writeEndElement();
+
+	xml.writeStartElement("product");
+	xml.writeCharacters(product);
+	xml.writeEndElement();
+
+	xml.writeStartElement("name");
+	xml.writeCharacters(name);
+	xml.writeEndElement();
+
+	xml.writeEndElement();
 }
 
 
@@ -135,7 +154,7 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "found multiple platform names."
+					// TODO: "Found multiple platform names."
 					return (false);
 				}
 
@@ -147,7 +166,7 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundVersion)
 				{
-					// TODO: "found multiple platform versions."
+					// TODO: "Found multiple platform versions."
 					return (false);
 				}
 
@@ -179,6 +198,21 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 	return (false);
 }
 
+void PlatformInfo::WriteXml(QXmlStreamWriter& xml) const
+{
+	xml.writeStartElement("platform");
+
+	xml.writeStartElement("name");
+	xml.writeCharacters(name);
+	xml.writeEndElement();
+
+	xml.writeStartElement("version");
+	xml.writeCharacters(version);
+	xml.writeEndElement();
+
+	xml.writeEndElement();
+}
+
 
 
 FileInfo::FileInfo()
@@ -206,7 +240,7 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundId)
 				{
-					// TODO: "found multiple file IDs."
+					// TODO: "Found multiple file IDs."
 					return (false);
 				}
 
@@ -218,7 +252,7 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundFilename)
 				{
-					// TODO: "found multiple file filenames."
+					// TODO: "Found multiple file filenames."
 					return (false);
 				}
 
@@ -245,11 +279,34 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 	return (false);
 }
 
+void FileInfo::WriteXml(QXmlStreamWriter& xml) const
+{
+	xml.writeStartElement("file");
+
+	xml.writeStartElement("id");
+	xml.writeCharacters(QString::number(partitionId));
+	xml.writeEndElement();
+
+	xml.writeStartElement("filename");
+
+	int lastSlash = filename.lastIndexOf('/');
+
+	if (lastSlash < 0)
+		lastSlash = filename.lastIndexOf('\\');
+
+	xml.writeCharacters(filename.mid(lastSlash + 1));
+
+	xml.writeEndElement();
+
+	xml.writeEndElement();
+}
+
 
 
 FirmwareInfo::FirmwareInfo()
 {
 	repartition = false;
+	noReboot = false;
 }
 
 void FirmwareInfo::Clear(void)
@@ -267,13 +324,15 @@ void FirmwareInfo::Clear(void)
 	pitFilename.clear();
 	repartition = false;
 
+	noReboot = false;
+
 	fileInfos.clear();
 }
 
 bool FirmwareInfo::IsCleared(void) const
 {
 	return (name.isEmpty() && version.isEmpty() && platformInfo.IsCleared() && developers.isEmpty() && url.isEmpty() && url.isEmpty() && donateUrl.isEmpty()
-		&& deviceInfos.isEmpty() && pitFilename.isEmpty() && !repartition && fileInfos.isEmpty());
+		&& deviceInfos.isEmpty() && pitFilename.isEmpty() && !repartition && !noReboot && fileInfos.isEmpty());
 }
 
 bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
@@ -289,6 +348,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 	bool foundDevices = false;
 	bool foundPit = false;
 	bool foundRepartition = false;
+	bool foundNoReboot = false;
 	bool foundFiles = false;
 
 	if (!xml.readNextStartElement())
@@ -337,7 +397,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "found multiple firmware names."
+					// TODO: "Found multiple firmware names."
 					return (false);
 				}
 
@@ -348,7 +408,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundVersion)
 				{
-					// TODO: "found multiple firmware versions."
+					// TODO: "Found multiple firmware versions."
 					return (false);
 				}
 
@@ -359,7 +419,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundPlatform)
 				{
-					// TODO: "found multiple firmware platforms."
+					// TODO: "Found multiple firmware platforms."
 					return (false);
 				}
 
@@ -372,7 +432,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDevelopers)
 				{
-					// TODO: "found multiple sets of firmware developers."
+					// TODO: "Found multiple sets of firmware developers."
 					return (false);
 				}
 
@@ -406,7 +466,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundUrl)
 				{
-					// TODO: "found multiple firmware URLs."
+					// TODO: "Found multiple firmware URLs."
 					return (false);
 				}
 
@@ -418,7 +478,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDonateUrl)
 				{
-					// TODO: "found multiple firmware donate URLs."
+					// TODO: "Found multiple firmware donate URLs."
 					return (false);
 				}
 
@@ -430,7 +490,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDevices)
 				{
-					// TODO: "found multiple sets of firmware devices."
+					// TODO: "Found multiple sets of firmware devices."
 					return (false);
 				}
 
@@ -471,7 +531,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundPit)
 				{
-					// TODO: "found multiple firmware PIT files."
+					// TODO: "Found multiple firmware PIT files."
 					return (false);
 				}
 
@@ -483,7 +543,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundRepartition)
 				{
-					// TODO: "found multiple firmware repartition values."
+					// TODO: "Found multiple firmware repartition values."
 					return (false);
 				}
 
@@ -491,11 +551,23 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 				repartition = (xml.readElementText().toInt() != 0);
 			}
+			else if (xml.name() == "noreboot")
+			{
+				if (foundNoReboot)
+				{
+					// TODO: "Found multiple firmware noreboot values."
+					return (false);
+				}
+
+				foundNoReboot = true;
+
+				noReboot = (xml.readElementText().toInt() != 0);
+			}
 			else if (xml.name() == "files")
 			{
 				if (foundFiles)
 				{
-					// TODO: "found multiple sets of firmware files."
+					// TODO: "Found multiple sets of firmware files."
 					return (false);
 				}
 
@@ -542,7 +614,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 		{
 			if (xml.name() == "firmware")
 			{
-				if (!(foundName && foundVersion && foundPlatform && foundDevelopers && foundDevices && foundPit && foundRepartition && foundFiles))
+				if (!(foundName && foundVersion && foundPlatform && foundDevelopers && foundDevices && foundPit && foundRepartition && foundNoReboot && foundFiles))
 					return (false);
 				else
 					break;
@@ -568,4 +640,82 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 	}
 	
 	return (true);
+}
+
+void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
+{
+	xml.writeStartDocument();
+	xml.writeStartElement("firmware");
+	xml.writeAttribute("version", QString::number(FirmwareInfo::kVersion));
+
+	xml.writeStartElement("name");
+	xml.writeCharacters(name);
+	xml.writeEndElement();
+
+	xml.writeStartElement("version");
+	xml.writeCharacters(version);
+	xml.writeEndElement();
+
+	platformInfo.WriteXml(xml);
+
+	xml.writeStartElement("developers");
+
+	for (int i = 0; i < developers.length(); i++)
+	{
+		xml.writeStartElement("name");
+		xml.writeCharacters(developers[i]);
+		xml.writeEndElement();
+	}
+
+	xml.writeEndElement();
+
+	if (!url.isEmpty())
+	{
+		xml.writeStartElement("url");
+		xml.writeCharacters(url);
+		xml.writeEndElement();
+	}
+
+	if (!donateUrl.isEmpty())
+	{
+		xml.writeStartElement("donateurl");
+		xml.writeCharacters(donateUrl);
+		xml.writeEndElement();
+	}
+
+	xml.writeStartElement("devices");
+
+	for (int i = 0; i < deviceInfos.length(); i++)
+		deviceInfos[i].WriteXml(xml);
+
+	xml.writeEndElement();
+
+	xml.writeStartElement("pit");
+
+	int lastSlash = pitFilename.lastIndexOf('/');
+
+	if (lastSlash < 0)
+		lastSlash = pitFilename.lastIndexOf('\\');
+
+	xml.writeCharacters(pitFilename.mid(lastSlash + 1));
+
+	xml.writeEndElement();
+
+	xml.writeStartElement("repartition");
+	xml.writeCharacters((repartition) ? "1" : "0");
+	xml.writeEndElement();
+
+	xml.writeStartElement("noreboot");
+	xml.writeCharacters((noReboot) ? "1" : "0");
+	xml.writeEndElement();
+
+	xml.writeStartElement("files");
+
+	for (int i = 0; i < fileInfos.length(); i++)
+		fileInfos[i].WriteXml(xml);
+
+	xml.writeEndElement();
+
+	xml.writeEndElement();
+	xml.writeEndDocument();
 }

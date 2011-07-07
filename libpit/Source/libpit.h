@@ -21,6 +21,10 @@
 #ifndef LIBPIT_H
 #define LIBPIT_H
 
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
+
 // C Standard Library
 #include <string.h>
 #include <vector>
@@ -73,6 +77,8 @@ namespace libpit
 
 			PitEntry();
 			~PitEntry();
+
+			bool Matches(const PitEntry *otherPitEntry) const;
 
 			bool GetUnused(void) const
 			{
@@ -284,6 +290,8 @@ namespace libpit
 
 			bool Unpack(const unsigned char *data);
 			void Pack(unsigned char *data) const;
+
+			bool Matches(const PitData *otherPitData) const;
 
 			void Clear(void);
 

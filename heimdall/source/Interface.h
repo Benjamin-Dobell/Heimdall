@@ -249,6 +249,11 @@ namespace Heimdall
 			static void PrintReleaseInfo(void);
 
 			static void PrintPit(const PitData *pitData);
+
+			static string& GetPitArgument(void)
+			{
+				return (flashValueArguments[kFlashValueArgPit]);
+			}
 	};
 }
 
