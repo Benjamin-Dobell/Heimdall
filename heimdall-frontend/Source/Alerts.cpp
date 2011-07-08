@@ -18,60 +18,26 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef PACKAGEDATA_H
-#define PACKAGEDATA_H
-
 // Qt
-#include <QTemporaryFile>
+#include <QMessageBox>
 
 // Heimdall Frontend
-#include "FirmwareInfo.h"
+#include "Alerts.h"
 
-namespace HeimdallFrontend
+using namespace HeimdallFrontend;
+
+void Alerts::DisplayError(const QString& errorMessage)
 {
-	class PackageData
-	{
-		private:
-
-			FirmwareInfo firmwareInfo;
-			QList<QTemporaryFile *> files;
-
-		public:
-
-			PackageData();
-			~PackageData();
-
-			void Clear(void);
-			bool ReadFirmwareInfo(QFile *file);
-
-			bool IsCleared(void) const;
-
-			const FirmwareInfo& GetFirmwareInfo(void) const
-			{
-				return (firmwareInfo);
-			}
-
-			FirmwareInfo& GetFirmwareInfo(void)
-			{
-				return (firmwareInfo);
-			}
-
-			const QList<QTemporaryFile *>& GetFiles(void) const
-			{
-				return (files);
-			}
-
-			QList<QTemporaryFile *>& GetFiles(void)
-			{
-				return (files);
-			}
-
-			// Simply clears the files list, it does delete/close any files.
-			void RemoveAllFiles(void)
-			{
-				files.clear();
-			}
-	};
+	QMessageBox messageBox;
+	messageBox.setText(errorMessage);
+	messageBox.setIcon(QMessageBox::Critical);
+	messageBox.exec();
 }
 
-#endif
+void Alerts::DisplayWarning(const QString& warningMessage)
+{
+	QMessageBox messageBox;
+	messageBox.setText(warningMessage);
+	messageBox.setIcon(QMessageBox::Warning);
+	messageBox.exec();
+}

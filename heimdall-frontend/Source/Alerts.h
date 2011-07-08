@@ -18,59 +18,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef PACKAGEDATA_H
-#define PACKAGEDATA_H
+#ifndef ALERTS_H
+#define ALERTS_H
 
 // Qt
-#include <QTemporaryFile>
-
-// Heimdall Frontend
-#include "FirmwareInfo.h"
+#include <QString>
 
 namespace HeimdallFrontend
 {
-	class PackageData
+	class Alerts
 	{
-		private:
-
-			FirmwareInfo firmwareInfo;
-			QList<QTemporaryFile *> files;
-
 		public:
 
-			PackageData();
-			~PackageData();
-
-			void Clear(void);
-			bool ReadFirmwareInfo(QFile *file);
-
-			bool IsCleared(void) const;
-
-			const FirmwareInfo& GetFirmwareInfo(void) const
-			{
-				return (firmwareInfo);
-			}
-
-			FirmwareInfo& GetFirmwareInfo(void)
-			{
-				return (firmwareInfo);
-			}
-
-			const QList<QTemporaryFile *>& GetFiles(void) const
-			{
-				return (files);
-			}
-
-			QList<QTemporaryFile *>& GetFiles(void)
-			{
-				return (files);
-			}
-
-			// Simply clears the files list, it does delete/close any files.
-			void RemoveAllFiles(void)
-			{
-				files.clear();
-			}
+			static void DisplayError(const QString& errorMessage);
+			static void DisplayWarning(const QString& warningMessage);
 	};
 }
 

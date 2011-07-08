@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ namespace HeimdallFrontend
 				kCompressBufferLength = 262144
 			};
 			
-			// TODO: Add support for sparse files to both methods.
+			// TODO: Add support for sparse files to both methods?
 			static bool ExtractTar(QTemporaryFile& tarFile, PackageData *packageData);
 
 			static bool WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, bool firmwareXml = false);

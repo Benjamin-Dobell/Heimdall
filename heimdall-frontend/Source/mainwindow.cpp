@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@
 #include <QUrl>
 
 // Heimdall Frontend
+#include "Alerts.h"
 #include "mainwindow.h"
 #include "Packaging.h"
 
@@ -250,9 +251,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	populatingPartitionNames = false;
 
+	verboseOutput = false;
+
 	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), false);
 
 	QObject::connect(actionDonate, SIGNAL(triggered()), this, SLOT(OpenDonationWebpage()));
+	QObject::connect(actionVerboseOutput, SIGNAL(toggled(bool)), this, SLOT(SetVerboseOutput(bool)));
 	QObject::connect(actionAboutHeimdall, SIGNAL(triggered()), this, SLOT(ShowAbout()));
 
 	QObject::connect(browseFirmwarePackageButton, SIGNAL(clicked()), this, SLOT(SelectFirmwarePackage()));
@@ -310,6 +314,11 @@ void MainWindow::OpenDonationWebpage(void)
 	QDesktopServices::openUrl(QUrl("http://www.glassechidna.com.au/donate/", QUrl::StrictMode));
 }
 
+void MainWindow::SetVerboseOutput(bool enabled)
+{
+	verboseOutput = enabled;
+}
+
 void MainWindow::ShowAbout(void)
 {
 	aboutForm.show();
@@ -326,14 +335,9 @@ void MainWindow::SelectFirmwarePackage(void)
 	if (firmwarePackageLineEdit->text() != "")
 	{
 		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), &loadedPackageData))
-		{
 			UpdatePackageUserInterface();
-		}
 		else
-		{
-			// TODO: Error?
 			loadedPackageData.Clear();
-		}
 	}
 }
 
@@ -360,6 +364,8 @@ void MainWindow::LoadFirmwarePackage(void)
 
 	for (int i = 0; i < packageFileInfos.length(); i++)
 	{
+		bool fileFound = false;
+
 		for (int j = 0; j < workingPackageData.GetFiles().length(); j++)
 		{
 			if (workingPackageData.GetFiles()[j]->fileTemplate() == ("XXXXXX-" + packageFileInfos[i].GetFilename()))
@@ -367,9 +373,13 @@ void MainWindow::LoadFirmwarePackage(void)
 				FileInfo partitionInfo(packageFileInfos[i].GetPartitionId(), QDir::current().absoluteFilePath(workingPackageData.GetFiles()[j]->fileName()));
 				workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
 
+				fileFound = true;
 				break;
 			}
 		}
+
+		if (!fileFound)
+			Alerts::DisplayWarning(QString("%1 is missing from the package.").arg(packageFileInfos[i].GetFilename()));
 	}
 
 	// Find the PIT file and read it
@@ -383,7 +393,8 @@ void MainWindow::LoadFirmwarePackage(void)
 
 			if (!ReadPit(file))
 			{
-				// TODO: Error
+				Alerts::DisplayError("Failed to read PIT file.");
+
 				loadedPackageData.Clear();
 				UpdatePackageUserInterface();
 
@@ -419,7 +430,8 @@ void MainWindow::LoadFirmwarePackage(void)
 		}
 		else
 		{
-			// TODO: "Firmware package includes invalid partition IDs."
+			Alerts::DisplayError("Firmware package includes invalid partition IDs.");
+
 			loadedPackageData.GetFirmwareInfo().Clear();
 			currentPitData.Clear();
 			UpdateUnusedPartitionIds();
@@ -549,18 +561,18 @@ void MainWindow::SelectPit(void)
 	QString path = PromptFileSelection();
 	bool validPit = path != "";
 
-	// In order to map files in the old PIT to file in the new one, we first must use partition names instead of IDs.
-	QList<FileInfo> fileInfos = workingPackageData.GetFirmwareInfo().GetFileInfos();
-
-	int partitionNamesCount = fileInfos.length();
-	QString *partitionNames = new QString[fileInfos.length()];
-	for (int i = 0; i < fileInfos.length(); i++)
-		partitionNames[i] = currentPitData.FindEntry(fileInfos[i].GetPartitionId())->GetPartitionName();
-
-	currentPitData.Clear();
-
 	if (validPit)
 	{
+		// In order to map files in the old PIT to file in the new one, we first must use partition names instead of IDs.
+		QList<FileInfo> fileInfos = workingPackageData.GetFirmwareInfo().GetFileInfos();
+
+		int partitionNamesCount = fileInfos.length();
+		QString *partitionNames = new QString[fileInfos.length()];
+		for (int i = 0; i < fileInfos.length(); i++)
+			partitionNames[i] = currentPitData.FindEntry(fileInfos[i].GetPartitionId())->GetPartitionName();
+
+		currentPitData.Clear();
+
 		QFile pitFile(path);
 
 		if (ReadPit(&pitFile))
@@ -589,40 +601,45 @@ void MainWindow::SelectPit(void)
 		{
 			validPit = false;
 		}
-	}
-	
-	// If the selected PIT was invalid, attempt to reload the old one.
-	if (!validPit)
-	{
-		// TODO: "The file selected was not a valid PIT file."
-		QFile originalPitFile(workingPackageData.GetFirmwareInfo().GetPitFilename());
 
-		if (ReadPit(&originalPitFile))
+		// If the selected PIT was invalid, attempt to reload the old one.
+		if (!validPit)
 		{
-			validPit = true;
+			Alerts::DisplayError("The file selected was not a valid PIT file.");
+
+			if (!workingPackageData.GetFirmwareInfo().GetPitFilename().isEmpty())
+			{
+				QFile originalPitFile(workingPackageData.GetFirmwareInfo().GetPitFilename());
+
+				if (ReadPit(&originalPitFile))
+				{
+					validPit = true;
+				}
+				else
+				{
+					Alerts::DisplayError("Failed to reload working PIT data.");
+
+					workingPackageData.Clear();
+					partitionsListWidget->clear();
+				}
+			}
 		}
-		else
-		{
-			// TODO: "Failed to reload working PIT data."
-			workingPackageData.Clear();
-			partitionsListWidget->clear();
-		}
+
+		UpdateUnusedPartitionIds();
+
+		delete [] partitionNames;
+
+		pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
+
+		repartitionCheckBox->setEnabled(validPit);
+		noRebootCheckBox->setEnabled(validPit);
+		partitionsListWidget->setEnabled(validPit);
+
+		addPartitionButton->setEnabled(validPit);
+		removePartitionButton->setEnabled(validPit && partitionsListWidget->currentRow() >= 0);
+
+		UpdateStartButton();
 	}
-
-	UpdateUnusedPartitionIds();
-
-	delete [] partitionNames;
-
-	pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
-
-	repartitionCheckBox->setEnabled(validPit);
-	noRebootCheckBox->setEnabled(validPit);
-	partitionsListWidget->setEnabled(validPit);
-
-	addPartitionButton->setEnabled(validPit);
-	removePartitionButton->setEnabled(validPit && partitionsListWidget->currentRow() >= 0);
-
-	UpdateStartButton();
 }
 
 void MainWindow::SetRepartition(int enabled)
@@ -664,6 +681,11 @@ void MainWindow::StartFlash(void)
 
 	if (firmwareInfo.GetNoReboot())
 		arguments.append("--no-reboot");
+
+	if (verboseOutput)
+		arguments.append("--verbose");
+
+	arguments.append("--stdout-errors");
 
 	flashProgressBar->setEnabled(true);
 	UpdateStartButton();
@@ -895,15 +917,12 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 	{
 		QString error = process.readAllStandardError();
 
-		outputPlainTextEdit->insertPlainText(error);
-		outputPlainTextEdit->ensureCursorVisible();
+		int lastNewLineChar = error.lastIndexOf('\n');
 
-		int firstNewLineChar = error.indexOf('\n');
-
-		if (firstNewLineChar == 0)
-			error = error.mid(1);
+		if (lastNewLineChar == 0)
+			error = error.mid(1).remove("ERROR: ");
 		else
-			error = error.left(firstNewLineChar);
+			error = error.left(lastNewLineChar).remove("ERROR: ");
 
 		flashLabel->setText(error);
 	}

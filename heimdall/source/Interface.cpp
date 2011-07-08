@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,16 @@ using namespace std;
 using namespace libpit;
 using namespace Heimdall;
 
+bool Interface::stdoutErrors = false;
+
 const char *Interface::version = "v1.3 (beta)";
 
-const char *Interface::usage = "Usage: heimdall <action> <arguments> [--verbose] [--no-reboot] [--delay <ms>]\n\
+const char *Interface::usage = "Usage: heimdall <action> <action arguments> <common arguments>\n\
+Common Arguments:\n\
+    [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
 \n\
-action: flash\n\
-arguments:\n\
+Action: flash\n\
+Arguments:\n\
     --repartition --pit <filename> [--factoryfs <filename>]\n\
     [--cache <filename>] [--dbdata <filename>] [--primary-boot <filename>]\n\
     [--secondary-boot <filename>] [--param <filename>] [--kernel <filename>]\n\
@@ -53,31 +57,31 @@ arguments:\n\
     [--user-data <filename>] [--fota <filename>] [--hidden <filename>]\n\
     [--movinand <filename>] [--data <filename>] [--ums <filename>]\n\
     [--emmc <filename>] [--<partition identifier> <filename>]\n\
-description: Flashes firmware files to your phone.\n\
+Description: Flashes firmware files to your phone.\n\
 WARNING: If you're repartitioning it's strongly recommended you specify\n\
          all files at your disposal, including bootloaders.\n\
 \n\
-action: close-pc-screen\n\
-description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
+Action: close-pc-screen\n\
+Description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
 \n\
-action: detect\n\
-description: Indicates whether or not a download mode device can be detected.\n\
+Action: detect\n\
+Description: Indicates whether or not a download mode device can be detected.\n\
 \n\
-action: dump\n\
-arguments: --chip-type <NAND | RAM> --chip-id <integer> --output <filename>\n\
-description: Attempts to dump data from the phone corresponding to the\n\
+Action: dump\n\
+Arguments: --chip-type <NAND | RAM> --chip-id <integer> --output <filename>\n\
+Description: Attempts to dump data from the phone corresponding to the\n\
 	specified chip type and chip ID.\n\
 NOTE: Galaxy S phones don't appear to properly support this functionality.\n\
 \n\
-action: print-pit\n\
-description: Dumps the PIT file from the connected device and prints it in\n\
+Action: print-pit\n\
+Description: Dumps the PIT file from the connected device and prints it in\n\
     a human readable format.\n\
 \n\
-action version\n\
-description: Displays the version number of this binary.\n\
+Action version\n\
+Description: Displays the version number of this binary.\n\
 \n\
-action: help\n\
-description: Displays this dialogue.\n";
+Action: help\n\
+Description: Displays this dialogue.\n";
 
 const char *Interface::releaseInfo = "Heimdall %s, Copyright (c) 2010-2011, Benjamin Dobell, Glass Echidna\n\
 http://www.glassechidna.com.au\n\n\
@@ -123,11 +127,11 @@ string Interface::commonValueShortArguments[kCommonValueArgCount] = {
 };
 
 string Interface::commonValuelessArguments[kCommonValuelessArgCount] = {
-	"-verbose", "-no-reboot"
+	"-verbose", "-no-reboot", "-stdout-errors"
 };
 
 string Interface::commonValuelessShortArguments[kCommonValuelessArgCount] = {
-	"v",        "nobt"
+	"v",        "nobt",       "err"
 };
 
 Action Interface::actions[Interface::kActionCount] = {
@@ -319,23 +323,49 @@ bool Interface::GetArguments(int argc, char **argv, map<string, string>& argumen
 void Interface::Print(const char *format, ...)
 {
 	va_list args;
-
 	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
 
-	fflush(stdout);	// Make sure output isn't buffered.
+	vfprintf(stdout, format, args);
+	fflush(stdout);
+
+	va_end(args);
+	
 }
 
 void Interface::PrintError(const char *format, ...)
 {
 	va_list args;
-
 	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
 
-	fflush(stderr);	// Make sure output isn't buffered.
+	fprintf(stderr, "ERROR: ");
+	vfprintf(stderr, format, args);
+	fflush(stderr);
+
+	if (stdoutErrors)
+	{
+		fprintf(stdout, "ERROR: ");
+		vfprintf(stdout, format, args);
+		fflush(stdout);
+	}
+
+	va_end(args);
+}
+
+void Interface::PrintErrorSameLine(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	vfprintf(stderr, format, args);
+	fflush(stderr);
+
+	if (stdoutErrors)
+	{
+		vfprintf(stdout, format, args);
+		fflush(stdout);
+	}
+
+	va_end(args);
 }
 
 void Interface::PrintVersion(void)

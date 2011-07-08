@@ -58,6 +58,9 @@
     <ClCompile Include="Source\FirmwareInfo.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Alerts.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">
@@ -90,6 +93,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\FirmwareInfo.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Alerts.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

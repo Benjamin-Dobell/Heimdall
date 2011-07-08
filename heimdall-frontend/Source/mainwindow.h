@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,8 @@ namespace HeimdallFrontend
 			bool populatingPartitionNames;
 			QList<unsigned int> unusedPartitionIds;
 
+			bool verboseOutput;
+
 			void UpdateUnusedPartitionIds(void);
 			bool ReadPit(QFile *file);
 
@@ -84,6 +86,7 @@ namespace HeimdallFrontend
 		public slots:
 
 			void OpenDonationWebpage(void);
+			void SetVerboseOutput(bool enabled);
 			void ShowAbout(void);
 
 			void SelectFirmwarePackage(void);

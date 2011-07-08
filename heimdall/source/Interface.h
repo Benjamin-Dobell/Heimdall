@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -207,15 +207,18 @@ namespace Heimdall
 			{
 				kCommonValuelessArgVerbose = 0,
 				kCommonValuelessArgNoReboot,
+				kCommonValuelessArgStdoutErrors,
 
 				kCommonValuelessArgCount
 			};
 
 		private:
+
+			static bool stdoutErrors;
 		
 			static const char *version;
 			static const char *usage;
-			static const char *releaseInfo;			
+			static const char *releaseInfo;		
 
 			// Flash arguments
 			static string flashValueArguments[kFlashValueArgCount];
@@ -243,6 +246,7 @@ namespace Heimdall
 
 			static void Print(const char *format, ...);
 			static void PrintError(const char *format, ...);
+			static void PrintErrorSameLine(const char *format, ...);
 
 			static void PrintVersion(void);
 			static void PrintUsage(void);
@@ -253,6 +257,11 @@ namespace Heimdall
 			static string& GetPitArgument(void)
 			{
 				return (flashValueArguments[kFlashValueArgPit]);
+			}
+
+			static void SetStdoutErrors(bool enabled)
+			{
+				stdoutErrors = enabled;
 			}
 	};
 }

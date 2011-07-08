@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  THE SOFTWARE.*/
 
 // Heimdall Frontend
+#include "Alerts.h"
 #include "PackageData.h"
 
 using namespace HeimdallFrontend;
@@ -47,7 +48,7 @@ bool PackageData::ReadFirmwareInfo(QFile *file)
 {
 	if (!file->open(QFile::ReadOnly))
 	{
-		// TODO: Error
+		Alerts::DisplayError(QString("Failed to open file: \1%s").arg(file->fileName()));
 		return (false);
 	}
 

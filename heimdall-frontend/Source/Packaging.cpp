@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
 #include <QProgressDialog>
 
 // Heimdall Frontend
+#include "Alerts.h"
 #include "Packaging.h"
 
 using namespace HeimdallFrontend;
@@ -46,7 +47,7 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 
 	if (!tarFile.open())
 	{
-		// TODO: "Error opening temporary TAR archive."
+		Alerts::DisplayError(QString("Error opening temporary TAR archive:\n%1").arg(tarFile.fileName()));
 		return (false);
 	}
 
@@ -62,9 +63,10 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 
 		if (dataRead != TarHeader::kBlockLength)
 		{
-			// TODO: "Package's TAR archive is malformed."
-			tarFile.close();
 			progressDialog.close();
+			Alerts::DisplayError("Package's TAR archive is malformed.");
+
+			tarFile.close();
 
 			return (false);
 		}
@@ -96,7 +98,6 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 			if (previousEmpty)
 			{
 				// Two empty blocks in a row means we've reached the end of the archive.
-				// TODO: Make sure we're at the end of the file.
 				break;
 			}
 		}
@@ -128,8 +129,11 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 
 			if (!parsed)
 			{
-				// TODO: Error message?
+				progressDialog.close();
+				Alerts::DisplayError("Tar header contained an invalid file size.");
+
 				tarFile.close();
+
 				return (false);
 			}
 
@@ -143,8 +147,11 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 
 				if (!outputFile->open())
 				{
-					// TODO: "Failed to open output file \"%s\""
+					progressDialog.close();
+					Alerts::DisplayError(QString("Failed to open output file: \n%1").arg(outputFile->fileName()));
+
 					tarFile.close();
+
 					return (false);
 				}
 
@@ -161,7 +168,9 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 
 					if (dataRead < fileDataToRead || dataRead % TarHeader::kBlockLength != 0)
 					{
-						// TODO: "Unexpected error extracting package files."
+						progressDialog.close();
+						Alerts::DisplayError("Unexpected read error whilst extracting package files.");
+
 						tarFile.close();
 						outputFile->close();
 
@@ -193,8 +202,11 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 			}
 			else
 			{
-				// TODO: "Heimdall packages shouldn't contain links or directories."
+				progressDialog.close();
+				Alerts::DisplayError("Heimdall packages shouldn't contain links or directories.");
+
 				tarFile.close();
+
 				return (false);
 			}
 		}
@@ -217,13 +229,13 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 
 	if (!file.open(QFile::ReadOnly))
 	{
-		// TODO: "Failed to open \"%s\""
+		Alerts::DisplayError(QString("Failed to open file: \n%1").arg(file.fileName()));
 		return (false);
 	}
 
 	if (file.size() > TarHeader::kMaxFileSize)
 	{
-		// TODO: "File is too large to packaged"
+		Alerts::DisplayError(QString("File is too large to be packaged:\n%1").arg(file.fileName()));
 		return (false);
 	}
 
@@ -240,7 +252,7 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 
 		if (utfFilename.length() > 100)
 		{
-			// TODO: "Filename is too long"
+			Alerts::DisplayError(QString("File name is too long:\n%1").arg(qtFileInfo.fileName()));
 			return (false);
 		}
 	}
@@ -321,7 +333,7 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 
 		if (tarFile->write(buffer, dataRead) != dataRead)
 		{
-			// TODO: "Failed to write data to the temporary TAR file."
+			Alerts::DisplayError("Failed to write data to the temporary TAR file.");
 			return (false);
 		}
 
@@ -332,7 +344,7 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 
 			if (tarFile->write(buffer, remainingBlockLength) != remainingBlockLength)
 			{
-				// TODO: "Failed to write data to the temporary TAR file."
+				Alerts::DisplayError("Failed to write data to the temporary TAR file.");
 				return (false);
 			}
 		}
@@ -355,17 +367,20 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 
 	if (!firmwareXmlFile.open())
 	{
-		// TODO: "Failed to create temporary file "%s"
+		progressDialog.close();
+		Alerts::DisplayError(QString("Failed to create temporary file: \n%1").arg(firmwareXmlFile.fileName()));
+
 		return (false);
 	}
 
 	firmwareInfo.WriteXml(QXmlStreamWriter(&firmwareXmlFile));
-
 	firmwareXmlFile.close();
 
 	if (!tarFile->open())
 	{
-		// TODO: "Failed to open \"%s\""
+		progressDialog.close();
+		Alerts::DisplayError(QString("Failed to open file: \n%1").arg(tarFile->fileName()));
+
 		return (false);
 	}
 
@@ -443,7 +458,7 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 
 	if (fopen == NULL)
 	{
-		// TODO: "Failed to open package \"%s\"."
+		Alerts::DisplayError(QString("Failed to open package:\n%1").arg(packagePath));
 		return (false);
 	}
 
@@ -457,7 +472,7 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 
 	if (!outputTar.open())
 	{
-		// TODO: "Error opening temporary TAR archive."
+		Alerts::DisplayError("Failed to open temporary TAR archive.");
 		gzclose(packageFile);
 
 		return (false);
@@ -477,9 +492,10 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 
 		if (bytesRead == -1)
 		{
-			// TODO: "Error decompressing archive."
-			gzclose(packageFile);
 			progressDialog.close();
+			Alerts::DisplayError("Error decompressing archive.");
+
+			gzclose(packageFile);
 
 			return (false);
 		}
@@ -523,6 +539,7 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 		}
 	}
 
+	Alerts::DisplayError("firmware.xml is missing from the package.");
 	return (false);
 }
 
@@ -532,7 +549,7 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 
 	if (fopen == NULL)
 	{
-		// TODO: "Failed to open package "%s"
+		Alerts::DisplayError(QString("Failed to create package:\n%1").arg(packagePath));
 		return (false);
 	}
 
@@ -543,9 +560,11 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 
 	if (!tar.open())
 	{
-		// TODO: "Failed to open temporary file "%s"
+		Alerts::DisplayError(QString("Failed to open temporary file: \n%1").arg(tar.fileName()));
+
 		fclose(compressedPackageFile);
 		remove(packagePath.toStdString().c_str());
+
 		return (false);
 	}
 	
@@ -565,22 +584,22 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 
 		if (bytesRead == -1)
 		{
-			// TODO: "Error reading temporary TAR file."
+			progressDialog.close();
+			Alerts::DisplayError("Error reading temporary TAR file.");
+
 			gzclose(packageFile);
 			remove(packagePath.toStdString().c_str());
-
-			progressDialog.close();
 
 			return (false);
 		}
 
 		if (gzwrite(packageFile, buffer, bytesRead) != bytesRead)
 		{
-			// TODO: "Error compressing package."
+			progressDialog.close();
+			Alerts::DisplayError("Error compressing package.");
+
 			gzclose(packageFile);
 			remove(packagePath.toStdString().c_str());
-
-			progressDialog.close();
 
 			return (false);
 		}

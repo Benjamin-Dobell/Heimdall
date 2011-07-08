@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -278,7 +278,7 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 		}
 		else
 		{
-			Interface::PrintError("%s upload failed!\n", partitionName);
+			Interface::Print("%s upload failed!\n", partitionName);
 			return (false);
 		}
 	}
@@ -309,7 +309,7 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 			}
 			else
 			{
-				Interface::PrintError("%s upload failed!\n", partitionName);
+				Interface::Print("%s upload failed!\n", partitionName);
 				return (false);
 			}
 		}
@@ -325,7 +325,7 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 			}
 			else
 			{
-				Interface::PrintError("%s upload failed!\n", partitionName);
+				Interface::Print("%s upload failed!\n", partitionName);
 				return (false);
 			}
 		}
@@ -460,7 +460,9 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 
 			if (!pitsMatch)
 			{
-				Interface::PrintError("Local and device PIT files don't match and repartition wasn't specified!\n");
+				Interface::Print("Local and device PIT files don't match and repartition wasn't specified!\n");
+				Interface::Print("Flash aborted!\n");
+				Interface::PrintError("Flash aborted!\n");
 				
 				delete pitData;
 				return (false);
@@ -594,6 +596,8 @@ int main(int argc, char **argv)
 
 	bool verbose = argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgVerbose]) != argumentMap.end();
 	bool reboot = argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgNoReboot]) == argumentMap.end();
+
+	Interface::SetStdoutErrors(argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgStdoutErrors]) != argumentMap.end());
 
 	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
 	if (argumentMap.find(Interface::commonValueArguments[Interface::kCommonValueArgDelay]) != argumentMap.end())

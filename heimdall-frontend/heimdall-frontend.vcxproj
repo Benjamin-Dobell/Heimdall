@@ -151,6 +151,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release - Static MSVC|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Source\aboutform.cpp" />
+    <ClCompile Include="Source\Alerts.cpp" />
     <ClCompile Include="Source\FirmwareInfo.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\mainwindow.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="GeneratedFiles\ui_aboutform.h" />
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h" />
     <ClInclude Include="Source\aboutform.h" />
+    <ClInclude Include="Source\Alerts.h" />
     <ClInclude Include="Source\FirmwareInfo.h" />
     <ClInclude Include="Source\PackageData.h" />
     <ClInclude Include="Source\Packaging.h" />

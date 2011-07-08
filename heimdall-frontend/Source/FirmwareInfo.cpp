@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  THE SOFTWARE.*/
 
 // Heimdall Frontend
+#include "Alerts.h"
 #include "FirmwareInfo.h"
 
 using namespace HeimdallFrontend;
@@ -50,7 +51,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundManufacturer)
 				{
-					// TODO: "Found multiple device manufacturers."
+					Alerts::DisplayError("Found multiple <manufacturer> elements in <device>.");
 					return (false);
 				}
 
@@ -62,7 +63,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundProduct)
 				{
-					// TODO: "Found multiple device product identifiers."
+					Alerts::DisplayError("Found multiple <product> elements in <device>.");
 					return (false);
 				}
 
@@ -74,7 +75,7 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "Found multiple device names."));
+					Alerts::DisplayError("Found multiple <name> elements in <device>.");
 					return (false);
 				}
 
@@ -82,17 +83,32 @@ bool DeviceInfo::ParseXml(QXmlStreamReader& xml)
 
 				name = xml.readElementText();
 			}
+			else
+			{
+				Alerts::DisplayError(QString("<%1> is not a valid child of <device>.").arg(xml.name().toString()));
+				return (false);
+			}
 		}
 		else if (nextToken == QXmlStreamReader::EndElement)
 		{
 			if (xml.name() == "device")
-				return (foundManufacturer && foundProduct && foundName);
+			{
+				if (foundManufacturer && foundProduct && foundName)
+				{
+					return (true);
+				}
+				else
+				{
+					Alerts::DisplayError("Required elements are missing from <device>.");
+					return (false);
+				}
+			}
 		}
 		else
 		{
 			if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 			{
-				// TODO: "Unexpected token found in <device>"
+				Alerts::DisplayError("Unexpected token found in <device>.");
 				return (false);
 			}
 		}
@@ -154,7 +170,7 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "Found multiple platform names."
+					Alerts::DisplayError("Found multiple <name> elements in <platform>.");
 					return (false);
 				}
 
@@ -166,7 +182,7 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundVersion)
 				{
-					// TODO: "Found multiple platform versions."
+					Alerts::DisplayError("Found multiple <version> elements in <platform>.");
 					return (false);
 				}
 
@@ -176,20 +192,30 @@ bool PlatformInfo::ParseXml(QXmlStreamReader& xml)
 			}
 			else
 			{
-				// TODO: "found unknown <platform> sub-element <" + xml.name() + ">."
+				Alerts::DisplayError(QString("<%1> is not a valid child of <platform>.").arg(xml.name().toString()));
 				return (false);
 			}
 		}
 		else if (nextToken == QXmlStreamReader::EndElement)
 		{
 			if (xml.name() == "platform")
-				return (foundName && foundVersion);
+			{
+				if (foundName && foundVersion)
+				{
+					return (true);
+				}
+				else
+				{
+					Alerts::DisplayError("Required elements are missing from <platform>.");
+					return (false);
+				}
+			}
 		}
 		else
 		{
 			if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 			{
-				// TODO: "Unexpected token found in <platform>"
+				Alerts::DisplayError("Unexpected token found in <platform>.");
 				return (false);
 			}
 		}
@@ -240,7 +266,7 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundId)
 				{
-					// TODO: "Found multiple file IDs."
+					Alerts::DisplayError("Found multiple <id> elements in <file>.");
 					return (false);
 				}
 
@@ -252,7 +278,7 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundFilename)
 				{
-					// TODO: "Found multiple file filenames."
+					Alerts::DisplayError("Found multiple <filename> elements in <file>.");
 					return (false);
 				}
 
@@ -260,17 +286,32 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 
 				filename = xml.readElementText();
 			}
+			else
+			{
+				Alerts::DisplayError(QString("<%1> is not a valid child of <file>.").arg(xml.name().toString()));
+				return (false);
+			}
 		}
 		else if (nextToken == QXmlStreamReader::EndElement)
 		{
 			if (xml.name() == "file")
-				return (foundId && foundFilename);
+			{
+				if (foundId && foundFilename)
+				{
+					return (true);
+				}
+				else
+				{
+					Alerts::DisplayError("Required elements are missing from <file>.");
+					return (false);
+				}
+			}
 		}
 		else
 		{
 			if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 			{
-				// TODO: "Unexpected token found in <file>"
+				Alerts::DisplayError("Unexpected token found in <file>.");
 				return (false);
 			}
 		}
@@ -353,13 +394,13 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 	if (!xml.readNextStartElement())
 	{
-		// TODO: "Failed to find <firmware> element."
+		Alerts::DisplayError("Failed to find <firmware> element.");
 		return (false);
 	}
 
 	if (xml.name() != "firmware")
 	{
-		// TODO: "Expected <firmware> element but found <%s>"
+		Alerts::DisplayError(QString("Expected <firmware> element but found <%1>.").arg(xml.name().toString()));
 		return (false);
 	}
 
@@ -368,7 +409,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 	if (formatVersionString.isEmpty())
 	{
-		// TODO: <firmware> is missing a version."
+		Alerts::DisplayError("<firmware> is missing the version attribute.");
 		return (false);
 	}
 
@@ -377,13 +418,13 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 	if (!parsedVersion)
 	{
-		// TODO: "<firmware> contains a malformed version."
+		Alerts::DisplayError("<firmware> contains a malformed version.");
 		return (false);
 	}
 
 	if (formatVersion > kVersion)
 	{
-		// TODO: "Package is for a newer version of Heimdall Frontend. Please download the latest version of Heimdall Frontend."
+		Alerts::DisplayError("Package is for a newer version of Heimdall Frontend.\nPlease download the latest version of Heimdall Frontend.");
 		return (false);
 	}
 
@@ -397,7 +438,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundName)
 				{
-					// TODO: "Found multiple firmware names."
+					Alerts::DisplayError("Found multiple <name> elements in <firmware>.");
 					return (false);
 				}
 
@@ -408,7 +449,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundVersion)
 				{
-					// TODO: "Found multiple firmware versions."
+					Alerts::DisplayError("Found multiple <version> elements in <firmware>.");
 					return (false);
 				}
 
@@ -419,7 +460,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundPlatform)
 				{
-					// TODO: "Found multiple firmware platforms."
+					Alerts::DisplayError("Found multiple <platform> elements in <firmware>.");
 					return (false);
 				}
 
@@ -432,7 +473,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDevelopers)
 				{
-					// TODO: "Found multiple sets of firmware developers."
+					Alerts::DisplayError("Found multiple <developers> elements in <firmware>.");
 					return (false);
 				}
 
@@ -445,7 +486,14 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					if (nextToken == QXmlStreamReader::StartElement)
 					{
 						if (xml.name() == "name")
+						{
 							developers.append(xml.readElementText());
+						}
+						else
+						{
+							Alerts::DisplayError(QString("<%1> is not a valid child of <developers>.").arg(xml.name().toString()));
+							return (false);
+						}
 					}
 					else if (nextToken == QXmlStreamReader::EndElement)
 					{
@@ -456,7 +504,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					{
 						if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 						{
-							// TODO: "Unexpected token found in <developers>"
+							Alerts::DisplayError("Unexpected token found in <developers>.");
 							return (false);
 						}
 					}
@@ -466,7 +514,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundUrl)
 				{
-					// TODO: "Found multiple firmware URLs."
+					Alerts::DisplayError("Found multiple <url> elements in <firmware>.");
 					return (false);
 				}
 
@@ -478,7 +526,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDonateUrl)
 				{
-					// TODO: "Found multiple firmware donate URLs."
+					Alerts::DisplayError("Found multiple <donateurl> elements in <firmware>.");
 					return (false);
 				}
 
@@ -490,7 +538,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundDevices)
 				{
-					// TODO: "Found multiple sets of firmware devices."
+					Alerts::DisplayError("Found multiple <devices> elements in <firmware>.");
 					return (false);
 				}
 
@@ -511,6 +559,11 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 							deviceInfos.append(deviceInfo);
 						}
+						else
+						{
+							Alerts::DisplayError(QString("<%1> is not a valid child of <devices>.").arg(xml.name().toString()));
+							return (false);
+						}
 					}
 					else if (nextToken == QXmlStreamReader::EndElement)
 					{
@@ -521,7 +574,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					{
 						if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 						{
-							// TODO: "Unexpected token found in <devices>"
+							Alerts::DisplayError("Unexpected token found in <devices>.");
 							return (false);
 						}
 					}
@@ -531,7 +584,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundPit)
 				{
-					// TODO: "Found multiple firmware PIT files."
+					Alerts::DisplayError("Found multiple <pit> elements in <firmware>.");
 					return (false);
 				}
 
@@ -543,7 +596,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundRepartition)
 				{
-					// TODO: "Found multiple firmware repartition values."
+					Alerts::DisplayError("Found multiple <repartition> elements in <firmware>.");
 					return (false);
 				}
 
@@ -555,7 +608,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundNoReboot)
 				{
-					// TODO: "Found multiple firmware noreboot values."
+					Alerts::DisplayError("Found multiple <noreboot> elements in <firmware>.");
 					return (false);
 				}
 
@@ -567,7 +620,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			{
 				if (foundFiles)
 				{
-					// TODO: "Found multiple sets of firmware files."
+					Alerts::DisplayError("Found multiple <files> elements in <firmware>.");
 					return (false);
 				}
 
@@ -588,6 +641,11 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 							fileInfos.append(fileInfo);
 						}
+						else
+						{
+							Alerts::DisplayError(QString("<%1> is not a valid child of <files>.").arg(xml.name().toString()));
+							return (false);
+						}
 					}
 					else if (nextToken == QXmlStreamReader::EndElement)
 					{
@@ -598,7 +656,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					{
 						if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 						{
-							// TODO: "Unexpected token found in <devices>"
+							Alerts::DisplayError("Unexpected token found in <devices>.");
 							return (false);
 						}
 					}
@@ -606,7 +664,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			}
 			else
 			{
-				// TODO: "unknown <firmware> sub-element <" + xml.name() + ">."
+				Alerts::DisplayError(QString("<%1> is not a valid child of <firmware>.").arg(xml.name().toString()));
 				return (false);
 			}
 		}
@@ -615,16 +673,21 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 			if (xml.name() == "firmware")
 			{
 				if (!(foundName && foundVersion && foundPlatform && foundDevelopers && foundDevices && foundPit && foundRepartition && foundNoReboot && foundFiles))
+				{
+					Alerts::DisplayError("Required elements are missing from <firmware>.");
 					return (false);
+				}
 				else
+				{
 					break;
+				}
 			}
 		}
 		else
 		{
 			if (!(nextToken == QXmlStreamReader::Characters && xml.isWhitespace()))
 			{
-				// TODO: "Unexpected token found in <firmware>"
+				Alerts::DisplayError("Unexpected token found in <firmware>.");
 				return (false);
 			}
 		}
@@ -635,7 +698,7 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 
 	if (!xml.atEnd())
 	{
-		// TODO: "Found data after </firmware>"
+		Alerts::DisplayError("Found data after </firmware>.");
 		return (false);
 	}
 	

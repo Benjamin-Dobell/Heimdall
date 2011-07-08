@@ -114,7 +114,7 @@
        </rect>
       </property>
       <property name="title">
-       <string>Included Files</string>
+       <string>Package Files</string>
       </property>
       <widget class="QListWidget" name="includedFilesListWidget">
        <property name="geometry">
@@ -1223,7 +1223,14 @@
     </property>
     <addaction name="actionDonate"/>
    </widget>
+   <widget class="QMenu" name="menuAdvanced">
+    <property name="title">
+     <string>Advanced</string>
+    </property>
+    <addaction name="actionVerboseOutput"/>
+   </widget>
    <addaction name="menuDonate"/>
+   <addaction name="menuAdvanced"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionHelp">
@@ -1244,6 +1251,14 @@
   <action name="actionPackage_Creation">
    <property name="text">
     <string>Package Creation</string>
+   </property>
+  </action>
+  <action name="actionVerboseOutput">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Verbose Output</string>
    </property>
   </action>
  </widget>

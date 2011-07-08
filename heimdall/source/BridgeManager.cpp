@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -116,7 +116,7 @@ bool BridgeManager::DetectDevice(void)
 	int result = libusb_init(&libusbContext);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to initialise libusb. Error: %d\n", result);
+		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
 		return (false);
 	}
 
@@ -135,7 +135,7 @@ bool BridgeManager::DetectDevice(void)
 			{
 				libusb_free_device_list(devices, deviceCount);
 
-				Interface::Print("Device detected");
+				Interface::Print("Device detected\n");
 				return (true);
 			}
 		}
@@ -149,13 +149,18 @@ bool BridgeManager::DetectDevice(void)
 
 bool BridgeManager::Initialise(void)
 {
+	Interface::Print("Initialising connection...\n");
+
 	// Initialise libusb-1.0
 	int result = libusb_init(&libusbContext);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to initialise libusb. Error: %d\n", result);
+		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
+		Interface::Print("Failed to connect to device!");
 		return (false);
 	}
+
+	Interface::Print("Detecting device...\n");
 
 	// Get handle to Galaxy S device
 	struct libusb_device **devices;
@@ -184,14 +189,14 @@ bool BridgeManager::Initialise(void)
 
 	if (!heimdallDevice)
 	{
-		Interface::PrintError("Failed to detect compatible device\n");
+		Interface::PrintError("Failed to detect device!\n");
 		return (false);
 	}
 
 	result = libusb_open(heimdallDevice, &deviceHandle);
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("Failed to access device. Error: %d\n", result);
+		Interface::PrintError("Failed to access device. libusb error: %d\n", result);
 		return (false);
 	}
 
@@ -264,8 +269,7 @@ bool BridgeManager::Initialise(void)
 
 			for (int k = 0; k < configDescriptor->usb_interface[i].altsetting[j].bNumEndpoints; k++)
 			{
-				const libusb_endpoint_descriptor *endpoint =
-					&configDescriptor->usb_interface[i].altsetting[j].endpoint[k];
+				const libusb_endpoint_descriptor *endpoint = &configDescriptor->usb_interface[i].altsetting[j].endpoint[k];
 
 				if (verbose)
 				{
@@ -280,8 +284,7 @@ bool BridgeManager::Initialise(void)
 					outEndpointAddress = endpoint->bEndpointAddress;
 			}
 
-			if (interfaceIndex < 0
-				&& configDescriptor->usb_interface[i].altsetting[j].bNumEndpoints == 2
+			if (interfaceIndex < 0 && configDescriptor->usb_interface[i].altsetting[j].bNumEndpoints == 2
 				&& configDescriptor->usb_interface[i].altsetting[j].bInterfaceClass == CLASS_CDC
 				&& inEndpointAddress != -1 && outEndpointAddress != -1)
 			{
@@ -301,7 +304,7 @@ bool BridgeManager::Initialise(void)
 		return (false);
 	}
 	
-	Interface::Print("\nClaiming interface...");
+	Interface::Print("Claiming interface...\n");
 	result = libusb_claim_interface(deviceHandle, interfaceIndex);
 
 #ifdef OS_LINUX
@@ -309,9 +312,9 @@ bool BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		detachedDriver = true;
-		Interface::Print("   Failed. Attempting to detach driver...\n");
+		Interface::Print("Attempt failed. Detaching driver...\n");
 		libusb_detach_kernel_driver(deviceHandle, interfaceIndex);
-		Interface::Print("Claiming interface again...");
+		Interface::Print("Claiming interface again...\n");
 		result = libusb_claim_interface(deviceHandle, interfaceIndex);
 	}
 
@@ -319,21 +322,20 @@ bool BridgeManager::Initialise(void)
 
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("   Failed!\n");
+		Interface::PrintError("Claiming interface failed!\n");
 		return (false);
 	}
 
-	Interface::Print("   Success\n");
-
-	Interface::Print("Setting up interface...");
+	Interface::Print("Setting up interface...\n");
 	result = libusb_set_interface_alt_setting(deviceHandle, interfaceIndex, altSettingIndex);
+
 	if (result != LIBUSB_SUCCESS)
 	{
-		Interface::PrintError("   Failed!\n");
+		Interface::PrintError("Setting up interface failed!\n");
 		return (false);
 	}
 
-	Interface::Print("   Success\n");
+	Interface::Print("\n");
 
 	return (true);
 }
@@ -348,7 +350,8 @@ bool BridgeManager::BeginSession(void) const
 
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
@@ -361,7 +364,8 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
@@ -369,7 +373,8 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
@@ -377,7 +382,8 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
@@ -390,7 +396,8 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
@@ -398,12 +405,13 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("Failed to initialise usb communication!\n");
+		Interface::PrintError("Failed to begin session!\n");
+
 		delete [] dataBuffer;
 		return (false);
 	}
 
-	Interface::Print("Handshaking with Loke...");
+	Interface::Print("Handshaking with Loke...\n");
 
 	int dataTransferred;
 
@@ -413,10 +421,10 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("   Failed!\n");
-
 		if (verbose)
-			Interface::PrintError("ERROR: Failed to send data: \"%s\"\n", dataBuffer);
+			Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
+		else
+			Interface::PrintError("Failed to send data!");
 
 		delete [] dataBuffer;
 		return (false);
@@ -424,10 +432,10 @@ bool BridgeManager::BeginSession(void) const
 
 	if (dataTransferred != 4)
 	{
-		Interface::PrintError("   Failed!\n");
-
 		if (verbose)
-			Interface::PrintError("ERROR: Failed to complete sending data: \"%s\"\n", dataBuffer);
+			Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
+		else
+			Interface::PrintError("Failed to complete sending of data!");
 
 		delete [] dataBuffer;
 		return (false);
@@ -439,26 +447,27 @@ bool BridgeManager::BeginSession(void) const
 	result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
 	if (result < 0)
 	{
-		Interface::PrintError("   Failed!\n");
+		Interface::PrintError("Failed to receive response!\n");
 
-		if (verbose)
-			Interface::PrintError("ERROR: Failed to receive response\n");
 		delete [] dataBuffer;
 		return (false);;
 	}
 
 	if (dataTransferred != 4 || memcmp(dataBuffer, "LOKE", 4) != 0)
 	{
-		Interface::PrintError("   Failed!\n");
+		Interface::PrintError("Unexpected communication!\n");
 
 		if (verbose)
-			Interface::PrintError("ERROR: Unexpected communication.\nExpected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
+			Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
+
+		Interface::PrintError("Handshake failed!\n");
 
 		delete [] dataBuffer;
 		return (false);
 	}
 
-	Interface::Print("   Success\n\n");
+	Interface::Print("\n");
+
 	return (true);
 }
 
@@ -473,6 +482,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	if (!success)
 	{
 		Interface::PrintError("Failed to send end session packet!\n");
+
 		return (false);
 	}
 
@@ -483,6 +493,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	if (!success)
 	{
 		Interface::PrintError("Failed to receive session end confirmation!\n");
+
 		return (false);
 	}
 
@@ -497,6 +508,7 @@ bool BridgeManager::EndSession(bool reboot) const
 		if (!success)
 		{
 			Interface::PrintError("Failed to send reboot device packet!\n");
+
 			return (false);
 		}
 
@@ -507,6 +519,7 @@ bool BridgeManager::EndSession(bool reboot) const
 		if (!success)
 		{
 			Interface::PrintError("Failed to receive reboot confirmation!\n");
+
 			return (false);
 		}
 	}
@@ -528,13 +541,13 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
 		if (verbose)
-			Interface::PrintError("Error %d whilst sending packet. ", result);
+			Interface::PrintError("libusb error %d whilst sending packet.", result);
 
 		// Retry
 		for (int i = 0; i < 5; i++)
 		{
 			if (verbose)
-				Interface::PrintError(" Retrying...\n");
+				Interface::PrintErrorSameLine(" Retrying...\n");
 
 			// Wait longer each retry
 			Sleep(retryDelay * (i + 1));
@@ -546,11 +559,11 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 				break;
 
 			if (verbose)
-				Interface::PrintError("Error %d whilst sending packet. ", result);
+				Interface::PrintError("libusb error %d whilst sending packet.", result);
 		}
 
 		if (verbose)
-				Interface::PrintError("\n");
+			Interface::PrintErrorSameLine("\n");
 	}
 
 	if (communicationDelay != 0)
@@ -574,13 +587,13 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
 		if (verbose)
-			Interface::PrintError("Error %d whilst receiving packet. ", result);
+			Interface::PrintError("libusb error %d whilst receiving packet.", result);
 
 		// Retry
 		for (int i = 0; i < 5; i++)
 		{
 			if (verbose)
-				Interface::PrintError(" Retrying\n");
+				Interface::PrintErrorSameLine(" Retrying...\n");
 
 			// Wait longer each retry
 			Sleep(retryDelay * (i + 1));
@@ -592,7 +605,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 				break;
 
 			if (verbose)
-				Interface::PrintError("Error %d whilst receiving packet. ", result);
+				Interface::PrintError("libusb error %d whilst receiving packet.", result);
 
 			if (i >= 3)
 			{
@@ -602,7 +615,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 		}
 
 		if (verbose)
-			Interface::PrintError("\n");
+			Interface::PrintErrorSameLine("\n");
 	}
 
 	if (communicationDelay != 0)
@@ -623,7 +636,11 @@ bool BridgeManager::RequestDeviceInfo(unsigned int request, int *result) const
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to request device info packet!\nFailed Request: %d\n");
+		Interface::PrintError("Failed to request device info packet!\n");
+
+		if (verbose)
+			Interface::PrintError("Failed request: %u\n", request);
+
 		return (false);
 	}
 
@@ -647,7 +664,7 @@ bool BridgeManager::SendPitFile(FILE *file) const
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to request sending of PIT file!\n");
+		Interface::PrintError("Failed to initialise PIT file transfer!\n");
 		return (false);
 	}
 
@@ -657,7 +674,7 @@ bool BridgeManager::SendPitFile(FILE *file) const
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to confirm sending of PIT file!\n");
+		Interface::PrintError("Failed to confirm transfer initialisation!\n");
 		return (false);
 	}
 
@@ -804,13 +821,13 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 {
 	if (destination != EndFileTransferPacket::kDestinationModem && destination != EndFileTransferPacket::kDestinationPhone)
 	{
-		Interface::PrintError("ERROR: Attempted to send file to unknown destination!\n");
+		Interface::PrintError("Attempted to send file to unknown destination!\n");
 		return (false);
 	}
 
 	if (destination == EndFileTransferPacket::kDestinationModem && fileIdentifier != -1)
 	{
-		Interface::PrintError("ERROR: The modem file does not have an identifier!\n");
+		Interface::PrintError("The modem file does not have an identifier!\n");
 		return (false);
 	}
 
@@ -820,7 +837,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to initialise transfer!\n");
+		Interface::PrintError("Failed to initialise file transfer!\n");
 		return (false);
 	}
 
@@ -868,7 +885,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nFailed to begin file transfer sequence!\n");
+			Interface::PrintError("\nERROR: Failed to begin file transfer sequence!\n");
 			return (false);
 		}
 
@@ -878,7 +895,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nFailed to confirm beginning of file transfer sequence!\n");
+			Interface::PrintError("\nERROR: Failed to confirm beginning of file transfer sequence!\n");
 			return (false);
 		}
 
@@ -894,7 +911,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nFailed to send file part packet!\n");
+				Interface::PrintError("\nERROR: Failed to send file part packet!\n");
 				return (false);
 			}
 
@@ -914,11 +931,11 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nFailed to receive file part response!\n");
+				Interface::PrintError("\nERROR: Failed to receive file part response!\n");
 
 				for (int retry = 0; retry < 4; retry++)
 				{
-					Interface::PrintError("\nRetrying...");
+					Interface::PrintError("\nERROR: Retrying...");
 
 					// Send
 					sendFilePartPacket = new SendFilePartPacket(file);
@@ -927,7 +944,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 					if (!success)
 					{
-						Interface::PrintError("\nFailed to send file part packet!\n");
+						Interface::PrintError("\nERROR: Failed to send file part packet!\n");
 						return (false);
 					}
 
@@ -973,14 +990,19 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			currentPercent = (int)(100.0f * ((float)bytesTransferred / (float)fileSize));
 
-			if (!verbose)
+			
+			if (currentPercent != previousPercent)
 			{
-				if (currentPercent != previousPercent)
+				if (!verbose)
 				{
 					if (previousPercent < 10)
 						Interface::Print("\b\b%d%%", currentPercent);
 					else
 						Interface::Print("\b\b\b%d%%", currentPercent);
+				}
+				else
+				{
+					Interface::Print("\n%d%%\n", currentPercent);
 				}
 			}
 
@@ -999,7 +1021,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nFailed to end phone file transfer sequence!\n");
+				Interface::PrintError("\nERROR: Failed to end phone file transfer sequence!\n");
 				return (false);
 			}
 		}
@@ -1013,7 +1035,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nFailed to end modem file transfer sequence!\n");
+				Interface::PrintError("\nERROR: Failed to end modem file transfer sequence!\n");
 				return (false);
 			}
 		}
@@ -1024,7 +1046,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nFailed to confirm end of file transfer sequence!\n");
+			Interface::PrintError("\nERROR: Failed to confirm end of file transfer sequence!\n");
 			return (false);
 		}
 	}
