@@ -57,11 +57,10 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(udevrulesdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_heimdall_OBJECTS = source/BridgeManager.$(OBJEXT) \
-	source/InterfaceManager.$(OBJEXT) source/main.$(OBJEXT) \
-	source/PitData.$(OBJEXT)
+	source/Interface.$(OBJEXT) source/main.$(OBJEXT)
 heimdall_OBJECTS = $(am_heimdall_OBJECTS)
 am__DEPENDENCIES_1 =
-heimdall_DEPENDENCIES = $(am__DEPENDENCIES_1)
+heimdall_DEPENDENCIES = $(am__DEPENDENCIES_1) $(STATIC_LIBS)
 SCRIPTS = $(dist_noinst_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -251,21 +250,20 @@ top_srcdir = @top_srcdir@
 udevadminstalled = @udevadminstalled@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = $(DEPS_CFLAGS)
+AM_CPPFLAGS = $(DEPS_CFLAGS) -I../libpit/Source
+STATIC_LIBS = ../libpit/libpit-1.3.a
 heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
 	source/BridgeManager.h source/ControlPacket.h source/DeviceInfoPacket.h  \
 	source/DeviceInfoResponse.h source/DumpPartFileTransferPacket.h \
 	source/DumpPartPitFilePacket.h source/DumpResponse.h source/EndFileTransferPacket.h \
 	source/EndModemFileTransferPacket.h source/EndPhoneFileTransferPacket.h \
-	source/FileTransferPacket.h source/FlashPartFileTransferPacket.h \
-	source/FlashPartPitFilePacket.h source/Heimdall.h \
-	source/InboundPacket.h source/InterfaceManager.cpp source/InterfaceManager.h \
-	source/main.cpp source/OutboundPacket.h source/Packet.h source/PitFilePacket.h \
-	source/PitFileResponse.h source/EndSessionPacket.h source/ReceiveFilePartPacket.h \
-	source/ResponsePacket.h source/SendFilePartPacket.h \
-        source/SendFilePartResponse.h source/PitData.cpp source/PitData.h
+	source/EndSessionPacket.h source/FileTransferPacket.h source/FlashPartFileTransferPacket.h \
+	source/FlashPartPitFilePacket.h source/Heimdall.h source/InboundPacket.h \
+	source/Interface.cpp source/Interface.h source/main.cpp source/OutboundPacket.h \
+	source/Packet.h source/PitFilePacket.h source/PitFileResponse.h source/ReceiveFilePartPacket.h \
+	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h
 
-heimdall_LDADD = $(DEPS_LIBS)
+heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 @LINUXTARGET_TRUE@udevrulesdir = /lib/udev/rules.d
 @LINUXTARGET_TRUE@udevrules_DATA = 60-heimdall-galaxy-s.rules
 dist_noinst_SCRIPTS = autogen.sh
@@ -376,11 +374,9 @@ source/$(DEPDIR)/$(am__dirstamp):
 	@: > source/$(DEPDIR)/$(am__dirstamp)
 source/BridgeManager.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
-source/InterfaceManager.$(OBJEXT): source/$(am__dirstamp) \
+source/Interface.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/main.$(OBJEXT): source/$(am__dirstamp) \
-	source/$(DEPDIR)/$(am__dirstamp)
-source/PitData.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 heimdall$(EXEEXT): $(heimdall_OBJECTS) $(heimdall_DEPENDENCIES) 
 	@rm -f heimdall$(EXEEXT)
@@ -389,16 +385,14 @@ heimdall$(EXEEXT): $(heimdall_OBJECTS) $(heimdall_DEPENDENCIES)
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f source/BridgeManager.$(OBJEXT)
-	-rm -f source/InterfaceManager.$(OBJEXT)
-	-rm -f source/PitData.$(OBJEXT)
+	-rm -f source/Interface.$(OBJEXT)
 	-rm -f source/main.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/BridgeManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/InterfaceManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/PitData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/Interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:

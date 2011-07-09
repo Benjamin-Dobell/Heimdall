@@ -43,11 +43,6 @@ namespace HeimdallFrontend
 			kUstarHeaderLength = 500,
 		};
 
-		enum : quint64
-		{
-			kMaxFileSize = 8589934592
-		};
-
 		enum
 		{
 			kModeOtherExecute = 1,
@@ -92,6 +87,11 @@ namespace HeimdallFrontend
 
 	class Packaging
 	{
+		public:
+
+			// Would definitely prefer to use an enum but VC++ and GCC give conflicting warnings about C++0x or type overflow.
+			static const qint64 kMaxFileSize;
+
 		private:
 
 			enum

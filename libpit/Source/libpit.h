@@ -25,6 +25,10 @@
 #pragma warning(disable : 4996)
 #endif
 
+#ifndef nullptr
+#define nullptr 0
+#endif
+
 // C Standard Library
 #include <string.h>
 #include <vector>

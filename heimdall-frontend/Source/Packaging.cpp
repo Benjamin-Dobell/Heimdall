@@ -39,6 +39,7 @@
 
 using namespace HeimdallFrontend;
 
+const qint64 Packaging::kMaxFileSize = 8589934592ll;
 const char *Packaging::ustarMagic = "ustar";
 
 bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
@@ -81,7 +82,7 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 			return (false);
 		}
 
-		bool ustarFormat = strcmp(tarHeader.fields.magic, ustarMagic) == 0;
+		//bool ustarFormat = strcmp(tarHeader.fields.magic, ustarMagic) == 0;
 		bool empty = true;
 
 		for (int i = 0; i < TarHeader::kBlockLength; i++)
@@ -233,7 +234,7 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 		return (false);
 	}
 
-	if (file.size() > TarHeader::kMaxFileSize)
+	if (file.size() > Packaging::kMaxFileSize)
 	{
 		Alerts::DisplayError(QString("File is too large to be packaged:\n%1").arg(file.fileName()));
 		return (false);
@@ -306,8 +307,8 @@ bool Packaging::WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, 
 		sprintf(tarHeader.fields.groupId, "%07o", 0);
 
 	// Note: We don't support base-256 encoding. Support could be added later.
-	sprintf(tarHeader.fields.size, "%011o", file.size());
-	sprintf(tarHeader.fields.modifiedTime, "%011o", qtFileInfo.lastModified().toMSecsSinceEpoch() / 1000);
+	sprintf(tarHeader.fields.size, "%011llo", file.size());
+	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toMSecsSinceEpoch() / 1000);
 		
 	// Regular File
 	tarHeader.fields.typeFlag = '0';
@@ -373,7 +374,8 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 		return (false);
 	}
 
-	firmwareInfo.WriteXml(QXmlStreamWriter(&firmwareXmlFile));
+	QXmlStreamWriter xml(&firmwareXmlFile);
+	firmwareInfo.WriteXml(xml);
 	firmwareXmlFile.close();
 
 	if (!tarFile->open())
@@ -456,7 +458,7 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 {
 	FILE *compressedPackageFile = fopen(packagePath.toStdString().c_str(), "rb");
 
-	if (fopen == NULL)
+	if (!compressedPackageFile)
 	{
 		Alerts::DisplayError(QString("Failed to open package:\n%1").arg(packagePath));
 		return (false);
@@ -547,7 +549,7 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 {
 	FILE *compressedPackageFile = fopen(packagePath.toStdString().c_str(), "wb");
 
-	if (fopen == NULL)
+	if (!compressedPackageFile)
 	{
 		Alerts::DisplayError(QString("Failed to create package:\n%1").arg(packagePath));
 		return (false);

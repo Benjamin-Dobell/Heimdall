@@ -343,12 +343,14 @@ void MainWindow::SelectFirmwarePackage(void)
 
 void MainWindow::OpenDeveloperHomepage(void)
 {
-	QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetUrl(), QUrl::TolerantMode));
+	if(!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetUrl(), QUrl::TolerantMode)))
+		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo().GetUrl()));
 }
 
 void MainWindow::OpenDeveloperDonationWebpage(void)
 {
-	QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetDonateUrl(), QUrl::TolerantMode));
+	if (!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetDonateUrl(), QUrl::TolerantMode)))
+		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo().GetDonateUrl()));
 }
 
 void MainWindow::LoadFirmwarePackage(void)

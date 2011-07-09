@@ -7,7 +7,7 @@ TARGET = heimdall-frontend
 
 macx {
 	PRIVATE_FRAMEWORKS.files = /Library/Frameworks/QtCore.framework \
-		/Library/Frameworks/QtGui.framework
+		/Library/Frameworks/QtGui.framework /Library/Frameworks/QtXml.framework
 	PRIVATE_FRAMEWORKS.path = Contents/Frameworks
 
 	QMAKE_BUNDLE_DATA += PRIVATE_FRAMEWORKS
@@ -44,11 +44,15 @@ macx {
 	}
 }
 
-QT += core gui
+unix:LIBS += -lz ../libpit/libpit-1.3.a
+win32:LIBS += ../Win32/Release/lib/libpit.lib
+
+QT += core gui xml
 CONFIG += release
 DEFINES += QT_LARGEFILE_SUPPORT
 INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Release \
+    ../libpit/Source \
     .
 DEPENDPATH += .
 MOC_DIR += ./GeneratedFiles/release

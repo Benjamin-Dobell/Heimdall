@@ -461,7 +461,6 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 			if (!pitsMatch)
 			{
 				Interface::Print("Local and device PIT files don't match and repartition wasn't specified!\n");
-				Interface::Print("Flash aborted!\n");
 				Interface::PrintError("Flash aborted!\n");
 				
 				delete pitData;

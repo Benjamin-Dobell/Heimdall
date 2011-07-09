@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = $(DEPS_CFLAGS)
+AM_CPPFLAGS = $(DEPS_CFLAGS) -I../libpit/Source
+STATIC_LIBS = ../libpit/libpit-1.3.a
 
 bin_PROGRAMS = heimdall
 heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
@@ -8,15 +9,13 @@ heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
 	source/DeviceInfoResponse.h source/DumpPartFileTransferPacket.h \
 	source/DumpPartPitFilePacket.h source/DumpResponse.h source/EndFileTransferPacket.h \
 	source/EndModemFileTransferPacket.h source/EndPhoneFileTransferPacket.h \
-	source/FileTransferPacket.h source/FlashPartFileTransferPacket.h \
-	source/FlashPartPitFilePacket.h source/Heimdall.h \
-	source/InboundPacket.h source/InterfaceManager.cpp source/InterfaceManager.h \
-	source/main.cpp source/OutboundPacket.h source/Packet.h source/PitFilePacket.h \
-	source/PitFileResponse.h source/EndSessionPacket.h source/ReceiveFilePartPacket.h \
-	source/ResponsePacket.h source/SendFilePartPacket.h \
-        source/SendFilePartResponse.h source/PitData.cpp source/PitData.h
+	source/EndSessionPacket.h source/FileTransferPacket.h source/FlashPartFileTransferPacket.h \
+	source/FlashPartPitFilePacket.h source/Heimdall.h source/InboundPacket.h \
+	source/Interface.cpp source/Interface.h source/main.cpp source/OutboundPacket.h \
+	source/Packet.h source/PitFilePacket.h source/PitFileResponse.h source/ReceiveFilePartPacket.h \
+	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h
 
-heimdall_LDADD = $(DEPS_LIBS)
+heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 
 if LINUXTARGET
 udevrulesdir = /lib/udev/rules.d
