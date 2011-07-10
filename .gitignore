@@ -1,2 +1,24 @@
 .DS_Store
 ._*
+.deps/
+
+# autotools generated files
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.guess
+config.h
+config.h.in
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+libtool
+libtool.m4
+lt*.m4
+ltmain.sh
+missing
+stamp-h1
