@@ -1,5 +1,4 @@
 #!/bin/bash
-sudo chmod 755 /usr/local/bin/heimdall
 echo 'Installing Driver...'
 sudo cp -R heimdall.kext /System/Library/Extensions
 sudo chmod -R 755 /System/Library/Extensions/heimdall.kext

@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
-Heimdall (c) 2010 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2011 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -17,11 +17,11 @@ For more details about how to compile and install Heimdall please refer to the
 appropriate platform specific README:
 
 - Linux:
-  /Linux/README
+  Linux/README
 
 - OS X
-  /OSX/README.txt
+  OSX/README.txt
 
 - Windows
-  /Win32/README.txt
+  Win32/README.txt
 
