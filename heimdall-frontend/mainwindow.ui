@@ -201,9 +201,9 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>580</x>
+        <x>550</x>
         <y>410</y>
-        <width>121</width>
+        <width>171</width>
         <height>31</height>
        </rect>
       </property>
@@ -769,9 +769,9 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>350</x>
          <y>190</y>
-         <width>101</width>
+         <width>131</width>
          <height>23</height>
         </rect>
        </property>
@@ -785,7 +785,7 @@
        <rect>
         <x>240</x>
         <y>10</y>
-        <width>121</width>
+        <width>141</width>
         <height>61</height>
        </rect>
       </property>
@@ -800,7 +800,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>101</width>
+         <width>121</width>
          <height>21</height>
         </rect>
        </property>
@@ -812,9 +812,9 @@
      <widget class="QGroupBox" name="createPlatformNameGroup">
       <property name="geometry">
        <rect>
-        <x>480</x>
+        <x>450</x>
         <y>10</y>
-        <width>151</width>
+        <width>161</width>
         <height>61</height>
        </rect>
       </property>
@@ -829,7 +829,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>131</width>
+         <width>141</width>
          <height>21</height>
         </rect>
        </property>
@@ -1041,9 +1041,9 @@
      <widget class="QGroupBox" name="createPlatformVersionGroup">
       <property name="geometry">
        <rect>
-        <x>640</x>
+        <x>620</x>
         <y>10</y>
-        <width>121</width>
+        <width>141</width>
         <height>61</height>
        </rect>
       </property>
@@ -1058,7 +1058,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>101</width>
+         <width>121</width>
          <height>21</height>
         </rect>
        </property>
@@ -1172,9 +1172,9 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>150</x>
          <y>120</y>
-         <width>101</width>
+         <width>111</width>
          <height>23</height>
         </rect>
        </property>
@@ -1208,7 +1208,7 @@
      <x>0</x>
      <y>0</y>
      <width>788</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
