@@ -517,8 +517,12 @@ Appendix C - Installing Heimdall Frontend from Source:
             make
             sudo make install
 
-       NOTE: You may be able to use "checkinstall" instead of "make install" in
-             order to generate a redistributable package.
+       NOTE: As an alternative to "sudo make install" you may chose to generate
+             a package by typing the following:
+
+                sudo checkinstall --pkgversion <version>
+
+             Where <version> is the current Heimdall release e.g. 1.3.0
 
     5. Done
 
