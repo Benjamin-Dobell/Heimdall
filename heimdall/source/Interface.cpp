@@ -36,8 +36,10 @@ bool Interface::stdoutErrors = false;
 const char *Interface::version = "v1.3 (beta)";
 
 const char *Interface::usage = "Usage: heimdall <action> <action arguments> <common arguments>\n\
+\n\
 Common Arguments:\n\
     [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
+\n\
 \n\
 Action: flash\n\
 Arguments:\n\
@@ -64,6 +66,11 @@ WARNING: If you're repartitioning it's strongly recommended you specify\n\
 Action: close-pc-screen\n\
 Description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
 \n\
+Action: download-pit\n\
+Arguments: --output <filename>\n\
+Description: Downloads the connected device's PIT file to the specified\n\
+    output file.\n\
+\n\
 Action: detect\n\
 Description: Indicates whether or not a download mode device can be detected.\n\
 \n\
@@ -77,7 +84,7 @@ Action: print-pit\n\
 Description: Dumps the PIT file from the connected device and prints it in\n\
     a human readable format.\n\
 \n\
-Action version\n\
+Action: version\n\
 Description: Displays the version number of this binary.\n\
 \n\
 Action: help\n\
@@ -88,6 +95,12 @@ http://www.glassechidna.com.au\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
 http://www.glassechidna.com.au/donate/\n\n";
+
+const char *Interface::extraInfo = "Heimdall utilises libusb-1.0 for all USB communication:\n\
+    http://www.libusb.org/\n\
+\n\
+libusb-1.0 is licensed under the LGPL-2.1:\n\
+    http://www.gnu.org/licenses/licenses.html#LGPL\n\n";
 
 // Flash arguments
 string Interface::flashValueArguments[kFlashValueArgCount] = {
@@ -106,6 +119,15 @@ string Interface::flashValuelessArguments[kFlashValuelessArgCount] = {
 
 string Interface::flashValuelessShortArguments[kFlashValuelessArgCount] = {
 	"r"
+};
+
+// Download PIT arguments
+string Interface::downloadPitValueArguments[kDownloadPitValueArgCount] = {
+	"-output"
+};
+
+string Interface::downloadPitValueShortArguments[kDownloadPitValueArgCount] = {
+	"o"
 };
 
 // Dump arguments
@@ -161,7 +183,15 @@ Action Interface::actions[Interface::kActionCount] = {
 
 	// kActionDetect
 	Action("detect", nullptr, nullptr, kDetectValueArgCount,
-		nullptr, nullptr, kDetectValuelessArgCount)
+		nullptr, nullptr, kDetectValuelessArgCount),
+
+	// kActionDownloadPit
+	Action("download-pit", downloadPitValueArguments, downloadPitValueShortArguments, kDownloadPitValueArgCount,
+		nullptr, nullptr, kDownloadPitValuelessArgCount),
+
+	// kActionInfo
+	Action("info", nullptr, nullptr, kInfoValueArgCount,
+		nullptr, nullptr, kInfoValuelessArgCount)
 };
 
 bool Interface::GetArguments(int argc, char **argv, map<string, string>& argumentMap, int *actionIndex)
@@ -381,6 +411,12 @@ void Interface::PrintUsage(void)
 void Interface::PrintReleaseInfo(void)
 {
 	Print(releaseInfo, version);
+}
+
+void Interface::PrintFullInfo(void)
+{
+	Print(releaseInfo, version);
+	Print(extraInfo);
 }
 
 void Interface::PrintPit(const PitData *pitData)

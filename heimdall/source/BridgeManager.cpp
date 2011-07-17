@@ -885,7 +885,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nERROR: Failed to begin file transfer sequence!\n");
+			Interface::PrintErrorSameLine("\n");
+			Interface::PrintError("Failed to begin file transfer sequence!\n");
 			return (false);
 		}
 
@@ -895,7 +896,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nERROR: Failed to confirm beginning of file transfer sequence!\n");
+			Interface::PrintErrorSameLine("\n");
+			Interface::PrintError("Failed to confirm beginning of file transfer sequence!\n");
 			return (false);
 		}
 
@@ -911,7 +913,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nERROR: Failed to send file part packet!\n");
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Failed to send file part packet!\n");
 				return (false);
 			}
 
@@ -931,11 +934,13 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nERROR: Failed to receive file part response!\n");
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Failed to receive file part response!\n");
 
 				for (int retry = 0; retry < 4; retry++)
 				{
-					Interface::PrintError("\nERROR: Retrying...");
+					Interface::PrintErrorSameLine("\n");
+					Interface::PrintError("Retrying...");
 
 					// Send
 					sendFilePartPacket = new SendFilePartPacket(file);
@@ -944,7 +949,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 					if (!success)
 					{
-						Interface::PrintError("\nERROR: Failed to send file part packet!\n");
+						Interface::PrintErrorSameLine("\n");
+						Interface::PrintError("Failed to send file part packet!\n");
 						return (false);
 					}
 
@@ -964,8 +970,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 					if (receivedPartIndex != filePartIndex)
 					{
-						Interface::PrintError("\nERROR: Expected file part index: %d Received: %d\n",
-							filePartIndex, receivedPartIndex);
+						Interface::PrintErrorSameLine("\n");
+						Interface::PrintError("Expected file part index: %d Received: %d\n", filePartIndex, receivedPartIndex);
 						return (false);
 					}
 
@@ -979,8 +985,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (receivedPartIndex != filePartIndex)
 			{
-				Interface::PrintError("\nERROR: Expected file part index: %d Received: %d\n",
-					filePartIndex, receivedPartIndex);
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Expected file part index: %d Received: %d\n", filePartIndex, receivedPartIndex);
 				return (false);
 			}
 
@@ -1021,7 +1027,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nERROR: Failed to end phone file transfer sequence!\n");
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Failed to end phone file transfer sequence!\n");
 				return (false);
 			}
 		}
@@ -1035,7 +1042,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			if (!success)
 			{
-				Interface::PrintError("\nERROR: Failed to end modem file transfer sequence!\n");
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Failed to end modem file transfer sequence!\n");
 				return (false);
 			}
 		}
@@ -1046,7 +1054,8 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 		if (!success)
 		{
-			Interface::PrintError("\nERROR: Failed to confirm end of file transfer sequence!\n");
+			Interface::PrintErrorSameLine("\n");
+			Interface::PrintError("Failed to confirm end of file transfer sequence!\n");
 			return (false);
 		}
 	}

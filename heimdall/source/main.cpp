@@ -213,6 +213,14 @@ bool mapFilesToPartitions(const map<string, FILE *>& argumentFileMap, const PitD
 				if (pitEntry)
 					break;
 			}
+
+			if (!pitEntry && knownPartition == kKnownPartitionPit)
+			{
+				PartitionNameFilePair partitionNameFilePair(knownPartitionNames[kKnownPartitionPit][0], it->second);
+				partitionFileMap.insert(pair<unsigned int, PartitionNameFilePair>(static_cast<unsigned int>(-1), partitionNameFilePair));
+
+				return (true);
+			}
 		}
 
 		if (!pitEntry)
@@ -250,7 +258,7 @@ int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
 	}
 
 	Interface::Print("PIT file download sucessful\n\n");
-	return devicePitFileSize;
+	return (devicePitFileSize);
 }
 
 bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const char *partitionName, FILE *file)
@@ -537,7 +545,18 @@ int main(int argc, char **argv)
 			if (argumentMap.find(Interface::actions[Interface::kActionFlash].valuelessArguments[Interface::kFlashValuelessArgRepartition]) != argumentMap.end()
 				&& argumentMap.find(Interface::actions[Interface::kActionFlash].valueArguments[Interface::kFlashValueArgPit]) == argumentMap.end())
 			{
-				Interface::Print("If you wish to repartition then a PIT file must be specified.\n");
+				Interface::Print("If you wish to repartition then a PIT file must be specified.\n\n");
+				Interface::PrintUsage();
+				return (0);
+			}
+
+			break;
+
+		case Interface::kActionDownloadPit:
+			if (argumentMap.find(Interface::actions[Interface::kActionDownloadPit].valueArguments[Interface::kDownloadPitValueArgOutput]) == argumentMap.end())
+			{
+				Interface::Print("Output file was not specified.\n\n");
+				Interface::PrintUsage();
 				return (0);
 			}
 
@@ -547,7 +566,7 @@ int main(int argc, char **argv)
 		{
 			if (argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgOutput]) == argumentMap.end())
 			{
-				Interface::Print("Output file not specified.\n\n");
+				Interface::Print("Output file was not specified.\n\n");
 				Interface::PrintUsage();
 				return (0);
 			}
@@ -578,6 +597,7 @@ int main(int argc, char **argv)
 			if (chipId < 0)
 			{
 				Interface::Print("Chip ID must be a non-negative integer.\n");
+				Interface::PrintUsage();
 				return (0);
 			}
 
@@ -591,6 +611,10 @@ int main(int argc, char **argv)
 		case Interface::kActionHelp:
 			Interface::PrintUsage();
 			return (0);
+
+		case Interface::kActionInfo:
+			Interface::PrintFullInfo();
+			return (0);
 	}
 
 	bool verbose = argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgVerbose]) != argumentMap.end();
@@ -599,6 +623,7 @@ int main(int argc, char **argv)
 	Interface::SetStdoutErrors(argumentMap.find(Interface::commonValuelessArguments[Interface::kCommonValuelessArgStdoutErrors]) != argumentMap.end());
 
 	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
+
 	if (argumentMap.find(Interface::commonValueArguments[Interface::kCommonValueArgDelay]) != argumentMap.end())
 		communicationDelay = atoi(argumentMap.find(Interface::commonValueArguments[Interface::kCommonValueArgDelay])->second.c_str());
 
@@ -606,10 +631,10 @@ int main(int argc, char **argv)
 
 	if (actionIndex == Interface::kActionDetect)
 	{
-		bridgeManager->DetectDevice();
-
+		bool detected = bridgeManager->DetectDevice();
 		delete bridgeManager;
-		return (0);
+
+		return ((detected) ? 0 : 1);
 	}
 
 	Interface::PrintReleaseInfo();
@@ -618,7 +643,7 @@ int main(int argc, char **argv)
 	if (!bridgeManager->Initialise())
 	{
 		delete bridgeManager;
-		return (-2);
+		return (0);
 	}
 
 	bool success;
@@ -670,6 +695,49 @@ int main(int argc, char **argv)
 
 			if (success)
 				Interface::Print("Attempt complete\n");
+
+			break;
+		}
+
+		case Interface::kActionDownloadPit:
+		{
+			map<string, string>::const_iterator it = argumentMap.find(Interface::actions[Interface::kActionDownloadPit].valueArguments[Interface::kDownloadPitValueArgOutput]);
+			FILE *outputPitFile = fopen(it->second.c_str(), "wb");
+
+			if (!outputPitFile)
+			{
+				delete bridgeManager;
+				return (0);
+			}
+
+			if (!bridgeManager->BeginSession())
+			{
+				delete bridgeManager;
+				fclose(outputPitFile);
+				return (-1);
+			}
+
+			unsigned char *pitBuffer;
+			int fileSize = downloadPitFile(bridgeManager, &pitBuffer);
+
+			if (fileSize > 0)
+			{
+				success = fwrite(pitBuffer, 1, fileSize, outputPitFile) == fileSize;
+				fclose(outputPitFile);
+
+				if (!success)
+					Interface::PrintError("Failed to write PIT data to output file.\n");
+
+				success = bridgeManager->EndSession(reboot) && success;
+			}
+			else
+			{
+				fclose(outputPitFile);
+				success = false;
+				bridgeManager->EndSession(reboot);
+			}
+
+			delete [] pitBuffer;
 
 			break;
 		}
@@ -740,7 +808,8 @@ int main(int argc, char **argv)
 				Interface::PrintError("Failed to unpack device's PIT file!\n");
 				success = false;
 			}
-
+			
+			delete [] devicePit;
 			delete pitData;
 
 			success = bridgeManager->EndSession(reboot) && success;

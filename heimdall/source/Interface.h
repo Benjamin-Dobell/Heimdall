@@ -76,6 +76,8 @@ namespace Heimdall
 				kActionVersion,
 				kActionHelp,
 				kActionDetect,
+				kActionDownloadPit,
+				kActionInfo,
 				kActionCount
 			};
 
@@ -182,6 +184,18 @@ namespace Heimdall
 				kHelpValuelessArgCount = 0
 			};
 
+			// Info value arguments
+			enum
+			{
+				kInfoValueArgCount = 0
+			};
+
+			// Info valueless arguments
+			enum
+			{
+				kInfoValuelessArgCount = 0
+			};
+
 			// Detect value arguments
 			enum
 			{
@@ -192,6 +206,19 @@ namespace Heimdall
 			enum
 			{
 				kDetectValuelessArgCount = 0
+			};
+
+			// Download PIT value arguments
+			enum
+			{
+				kDownloadPitValueArgOutput = 0,
+				kDownloadPitValueArgCount
+			};
+
+			// Download PIT valueless arguments
+			enum
+			{
+				kDownloadPitValuelessArgCount = 0
 			};
 
 			// Common value arguments
@@ -218,7 +245,8 @@ namespace Heimdall
 		
 			static const char *version;
 			static const char *usage;
-			static const char *releaseInfo;		
+			static const char *releaseInfo;
+			static const char *extraInfo;
 
 			// Flash arguments
 			static string flashValueArguments[kFlashValueArgCount];
@@ -226,6 +254,10 @@ namespace Heimdall
 
 			static string flashValuelessArguments[kFlashValuelessArgCount];
 			static string flashValuelessShortArguments[kFlashValuelessArgCount];
+
+			// Download PIT arguments
+			static string downloadPitValueArguments[kDownloadPitValueArgCount];
+			static string downloadPitValueShortArguments[kDownloadPitValueArgCount];
 
 			// Dump arguments
 			static string dumpValueArguments[kDumpValueArgCount];
@@ -251,6 +283,7 @@ namespace Heimdall
 			static void PrintVersion(void);
 			static void PrintUsage(void);
 			static void PrintReleaseInfo(void);
+			static void PrintFullInfo(void);
 
 			static void PrintPit(const PitData *pitData);
 

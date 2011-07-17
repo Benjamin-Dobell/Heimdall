@@ -45,12 +45,25 @@ namespace HeimdallFrontend
 
 		private:
 
+			enum
+			{
+				kHeimdallStateStopped = 0,
+				kHeimdallStateFlashing,
+				kHeimdallStateDetectingDevice,
+				kHeimdallStateClosingPcScreen,
+				kHeimdallStatePrintingPit,
+				kHeimdallStateDownloadingPit,
+				kHeimdallStateCount
+			};
+
 			AboutForm aboutForm;
 		
 			QString lastDirectory;
 
+			int tabIndex;
+
 			bool heimdallFailed;
-			bool heimdallRunning;
+			int heimdallState;
 			QProcess process;
 
 			PackageData loadedPackageData;
@@ -63,6 +76,8 @@ namespace HeimdallFrontend
 
 			bool verboseOutput;
 
+			void StartHeimdall(const QStringList& arguments);
+
 			void UpdateUnusedPartitionIds(void);
 			bool ReadPit(QFile *file);
 
@@ -74,7 +89,7 @@ namespace HeimdallFrontend
 			QString PromptFileCreation(void);
 
 			void UpdatePartitionNamesInterface(void);
-			void UpdateStartButton(void);
+			void UpdateInterfaceAvailability(void);
 
 			void UpdateBuildPackageButton(void);
 
@@ -89,11 +104,15 @@ namespace HeimdallFrontend
 			void SetVerboseOutput(bool enabled);
 			void ShowAbout(void);
 
+			void FunctionTabChanged(int index);
+
+			// Load Package Tab
 			void SelectFirmwarePackage(void);
 			void OpenDeveloperHomepage(void);
 			void OpenDeveloperDonationWebpage(void);
 			void LoadFirmwarePackage(void);
 
+			// Flash Tab
 			void SelectPartitionName(int index);
 			void SelectPartitionFile(void);
 
@@ -108,6 +127,7 @@ namespace HeimdallFrontend
 
 			void StartFlash(void);
 
+			// Create Package Tab
 			void FirmwareNameChanged(const QString& text);
 			void FirmwareVersionChanged(const QString& text);
 			void PlatformNameChanged(const QString& text);
@@ -128,6 +148,16 @@ namespace HeimdallFrontend
 			
 			void BuildPackage(void);
 
+			// Utilities Tab
+			void DetectDevice(void);
+			void ClosePcScreen(void);
+
+			void SelectPitDestination(void);
+			void DownloadPit(void);
+
+			void PrintPit(void);
+
+			// Heimdall Command Line
 			void HandleHeimdallStdout(void);
 			void HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus);
 			void HandleHeimdallError(QProcess::ProcessError error);

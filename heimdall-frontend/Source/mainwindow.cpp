@@ -34,6 +34,64 @@
 
 using namespace HeimdallFrontend;
 
+void MainWindow::StartHeimdall(const QStringList& arguments)
+{
+	flashProgressBar->setEnabled(true);
+	UpdateInterfaceAvailability();
+	
+	int pathIndex = -1;
+	process.setReadChannel(QProcess::StandardOutput);
+	
+	process.start("heimdall", arguments);
+	process.waitForStarted(3000);
+	
+	// OS X was playing up and not finding heimdall, so we're manually checking the PATH.
+	if (heimdallFailed)
+	{
+		QStringList environment = QProcess::systemEnvironment();
+		
+		QStringList paths;
+
+		// Ensure /usr/bin is in PATH
+		for (int i = 0; i < environment.length(); i++)
+		{
+			if (environment[i].left(5) == "PATH=")
+			{
+				paths = environment[i].mid(5).split(':');
+				paths.prepend("/usr/bin");
+				break;
+			}
+		}
+		
+		while (heimdallFailed && ++pathIndex < paths.length())
+		{
+			QString heimdallPath = paths[pathIndex];
+			
+			if (heimdallPath.length() > 0)
+			{
+				heimdallFailed = false;
+				
+				if (heimdallPath[heimdallPath.length() - 1] != QDir::separator())
+					heimdallPath += QDir::separator();
+				
+				heimdallPath += "heimdall";
+				
+				process.start(heimdallPath, arguments);
+				process.waitForStarted(3000);
+			}
+		}
+		
+		if (heimdallFailed)
+		{
+			flashLabel->setText("Failed to start Heimdall!");
+			
+			heimdallState = MainWindow::kHeimdallStateStopped;
+			flashProgressBar->setEnabled(false);
+			UpdateInterfaceAvailability();
+		}
+	}
+}
+
 void MainWindow::UpdateUnusedPartitionIds(void)
 {
 	unusedPartitionIds.clear();
@@ -199,12 +257,32 @@ void MainWindow::UpdatePartitionNamesInterface(void)
 	populatingPartitionNames = false;
 }
 
-void MainWindow::UpdateStartButton(void)
+void MainWindow::UpdateInterfaceAvailability(void)
 {
-	if (heimdallRunning)
+	if (heimdallState != MainWindow::kHeimdallStateStopped)
 	{
 		startFlashButton->setEnabled(false);
+
+		detectDeviceButton->setEnabled(false);
+		closePcScreenButton->setEnabled(false);
+		pitSaveAsButton->setEnabled(false);
+		downloadPitButton->setEnabled(false);
+		printPitButton->setEnabled(false);
+
 		return;
+	}
+	else
+	{
+		detectDeviceButton->setEnabled(true);
+		closePcScreenButton->setEnabled(true);
+		pitSaveAsButton->setEnabled(true);
+
+		if (!pitDestinationLineEdit->text().isEmpty())
+			downloadPitButton->setEnabled(true);
+		else
+			downloadPitButton->setEnabled(false);
+
+		printPitButton->setEnabled(true);
 	}
 
 	bool allPartitionsValid = true;
@@ -223,6 +301,7 @@ void MainWindow::UpdateStartButton(void)
 	bool validSettings = allPartitionsValid && fileList.length() > 0;
 
 	startFlashButton->setEnabled(validSettings);
+
 	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), validSettings);
 }
 
@@ -245,7 +324,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setupUi(this);
 
-	heimdallRunning = false;
+	heimdallState = MainWindow::kHeimdallStateStopped;
 
 	lastDirectory = QDir::toNativeSeparators(QApplication::applicationDirPath());
 
@@ -253,12 +332,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	verboseOutput = false;
 
+	tabIndex = functionTabWidget->currentIndex();
 	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), false);
 
+	QObject::connect(functionTabWidget, SIGNAL(currentChanged(int)), this, SLOT(FunctionTabChanged(int)));
+	
+	// Menu
 	QObject::connect(actionDonate, SIGNAL(triggered()), this, SLOT(OpenDonationWebpage()));
 	QObject::connect(actionVerboseOutput, SIGNAL(toggled(bool)), this, SLOT(SetVerboseOutput(bool)));
 	QObject::connect(actionAboutHeimdall, SIGNAL(triggered()), this, SLOT(ShowAbout()));
 
+	// Load Package Tab
 	QObject::connect(browseFirmwarePackageButton, SIGNAL(clicked()), this, SLOT(SelectFirmwarePackage()));
 	QObject::connect(developerHomepageButton, SIGNAL(clicked()), this, SLOT(OpenDeveloperHomepage()));
 	QObject::connect(developerDonateButton, SIGNAL(clicked()), this, SLOT(OpenDeveloperDonationWebpage()));
@@ -268,6 +352,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	QObject::connect(addPartitionButton, SIGNAL(clicked()), this, SLOT(AddPartition()));
 	QObject::connect(removePartitionButton, SIGNAL(clicked()), this, SLOT(RemovePartition()));
 
+	// Flash Tab
 	QObject::connect(partitionNameComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectPartitionName(int)));
 	QObject::connect(partitionFileBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPartitionFile()));
 
@@ -278,6 +363,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	
 	QObject::connect(startFlashButton, SIGNAL(clicked()), this, SLOT(StartFlash()));
 
+	// Create Package Tab
 	QObject::connect(createFirmwareNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(FirmwareNameChanged(const QString&)));
 	QObject::connect(createFirmwareVersionLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(FirmwareVersionChanged(const QString&)));
 	QObject::connect(createPlatformNameLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(PlatformNameChanged(const QString&)));
@@ -300,6 +386,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 			
 	QObject::connect(buildPackageButton, SIGNAL(clicked()), this, SLOT(BuildPackage()));
 
+	// Utilities Tab
+	QObject::connect(detectDeviceButton, SIGNAL(clicked()), this, SLOT(DetectDevice()));
+	QObject::connect(closePcScreenButton, SIGNAL(clicked()), this, SLOT(ClosePcScreen()));
+	QObject::connect(printPitButton, SIGNAL(clicked()), this, SLOT(PrintPit()));
+	QObject::connect(pitSaveAsButton, SIGNAL(clicked()), this, SLOT(SelectPitDestination()));
+	QObject::connect(downloadPitButton, SIGNAL(clicked()), this, SLOT(DownloadPit()));
+
+	// Heimdall Command Line
 	QObject::connect(&process, SIGNAL(readyRead()), this, SLOT(HandleHeimdallStdout()));
 	QObject::connect(&process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(HandleHeimdallReturned(int, QProcess::ExitStatus)));
 	QObject::connect(&process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(HandleHeimdallError(QProcess::ProcessError)));
@@ -322,6 +416,12 @@ void MainWindow::SetVerboseOutput(bool enabled)
 void MainWindow::ShowAbout(void)
 {
 	aboutForm.show();
+}
+
+void MainWindow::FunctionTabChanged(int index)
+{
+	tabIndex = index;
+	deviceDetectedRadioButton->setChecked(false);
 }
 
 void MainWindow::SelectFirmwarePackage(void)
@@ -461,7 +561,7 @@ void MainWindow::LoadFirmwarePackage(void)
 
 	functionTabWidget->setCurrentWidget(flashTab);
 
-	UpdateStartButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::SelectPartitionName(int index)
@@ -495,7 +595,7 @@ void MainWindow::SelectPartitionFile(void)
 
 		pitBrowseButton->setEnabled(true);
 		partitionsListWidget->setEnabled(true);
-		UpdateStartButton();
+		UpdateInterfaceAvailability();
 
 		if (unusedPartitionIds.length() > 0)
 			addPartitionButton->setEnabled(true);
@@ -540,7 +640,7 @@ void MainWindow::AddPartition(void)
 	partitionsListWidget->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
 	partitionsListWidget->setCurrentRow(partitionsListWidget->count() - 1);
 	partitionsListWidget->setEnabled(false);
-	UpdateStartButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::RemovePartition(void)
@@ -555,7 +655,7 @@ void MainWindow::RemovePartition(void)
 	pitBrowseButton->setEnabled(true);
 	addPartitionButton->setEnabled(true);
 	partitionsListWidget->setEnabled(true);
-	UpdateStartButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::SelectPit(void)
@@ -640,7 +740,7 @@ void MainWindow::SelectPit(void)
 		addPartitionButton->setEnabled(validPit);
 		removePartitionButton->setEnabled(validPit && partitionsListWidget->currentRow() >= 0);
 
-		UpdateStartButton();
+		UpdateInterfaceAvailability();
 	}
 }
 
@@ -657,7 +757,7 @@ void MainWindow::StartFlash(void)
 {
 	outputPlainTextEdit->clear();
 
-	heimdallRunning = true;
+	heimdallState = MainWindow::kHeimdallStateFlashing;
 	heimdallFailed = false;
 
 	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
@@ -689,59 +789,7 @@ void MainWindow::StartFlash(void)
 
 	arguments.append("--stdout-errors");
 
-	flashProgressBar->setEnabled(true);
-	UpdateStartButton();
-	
-	int pathIndex = -1;
-	process.setReadChannel(QProcess::StandardOutput);
-	
-	process.start("heimdall", arguments);
-	process.waitForStarted(1000);
-	
-	// OS X was playing up and not finding heimdall, so we're manually checking the PATH.
-	if (heimdallFailed)
-	{
-		QStringList environment = QProcess::systemEnvironment();
-		
-		QStringList paths;
-		// Ensure /usr/bin is in PATH
-		for (int i = 0; i < environment.length(); i++)
-		{
-			if (environment[i].left(5) == "PATH=")
-			{
-				paths = environment[i].mid(5).split(':');
-				paths.prepend("/usr/bin");
-				break;
-			}
-		}
-		
-		while (heimdallFailed && ++pathIndex < paths.length())
-		{
-			QString heimdallPath = paths[pathIndex];
-			
-			if (heimdallPath.length() > 0)
-			{
-				heimdallFailed = false;
-				
-				if (heimdallPath[heimdallPath.length() - 1] != QDir::separator())
-					heimdallPath += QDir::separator();
-				
-				heimdallPath += "heimdall";
-				
-				process.start(heimdallPath, arguments);
-				process.waitForStarted(1000);
-			}
-		}
-		
-		if (heimdallFailed)
-		{
-			flashLabel->setText("Failed to start Heimdall!");
-			
-			heimdallRunning = false;
-			flashProgressBar->setEnabled(false);
-			UpdateStartButton();
-		}
-	}
+	StartHeimdall(arguments);
 }
 
 void MainWindow::FirmwareNameChanged(const QString& text)
@@ -863,19 +911,102 @@ void MainWindow::BuildPackage(void)
 {
 	QString packagePath = PromptFileCreation();
 
-	if (!packagePath.endsWith(".tar.gz", Qt::CaseInsensitive))
+	if (!packagePath.isEmpty())
 	{
-		if (packagePath.endsWith(".tar", Qt::CaseInsensitive))
-			packagePath.append(".gz");
-		else if (packagePath.endsWith(".gz", Qt::CaseInsensitive))
-			packagePath.replace(packagePath.length() - 3, ".tar.gz");
-		else if (packagePath.endsWith(".tgz", Qt::CaseInsensitive))
-			packagePath.replace(packagePath.length() - 4, ".tar.gz");
-		else
-			packagePath.append(".tar.gz");
-	}
+		if (!packagePath.endsWith(".tar.gz", Qt::CaseInsensitive))
+		{
+			if (packagePath.endsWith(".tar", Qt::CaseInsensitive))
+				packagePath.append(".gz");
+			else if (packagePath.endsWith(".gz", Qt::CaseInsensitive))
+				packagePath.replace(packagePath.length() - 3, ".tar.gz");
+			else if (packagePath.endsWith(".tgz", Qt::CaseInsensitive))
+				packagePath.replace(packagePath.length() - 4, ".tar.gz");
+			else
+				packagePath.append(".tar.gz");
+		}
 
-	Packaging::BuildPackage(packagePath, workingPackageData.GetFirmwareInfo());
+		Packaging::BuildPackage(packagePath, workingPackageData.GetFirmwareInfo());
+	}
+}
+
+void MainWindow::DetectDevice(void)
+{
+	deviceDetectedRadioButton->setChecked(false);
+	utilityOutputPlainTextEdit->clear();
+
+	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallFailed = false;
+	
+	QStringList arguments;
+	arguments.append("detect");
+
+	arguments.append("--stdout-errors");
+
+	StartHeimdall(arguments);
+}
+
+void MainWindow::ClosePcScreen(void)
+{
+	utilityOutputPlainTextEdit->clear();
+
+	heimdallState = MainWindow::kHeimdallStateClosingPcScreen;
+	heimdallFailed = false;
+	
+	QStringList arguments;
+	arguments.append("close-pc-screen");
+
+	arguments.append("--stdout-errors");
+
+	StartHeimdall(arguments);
+}
+
+void MainWindow::SelectPitDestination(void)
+{
+	QString path = PromptFileCreation();
+
+	if (path != "")
+	{
+		if (!path.endsWith(".pit"))
+			path.append(".pit");
+
+		pitDestinationLineEdit->setText(path);
+
+		UpdateInterfaceAvailability();
+	}
+}
+
+void MainWindow::DownloadPit(void)
+{
+	deviceDetectedRadioButton->setChecked(false);
+	utilityOutputPlainTextEdit->clear();
+
+	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallFailed = false;
+	
+	QStringList arguments;
+	arguments.append("download-pit");
+
+	arguments.append("--output");
+	arguments.append(pitDestinationLineEdit->text());
+
+	arguments.append("--stdout-errors");
+
+	StartHeimdall(arguments);
+}
+
+void MainWindow::PrintPit(void)
+{
+	utilityOutputPlainTextEdit->clear();
+
+	heimdallState = MainWindow::kHeimdallStatePrintingPit;
+	heimdallFailed = false;
+	
+	QStringList arguments;
+	arguments.append("print-pit");
+
+	arguments.append("--stdout-errors");
+
+	StartHeimdall(arguments);
 }
 
 void MainWindow::HandleHeimdallStdout(void)
@@ -897,8 +1028,17 @@ void MainWindow::HandleHeimdallStdout(void)
 
 	output.remove(QChar('\b'));
 	output.replace(QChar('%'), QString("%\n"));
-	outputPlainTextEdit->insertPlainText(output);
-	outputPlainTextEdit->ensureCursorVisible();
+
+	if (heimdallState == MainWindow::kHeimdallStateFlashing)
+	{
+		outputPlainTextEdit->insertPlainText(output);
+		outputPlainTextEdit->ensureCursorVisible();
+	}
+	else
+	{
+		utilityOutputPlainTextEdit->insertPlainText(output);
+		utilityOutputPlainTextEdit->ensureCursorVisible();
+	}
 }
 
 void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus)
@@ -906,50 +1046,82 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 	// This is a work-around for strange issues as a result of a exitCode being cast to
 	// a unsigned char.
 	char byteExitCode = exitCode;
-	
-	heimdallRunning = false;
-	flashProgressBar->setEnabled(false);
-	UpdateStartButton();
 
 	if (exitStatus == QProcess::NormalExit && byteExitCode >= 0)
 	{
-		flashLabel->setText("Flash completed sucessfully!");
+		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+			flashLabel->setText("Flash completed sucessfully!");
+		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+			deviceDetectedRadioButton->setChecked(byteExitCode == 0);
 	}
 	else
 	{
-		QString error = process.readAllStandardError();
+		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+		{
+			QString error = process.readAllStandardError();
 
-		int lastNewLineChar = error.lastIndexOf('\n');
+			int lastNewLineChar = error.lastIndexOf('\n');
 
-		if (lastNewLineChar == 0)
-			error = error.mid(1).remove("ERROR: ");
-		else
-			error = error.left(lastNewLineChar).remove("ERROR: ");
+			if (lastNewLineChar == 0)
+				error = error.mid(1).remove("ERROR: ");
+			else
+				error = error.left(lastNewLineChar).remove("ERROR: ");
 
-		flashLabel->setText(error);
+			flashLabel->setText(error);
+		}
 	}
+
+	heimdallState = MainWindow::kHeimdallStateStopped;
+	flashProgressBar->setEnabled(false);
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 {	
 	if (error == QProcess::FailedToStart || error == QProcess::Timedout)
 	{
+		if (heimdallState == kHeimdallStateFlashing)
+		{
+			flashLabel->setText("Failed to start Heimdall!");
+			flashProgressBar->setEnabled(false);
+		}
+		else
+		{
+			utilityOutputPlainTextEdit->setPlainText("\nFRONTEND ERROR: Failed to start Heimdall!");
+		}
+
 		heimdallFailed = true;
+		heimdallState = MainWindow::kHeimdallStateStopped;
+		UpdateInterfaceAvailability();
 	}
 	else if (error == QProcess::Crashed)
 	{
-		flashLabel->setText("Heimdall crashed!");
+		if (heimdallState == kHeimdallStateFlashing)
+		{
+			flashLabel->setText("Heimdall crashed!");
+			flashProgressBar->setEnabled(false);
+		}
+		else
+		{
+			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall crashed!");
+		}
 		
-		heimdallRunning = false;
-		flashProgressBar->setEnabled(false);
-		UpdateStartButton();
+		heimdallState = MainWindow::kHeimdallStateStopped;
+		UpdateInterfaceAvailability();
 	}
 	else
 	{
-		flashLabel->setText("Heimdall reported an unknown error!");
+		if (heimdallState == kHeimdallStateFlashing)
+		{
+			flashLabel->setText("Heimdall reported an unknown error!");
+			flashProgressBar->setEnabled(false);
+		}
+		else
+		{
+			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall reported an unknown error!");
+		}
 		
-		heimdallRunning = false;
-		flashProgressBar->setEnabled(false);
-		UpdateStartButton();
+		heimdallState = MainWindow::kHeimdallStateStopped;
+		UpdateInterfaceAvailability();
 	}
 }
