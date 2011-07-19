@@ -29,6 +29,7 @@ using namespace HeimdallFrontend;
 void Alerts::DisplayError(const QString& errorMessage)
 {
 	QMessageBox messageBox;
+	messageBox.setModal(true);
 	messageBox.setText(errorMessage);
 	messageBox.setIcon(QMessageBox::Critical);
 	messageBox.exec();
@@ -37,6 +38,7 @@ void Alerts::DisplayError(const QString& errorMessage)
 void Alerts::DisplayWarning(const QString& warningMessage)
 {
 	QMessageBox messageBox;
+	messageBox.setModal(true);
 	messageBox.setText(warningMessage);
 	messageBox.setIcon(QMessageBox::Warning);
 	messageBox.exec();

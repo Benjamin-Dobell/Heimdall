@@ -18,9 +18,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
+// Qt
+#include "QRegExp"
+
 // Heimdall Frontend
 #include "Alerts.h"
 #include "FirmwareInfo.h"
+#include "Packaging.h"
 
 using namespace HeimdallFrontend;
 
@@ -320,7 +324,7 @@ bool FileInfo::ParseXml(QXmlStreamReader& xml)
 	return (false);
 }
 
-void FileInfo::WriteXml(QXmlStreamWriter& xml) const
+void FileInfo::WriteXml(QXmlStreamWriter& xml, const QString& filename) const
 {
 	xml.writeStartElement("file");
 
@@ -329,14 +333,7 @@ void FileInfo::WriteXml(QXmlStreamWriter& xml) const
 	xml.writeEndElement();
 
 	xml.writeStartElement("filename");
-
-	int lastSlash = filename.lastIndexOf('/');
-
-	if (lastSlash < 0)
-		lastSlash = filename.lastIndexOf('\\');
-
-	xml.writeCharacters(filename.mid(lastSlash + 1));
-
+	xml.writeCharacters(filename);
 	xml.writeEndElement();
 
 	xml.writeEndElement();
@@ -775,7 +772,7 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 	xml.writeStartElement("files");
 
 	for (int i = 0; i < fileInfos.length(); i++)
-		fileInfos[i].WriteXml(xml);
+		fileInfos[i].WriteXml(xml, Packaging::ClashlessFilename(fileInfos, i));
 
 	xml.writeEndElement();
 

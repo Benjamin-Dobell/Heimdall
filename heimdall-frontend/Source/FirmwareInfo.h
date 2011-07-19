@@ -126,7 +126,7 @@ namespace HeimdallFrontend
 			FileInfo(unsigned int partitionId, const QString& filename);
 
 			bool ParseXml(QXmlStreamReader& xml);
-			void WriteXml(QXmlStreamWriter& xml) const;
+			void WriteXml(QXmlStreamWriter& xml, const QString& filename) const;
 
 			unsigned int GetPartitionId(void) const
 			{

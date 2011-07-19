@@ -103,7 +103,7 @@ namespace HeimdallFrontend
 			// TODO: Add support for sparse files to both methods?
 			static bool ExtractTar(QTemporaryFile& tarFile, PackageData *packageData);
 
-			static bool WriteTarEntry(const QString& filename, QTemporaryFile *tarFile, bool firmwareXml = false);
+			static bool WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, const QString& entryFilename);
 			static bool CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarFile); // Uses original TAR format.
 
 		public:
@@ -112,6 +112,9 @@ namespace HeimdallFrontend
 
 			static bool ExtractPackage(const QString& packagePath, PackageData *packageData);
 			static bool BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo);
+
+			static QString ClashlessFilename(const QList<FileInfo>& fileInfos, int fileInfoIndex);
+			static QString ClashlessFilename(const QList<FileInfo>& fileInfos, const QString& filename);
 	};
 }
 

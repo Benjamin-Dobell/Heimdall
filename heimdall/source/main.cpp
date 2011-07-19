@@ -244,6 +244,35 @@ void closeFiles(map<string, FILE *> argumentfileMap)
 	argumentfileMap.clear();
 }
 
+bool getDeviceInfo(BridgeManager *bridgeManager)
+{
+	// ---------- GET DEVICE INFORMATION ----------
+
+	int deviceInfoResult;
+	
+	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown1, &deviceInfoResult))
+		return (false);
+
+	// 131072 for Galaxy S II, 0 for other devices.
+	if (deviceInfoResult != 0 && deviceInfoResult != 131072)
+	{
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", deviceInfoResult);
+		return (false);
+	}
+
+	// -------------------- KIES DOESN'T DO THIS --------------------
+
+	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown2, &deviceInfoResult))
+		return (false);
+
+	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
+	if (deviceInfoResult != 180 && deviceInfoResult != 0 && deviceInfoResult != 3 && deviceInfoResult != 190)
+	{
+		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceInfoResult);
+		return (false);
+	}
+}
+
 int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
 {
 	Interface::Print("Downloading device's PIT file...\n");
@@ -345,32 +374,6 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionIndex, const 
 bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFileMap, bool repartition)
 {
 	bool success;
-	
-	// ---------- GET DEVICE INFORMATION ----------
-
-	int deviceInfoResult;
-	
-	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown1, &deviceInfoResult))
-		return (false);
-
-	// 131072 for Galaxy S II, 0 for other devices.
-	if (deviceInfoResult != 0 && deviceInfoResult != 131072)
-	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", deviceInfoResult);
-		return (false);
-	}
-
-	// -------------------- KIES DOESN'T DO THIS --------------------
-
-	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown2, &deviceInfoResult))
-		return (false);
-
-	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
-	if (deviceInfoResult != 180 && deviceInfoResult != 0 && deviceInfoResult != 3 && deviceInfoResult != 190)
-	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceInfoResult);
-		return (false);
-	}
 
 	// ------------- SEND TOTAL BYTES TO BE TRANSFERRED -------------
 
@@ -397,7 +400,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 
 	DeviceInfoResponse *deviceInfoResponse = new DeviceInfoResponse();
 	success = bridgeManager->ReceivePacket(deviceInfoResponse);
-	deviceInfoResult = deviceInfoResponse->GetUnknown();
+	int deviceInfoResult = deviceInfoResponse->GetUnknown();
 	delete deviceInfoResponse;
 
 	if (!success)
@@ -663,7 +666,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession())
+			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
 			{
 				closeFiles(argumentFileMap);
 				delete bridgeManager;
@@ -683,7 +686,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionClosePcScreen:
 		{
-			if (!bridgeManager->BeginSession())
+			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				return (-1);
@@ -710,7 +713,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession())
+			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				fclose(outputPitFile);
@@ -761,7 +764,7 @@ int main(int argc, char **argv)
 
 			int chipId = atoi(argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId])->second.c_str());
 
-			if (!bridgeManager->BeginSession())
+			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
 			{
 				fclose(dumpFile);
 
@@ -780,7 +783,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionPrintPit:
 		{
-			if (!bridgeManager->BeginSession())
+			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				return (-1);
