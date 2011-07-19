@@ -79,7 +79,7 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
 
     1. Fully charge your device (use the wall charger as it's faster).
 
-    2. Run Heimdall Frontend (heimdall-frontend.exe).
+    2. Open the Heimdall Frontend (heimdall-frontend) application.
 
     3. From the "Load Package" tab, under the "Heimdall Firmware Package"
        section click the "Browse" button.
@@ -135,14 +135,14 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
 
 Performing a Custom Flash with Heimdall Frontend:
 
-    This is the advanced means of flashing firmware to your device. You should
-    only flash firmware to your device this way if you know what you're doing.
+    This is the advanced means of flashing firmware to your device.
 
     If you're not an advanced user or a developer, in the event that a Heimdall
-    Firmware Package doesn't exist for the particular firmware you wish to
-    flash. I strongly recommend you get in touch with developer of the
-    firmware, or an advanced user, and politely ask them to create a Heimdall
-    Firmware Package for you.
+    Firmware Package doesn't exist for the particular firmware (or files) that
+    you wish to flash, then I strongly recommend you get in touch with developer
+    of the firmware (or files) and politely ask them to create a Heimdall
+    Firmware Package for you. In doing so then you don't have to worry about
+    making mistakes due to inexperience.
 
     If you're looking to customise an existing Heimdall Firmware Package then
     follow steps 1-8 of "Flashing Heimdall Firmware Package with Heimdall
@@ -160,7 +160,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
        NOTE: If you want to use the CSC then extract it last.
 
-    3. Run Heimdall Frontend (heimdall-frontend.exe).
+    3. Open the Heimdall Frontend (heimdall-frontend) application.
 
     4. Select the "Flash" tab. From the "Flash" tab you're able to completely
        customise a flash. 
@@ -170,9 +170,12 @@ Performing a Custom Flash with Heimdall Frontend:
        button in the "PIT" section. This will open a dialogue allowing you to
        navigate to and select a valid PIT (.pit) file.
 
-    6. If a valid PIT file has been selected then "Add" button below the list
-       box will become enabled. Press this button to add a partition to your
-       flash.
+       If you do not already have a valid PIT file stored on your computer you
+       can download your device's PIT file from the "Utilities" tab.
+
+    6. If a valid PIT file has been selected then "Add" button below the
+       "Partitions (Files)" list-box will become enabled. Press this button to
+       add a partition to your flash.
 
     7. When you first add a partition you will see the "Partition Name" and
        "Partition ID" be populated with information. Use the "Partition Name"
@@ -276,7 +279,7 @@ How to Create a Heimdall Firmware Package:
     compressed with gzip. The only two real requirements are that a valid
     firmware.xml must be included (refer to Appendix A) and you can only
     include files (no directories, links etc.) As such if you'd like there is
-    nothing preventing you creating Heimdall packages manually. Of course
+    nothing preventing you from creating Heimdall packages manually. Of course
     Heimdall Frontend provides a simple user interface that takes care of all
     the hard work for you.
 
@@ -284,12 +287,12 @@ How to Create a Heimdall Firmware Package:
     create a package from scratch, or you can load an existing package, apply
     modifications and then save the package. Creating a package from scratch
     is the preferred approach, by taking this approach you're far less likely
-    to run into file name length limitations, these are not Heimdall's own
+    to run into file name length limitations. These are not Heimdall's own
     limitation but rather a limitation of the TAR archive format.
 
     Before you can access Heimdall Frontend's firmware creation functionality
     (available from the "Create Package" tab) you must first specify which
-    files will be included in your package as well as a few flashing options
+    files will be included in your package, as well as a few flashing options
     i.e. Whether or not users should repartition when flashing. This
     information must be filled out from the "Flash" tab in exactly the same
     fashion you would provide information to flash your device (see "Performing
@@ -301,7 +304,7 @@ How to Create a Heimdall Firmware Package:
     firmware package the "Create Package" tab will become available. Clicking
     this tab will display additional information that you can include in your
     package. In order to continue you must fill out all sections except for the
-    URLs section, which is optional. The following is break-down of what all
+    URLs section, which is optional. The following is a break-down of what all
     these options mean.
 
     - General Firmware Information: -
@@ -309,14 +312,14 @@ How to Create a Heimdall Firmware Package:
         Firmware Name - This is the name of your particular firmware. An
             example would be "Cyanogenmod".
 
-        Firmware Version - This is the particular version identifier for your
-            package. Any valid string will be accepted although a the inclusion
-            of decimal point version number is preferred releases i.e. "7.1".
-            If it makes sense then feel free to append a text string like "RC1"
-            or "Beta 1" to the decimal point version.
+        Firmware Version - This is the version identifier for your package. Any
+            valid string will be accepted although a the inclusion of decimal
+            point version number is preferred i.e. "7.1". If it makes sense
+            then feel free to append a text string like "RC1" or "Beta 1" to
+            the decimal point version.
 
-        Platform Name - This is the name of platform (or operating system) that
-            your firmware is based on. In most cases this will simply be
+        Platform Name - This is the name of the platform (or operating system)
+            that your firmware is based on. In most cases this will simply be
             "Android".
 
         Platform Version - This is the operating system version that your
@@ -350,9 +353,9 @@ How to Create a Heimdall Firmware Package:
             team name. Click "Add" and the developer will be added to the list
             on the right. If you make a mistake you can select a developer from
             the list and click "Remove". You can list as many developers as you
-            like however size constraints of the "Load Package" means only a
-            few will be visible. Where possible you may want to opt for team
-            names over listing individual team members.
+            like however visual constraints of the "Load Package" tab means
+            only a few names will be visible. Where possible you may want to
+            opt for team names over listing individual team members.
 
 
     - Supported Devices -
@@ -380,7 +383,7 @@ How to Create a Heimdall Firmware Package:
             Product Codes (or product IDs) are designated by manufacturers and
             are generally the definitive means of referring to a particular
             device. Examples are "GT-I9000", "GT-I9100" and "SCH-I897". If
-            you're unsure of a particular product code then Google and
+            you're unsure of a particular product code then both Google and
             GSMArena are your friends!
 
 
@@ -394,7 +397,7 @@ How to Create a Heimdall Firmware Package:
 
     Once you've chosen a file name Heimdall Frontend will begin the process of
     building the firmware package. In doing so a valid firmware.xml file will
-    be generated from the information entered, all files will be archived in a
+    be generated from the information entered. All files will be archived in a
     single TAR file then the TAR archive will be compressed via gzip
     compression. Compression will take a little while but you will see progress
     bars so you know the application hasn't hung. When the progress bars
@@ -414,12 +417,11 @@ for the format in their own software.
 
 
 All Heimdall Firmware Packages must contain a file called firmware.xml. This
-file stores information stores meta-data for the package as well as information
-about other files contained in the package that indicates how they should be
-flashed.
+file stores flash information and meta-data for the package as well as
+information about other files contained within the package.
 
-The format is fairly straight-forward so it won't be explained in great detail,
-nonetheless the following is an example of a valid firmware.xml file.
+The format is fairly straight-forward so it won't be explained in great detail.
+Nonetheless the following is an example of a valid firmware.xml file.
 
 <?xml version="1.0" encoding="UTF-8"?>
 <firmware version="1">
@@ -511,6 +513,7 @@ directories or links, as such file names should only be a name and not a path.
 
 <url> and <donateurl> are the only optional elements, all other elements must
 be included.
+
 
 
 Appendix B - Installing Heimdall Suite from Source
