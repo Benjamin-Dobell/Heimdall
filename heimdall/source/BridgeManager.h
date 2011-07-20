@@ -61,6 +61,13 @@ namespace Heimdall
 
 			enum
 			{
+				kInitialiseSucceeded = 0,
+				kInitialiseFailed,
+				kInitialiseDeviceNotDetected
+			};
+
+			enum
+			{
 				kVidSamsung	= 0x04E8
 			};
 
@@ -98,7 +105,7 @@ namespace Heimdall
 			~BridgeManager();
 
 			bool DetectDevice(void);
-			bool Initialise(void);
+			int Initialise(void);
 
 			bool BeginSession(void) const;
 			bool EndSession(bool reboot) const;

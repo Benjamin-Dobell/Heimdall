@@ -571,9 +571,26 @@ void MainWindow::SelectPartitionName(int index)
 		unsigned int newPartitionIndex = unusedPartitionIds[index];
 		unusedPartitionIds.removeAt(index);
 
-		FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
-		unusedPartitionIds.append(partitionInfo.GetPartitionId());
-		partitionInfo.SetPartitionId(newPartitionIndex);
+		FileInfo& fileInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
+		unusedPartitionIds.append(fileInfo.GetPartitionId());
+		fileInfo.SetPartitionId(newPartitionIndex);
+
+		if (!fileInfo.GetFilename().isEmpty())
+		{
+			PitEntry *pitEntry = currentPitData.FindEntry(newPartitionIndex);
+			QString partitionFilename = pitEntry->GetFilename();
+			int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
+
+			if (lastPeriod >= 0)
+			{
+				QString partitionFileExtension = partitionFilename.mid(lastPeriod + 1);
+
+				lastPeriod = fileInfo.GetFilename().lastIndexOf(QChar('.'));
+
+				if (lastPeriod < 0 || fileInfo.GetFilename().mid(lastPeriod + 1) != partitionFileExtension)
+					Alerts::DisplayWarning(QString("%1 partition expects files with file extension \"%2\".").arg(pitEntry->GetPartitionName(), partitionFileExtension));
+			}
+		}
 
 		partitionNameComboBox->clear();
 
@@ -588,9 +605,25 @@ void MainWindow::SelectPartitionFile(void)
 {
 	QString path = PromptFileSelection();
 
-	if (path != "" && !IsArchive(path))
+	if (path != "")
 	{
-		workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()].SetFilename(path);
+		FileInfo& fileInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
+		PitEntry *pitEntry = currentPitData.FindEntry(fileInfo.GetPartitionId());
+
+		QString partitionFilename = pitEntry->GetFilename();
+		int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
+
+		if (lastPeriod >= 0)
+		{
+			QString partitionFileExtension = partitionFilename.mid(lastPeriod + 1);
+
+			lastPeriod = path.lastIndexOf(QChar('.'));
+
+			if (lastPeriod < 0 || path.mid(lastPeriod + 1) != partitionFileExtension)
+				Alerts::DisplayWarning(QString("%1 partition expects files with file extension \"%2\".").arg(pitEntry->GetPartitionName(), partitionFileExtension));
+		}
+
+		fileInfo.SetFilename(path);
 		partitionFileLineEdit->setText(path);
 
 		pitBrowseButton->setEnabled(true);
@@ -1050,9 +1083,16 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 	if (exitStatus == QProcess::NormalExit && byteExitCode >= 0)
 	{
 		if (heimdallState == MainWindow::kHeimdallStateFlashing)
-			flashLabel->setText("Flash completed sucessfully!");
+		{
+			if (byteExitCode == 1)
+				flashLabel->setText("Failed to detect compatible device!");
+			else
+				flashLabel->setText("Flash completed sucessfully!");
+		}
 		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		{
 			deviceDetectedRadioButton->setChecked(byteExitCode == 0);
+		}
 	}
 	else
 	{

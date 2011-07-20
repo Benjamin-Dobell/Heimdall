@@ -419,6 +419,11 @@ void Interface::PrintFullInfo(void)
 	Print(extraInfo);
 }
 
+void Interface::PrintDeviceDetectionFailed(void)
+{
+	Print("Failed to detect compatible download-mode device.\n");
+}
+
 void Interface::PrintPit(const PitData *pitData)
 {
 	Interface::Print("Entry Count: %d\n", pitData->GetEntryCount());

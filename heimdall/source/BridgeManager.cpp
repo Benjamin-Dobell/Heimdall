@@ -143,11 +143,11 @@ bool BridgeManager::DetectDevice(void)
 
 	libusb_free_device_list(devices, deviceCount);
 
-	Interface::Print("Failed to detect compatible device\n");
+	Interface::PrintDeviceDetectionFailed();
 	return (false);
 }
 
-bool BridgeManager::Initialise(void)
+int BridgeManager::Initialise(void)
 {
 	Interface::Print("Initialising connection...\n");
 
@@ -157,7 +157,7 @@ bool BridgeManager::Initialise(void)
 	{
 		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
 		Interface::Print("Failed to connect to device!");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	Interface::Print("Detecting device...\n");
@@ -189,15 +189,15 @@ bool BridgeManager::Initialise(void)
 
 	if (!heimdallDevice)
 	{
-		Interface::PrintError("Failed to detect device!\n");
-		return (false);
+		Interface::PrintDeviceDetectionFailed();
+		return (BridgeManager::kInitialiseDeviceNotDetected);
 	}
 
 	result = libusb_open(heimdallDevice, &deviceHandle);
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Failed to access device. libusb error: %d\n", result);
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	libusb_device_descriptor deviceDescriptor;
@@ -205,12 +205,13 @@ bool BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Failed to retrieve device description\n");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	if (verbose)
 	{
 		unsigned char stringBuffer[128];
+
 		if (libusb_get_string_descriptor_ascii(deviceHandle, deviceDescriptor.iManufacturer,
 			stringBuffer, 128) >= 0)
 		{
@@ -241,10 +242,11 @@ bool BridgeManager::Initialise(void)
 
 	libusb_config_descriptor *configDescriptor;
 	result = libusb_get_config_descriptor(heimdallDevice, 0, &configDescriptor);
+
 	if (result != LIBUSB_SUCCESS || !configDescriptor)
 	{
 		Interface::PrintError("Failed to retrieve config descriptor\n");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	int interfaceIndex = -1;
@@ -301,7 +303,7 @@ bool BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Failed to find correct interface configuration\n");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 	
 	Interface::Print("Claiming interface...\n");
@@ -323,7 +325,7 @@ bool BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Claiming interface failed!\n");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	Interface::Print("Setting up interface...\n");
@@ -332,12 +334,12 @@ bool BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Setting up interface failed!\n");
-		return (false);
+		return (BridgeManager::kInitialiseFailed);
 	}
 
 	Interface::Print("\n");
 
-	return (true);
+	return (BridgeManager::kInitialiseSucceeded);
 }
 
 bool BridgeManager::BeginSession(void) const

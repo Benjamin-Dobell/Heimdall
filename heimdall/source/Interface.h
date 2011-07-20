@@ -285,6 +285,8 @@ namespace Heimdall
 			static void PrintReleaseInfo(void);
 			static void PrintFullInfo(void);
 
+			static void PrintDeviceDetectionFailed(void);
+
 			static void PrintPit(const PitData *pitData);
 
 			static string& GetPitArgument(void)

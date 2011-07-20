@@ -244,7 +244,7 @@ void closeFiles(map<string, FILE *> argumentfileMap)
 	argumentfileMap.clear();
 }
 
-bool getDeviceInfo(BridgeManager *bridgeManager)
+bool retrieveDeviceInfo(BridgeManager *bridgeManager)
 {
 	// ---------- GET DEVICE INFORMATION ----------
 
@@ -271,6 +271,8 @@ bool getDeviceInfo(BridgeManager *bridgeManager)
 		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceInfoResult);
 		return (false);
 	}
+
+	return (true);
 }
 
 int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
@@ -643,10 +645,12 @@ int main(int argc, char **argv)
 	Interface::PrintReleaseInfo();
 	Sleep(1000);
 
-	if (!bridgeManager->Initialise())
+	int initialiseResult = bridgeManager->Initialise();
+
+	if (initialiseResult != 0)
 	{
 		delete bridgeManager;
-		return (0);
+		return ((initialiseResult == BridgeManager::kInitialiseDeviceNotDetected) ? 1 : 0);
 	}
 
 	bool success;
@@ -666,7 +670,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
 			{
 				closeFiles(argumentFileMap);
 				delete bridgeManager;
@@ -686,7 +690,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionClosePcScreen:
 		{
-			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				return (-1);
@@ -713,7 +717,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				fclose(outputPitFile);
@@ -764,7 +768,7 @@ int main(int argc, char **argv)
 
 			int chipId = atoi(argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId])->second.c_str());
 
-			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
 			{
 				fclose(dumpFile);
 
@@ -783,7 +787,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionPrintPit:
 		{
-			if (!bridgeManager->BeginSession() || !getDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
 			{
 				delete bridgeManager;
 				return (-1);
