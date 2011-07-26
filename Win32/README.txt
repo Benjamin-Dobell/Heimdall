@@ -79,7 +79,7 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
 
     1. Fully charge your device (use the wall charger as it's faster).
 
-    2. Open the Heimdall Frontend (heimdall-frontend) application.
+    2. Open the Heimdall Frontend (heimdall-frontend) executable.
 
     3. From the "Load Package" tab, under the "Heimdall Firmware Package"
        section click the "Browse" button.
@@ -160,7 +160,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
        NOTE: If you want to use the CSC then extract it last.
 
-    3. Open the Heimdall Frontend (heimdall-frontend) application.
+    3. Open the Heimdall Frontend (heimdall-frontend) executable.
 
     4. Select the "Flash" tab. From the "Flash" tab you're able to completely
        customise a flash. 

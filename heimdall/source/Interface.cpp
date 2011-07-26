@@ -33,7 +33,7 @@ using namespace Heimdall;
 
 bool Interface::stdoutErrors = false;
 
-const char *Interface::version = "v1.3 (beta)";
+const char *Interface::version = "v1.3.0";
 
 const char *Interface::usage = "Usage: heimdall <action> <action arguments> <common arguments>\n\
 \n\
