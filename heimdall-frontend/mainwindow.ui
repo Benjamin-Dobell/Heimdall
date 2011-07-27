@@ -1375,7 +1375,7 @@
          <rect>
           <x>10</x>
           <y>30</y>
-          <width>341</width>
+          <width>321</width>
           <height>21</height>
          </rect>
         </property>
@@ -1389,9 +1389,9 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>360</x>
+          <x>350</x>
           <y>30</y>
-          <width>81</width>
+          <width>91</width>
           <height>23</height>
          </rect>
         </property>
@@ -1406,9 +1406,9 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>340</x>
+         <x>330</x>
          <y>110</y>
-         <width>91</width>
+         <width>101</width>
          <height>23</height>
         </rect>
        </property>
@@ -1718,7 +1718,7 @@
      <x>0</x>
      <y>0</y>
      <width>788</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
