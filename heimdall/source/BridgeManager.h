@@ -99,6 +99,9 @@ namespace Heimdall
 
 #endif
 
+			bool CheckProtocol(void) const;
+			bool InitialiseProtocol(void) const;
+
 		public:
 
 			BridgeManager(bool verbose, int communicationDelay);
@@ -110,8 +113,8 @@ namespace Heimdall
 			bool BeginSession(void) const;
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = 3000) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true) const;
 
 			bool RequestDeviceInfo(unsigned int request, int *result) const;
 

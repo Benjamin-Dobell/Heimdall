@@ -18,45 +18,37 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef ENDSESSIONPACKET_H
-#define ENDSESSIONPACKET_H
+#ifndef ENDPITFILETRANSFERPACKET_H
+#define ENDPITFILETRANSFERPACKET_H
 
 // Heimdall
-#include "ControlPacket.h"
+#include "PitFilePacket.h"
 
 namespace Heimdall
 {
-	class EndSessionPacket : public ControlPacket
+	class EndPitFileTransferPacket : public PitFilePacket
 	{
-		public:
-
-			enum
-			{
-				kRequestEndSession = 0,
-				kRequestRebootDevice = 1
-			};
-
 		private:
 
-			unsigned int request;
+			unsigned int fileSize;
 
 		public:
 
-			EndSessionPacket(unsigned int request) : ControlPacket(ControlPacket::kControlTypeEndSession)
+			EndPitFileTransferPacket(unsigned int fileSize) : PitFilePacket(PitFilePacket::kRequestEndTransfer)
 			{
-				this->request = request;
+				this->fileSize = fileSize;
 			}
 
-			unsigned int GetRequest(void) const
+			unsigned int GetFileSize(void) const
 			{
-				return (request);
+				return (fileSize);
 			}
 
 			void Pack(void)
 			{
-				ControlPacket::Pack();
+				PitFilePacket::Pack();
 
-				PackInteger(ControlPacket::kDataSize, request);
+				PackInteger(PitFilePacket::kDataSize, fileSize);
 			}
 	};
 }

@@ -18,45 +18,39 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef ENDSESSIONPACKET_H
-#define ENDSESSIONPACKET_H
+#ifndef SETUPSESSIONRESPONSE_H
+#define SETUPSESSIONRESPONSE_H
 
 // Heimdall
-#include "ControlPacket.h"
+#include "ResponsePacket.h"
 
 namespace Heimdall
 {
-	class EndSessionPacket : public ControlPacket
+	class SetupSessionResponse : public ResponsePacket
 	{
-		public:
-
-			enum
-			{
-				kRequestEndSession = 0,
-				kRequestRebootDevice = 1
-			};
-
 		private:
 
-			unsigned int request;
+			unsigned int unknown;
 
 		public:
 
-			EndSessionPacket(unsigned int request) : ControlPacket(ControlPacket::kControlTypeEndSession)
+			SetupSessionResponse() : ResponsePacket(ResponsePacket::kResponseTypeBeginSession)
 			{
-				this->request = request;
 			}
 
-			unsigned int GetRequest(void) const
+			int GetUnknown(void) const
 			{
-				return (request);
+				return (unknown);
 			}
 
-			void Pack(void)
+			bool Unpack(void)
 			{
-				ControlPacket::Pack();
+				if (!ResponsePacket::Unpack())
+					return (false);
 
-				PackInteger(ControlPacket::kDataSize, request);
+				unknown = UnpackInteger(ResponsePacket::kDataSize);
+
+				return (true);
 			}
 	};
 }

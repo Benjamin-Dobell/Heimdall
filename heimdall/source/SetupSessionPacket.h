@@ -18,33 +18,37 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef ENDSESSIONPACKET_H
-#define ENDSESSIONPACKET_H
+#ifndef SETUPSESSIONPACKET_H
+#define SETUPSESSIONPACKET_H
 
 // Heimdall
 #include "ControlPacket.h"
 
 namespace Heimdall
 {
-	class EndSessionPacket : public ControlPacket
+	class SetupSessionPacket : public ControlPacket
 	{
 		public:
 
 			enum
 			{
-				kRequestEndSession = 0,
-				kRequestRebootDevice = 1
+				kBeginSession		= 0,
+				kDeviceInfo			= 1,
+				kTotalBytes			= 2
 			};
 
 		private:
 
 			unsigned int request;
+			unsigned int unknown3Parameter;
 
 		public:
 
-			EndSessionPacket(unsigned int request) : ControlPacket(ControlPacket::kControlTypeEndSession)
+			SetupSessionPacket(unsigned int request, unsigned int unknown3Parameter = 0)
+				: ControlPacket(ControlPacket::kControlTypeSetupSession)
 			{
 				this->request = request;
+				this->unknown3Parameter = unknown3Parameter;
 			}
 
 			unsigned int GetRequest(void) const
@@ -52,11 +56,17 @@ namespace Heimdall
 				return (request);
 			}
 
+			unsigned int GetUnknown3Parameter(void) const
+			{
+				return (unknown3Parameter);
+			}
+
 			void Pack(void)
 			{
 				ControlPacket::Pack();
 
 				PackInteger(ControlPacket::kDataSize, request);
+				PackInteger(ControlPacket::kDataSize + 4, unknown3Parameter);
 			}
 	};
 }

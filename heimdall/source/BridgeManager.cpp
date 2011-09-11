@@ -27,13 +27,14 @@
 // Heimdall
 #include "BeginDumpPacket.h"
 #include "BridgeManager.h"
-#include "DeviceInfoPacket.h"
-#include "DeviceInfoResponse.h"
+#include "SetupSessionPacket.h"
+#include "SetupSessionResponse.h"
 #include "DumpPartFileTransferPacket.h"
 #include "DumpPartPitFilePacket.h"
 #include "DumpResponse.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
+#include "EndPitFileTransferPacket.h"
 #include "EndSessionPacket.h"
 #include "FileTransferPacket.h"
 #include "FlashPartFileTransferPacket.h"
@@ -65,6 +66,159 @@ enum
 {
 	kMaxSequenceLength = 800
 };
+
+bool BridgeManager::CheckProtocol(void) const
+{
+	Interface::Print("Checking if protocol is initialised...\n");
+
+	SetupSessionPacket deviceInfoPacket(SetupSessionPacket::kDeviceInfo);
+
+	if (!SendPacket(&deviceInfoPacket, 100, false))
+	{
+		Interface::Print("Protocol is not initialised.\n");
+		return (false);
+	}
+
+	SetupSessionResponse deviceInfoResponse;
+
+	if (!ReceivePacket(&deviceInfoResponse, 100, false))
+	{
+		Interface::Print("Protocol is not initialised.\n");
+		return (false);
+	}
+
+	Interface::Print("Protocol is initialised.\n");
+	return (true);
+}
+
+bool BridgeManager::InitialiseProtocol(void) const
+{
+	Interface::Print("Initialising protocol...\n");
+
+	unsigned char *dataBuffer = new unsigned char[7];
+
+	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
+
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	memset(dataBuffer, 0, 7);
+	dataBuffer[1] = 0xC2;
+	dataBuffer[2] = 0x01;
+	dataBuffer[6] = 0x07;
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	memset(dataBuffer, 0, 7);
+	dataBuffer[1] = 0xC2;
+	dataBuffer[2] = 0x01;
+	dataBuffer[6] = 0x08;
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to initialise protocol!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	Interface::Print("Handshaking with Loke...\n");
+
+	int dataTransferred;
+
+	// Send "ODIN"
+	strcpy((char *)dataBuffer, "ODIN");
+
+	result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
+	if (result < 0)
+	{
+		if (verbose)
+			Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
+		else
+			Interface::PrintError("Failed to send data!");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	if (dataTransferred != 4)
+	{
+		if (verbose)
+			Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
+		else
+			Interface::PrintError("Failed to complete sending of data!");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	// Expect "LOKE"
+	memset(dataBuffer, 0, 7);
+
+	result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
+	if (result < 0)
+	{
+		Interface::PrintError("Failed to receive response!\n");
+
+		delete [] dataBuffer;
+		return (false);;
+	}
+
+	if (dataTransferred != 4 || memcmp(dataBuffer, "LOKE", 4) != 0)
+	{
+		Interface::PrintError("Unexpected communication!\n");
+
+		if (verbose)
+			Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
+
+		Interface::PrintError("Handshake failed!\n");
+
+		delete [] dataBuffer;
+		return (false);
+	}
+
+	return (true);
+}
 
 BridgeManager::BridgeManager(bool verbose, int communicationDelay)
 {
@@ -339,6 +493,14 @@ int BridgeManager::Initialise(void)
 
 	Interface::Print("\n");
 
+	if (!CheckProtocol())
+	{
+		if (!InitialiseProtocol())
+			return (BridgeManager::kInitialiseFailed);
+	}
+
+	Interface::Print("\n");
+
 	return (BridgeManager::kInitialiseSucceeded);
 }
 
@@ -346,129 +508,52 @@ bool BridgeManager::BeginSession(void) const
 {
 	Interface::Print("Beginning session...\n");
 
-	unsigned char *dataBuffer = new unsigned char[7];
+	SetupSessionPacket beginSessionPacket(SetupSessionPacket::kBeginSession);
 
-	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
-
-	if (result < 0)
+	if (!SendPacket(&beginSessionPacket))
 	{
 		Interface::PrintError("Failed to begin session!\n");
-
-		delete [] dataBuffer;
 		return (false);
 	}
 
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x07;
+	SetupSessionResponse setupSessionResponse;
+	if (!ReceivePacket(&setupSessionResponse))
+		return (false);
 
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-	if (result < 0)
+	int result = setupSessionResponse.GetUnknown();
+
+	// 131072 for Galaxy S II, 0 for other devices.
+	if (result != 0 && result != 131072)
 	{
-		Interface::PrintError("Failed to begin session!\n");
-
-		delete [] dataBuffer;
+		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", result);
 		return (false);
 	}
 
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to begin session!\n");
+	// -------------------- KIES DOESN'T DO THIS --------------------
 
-		delete [] dataBuffer;
+	SetupSessionPacket deviceTypePacket(SetupSessionPacket::kDeviceInfo);
+
+	if (!SendPacket(&deviceTypePacket))
+	{
+		Interface::PrintError("Failed to request device type!\n");
 		return (false);
 	}
 
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to begin session!\n");
+	if (!ReceivePacket(&setupSessionResponse))
+		return (false);
 
-		delete [] dataBuffer;
+	int deviceType = setupSessionResponse.GetUnknown();
+
+	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
+	if (deviceType != 180 && deviceType != 0 && deviceType != 3 && deviceType != 190)
+	{
+		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceType);
 		return (false);
 	}
-
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x08;
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-	if (result < 0)
+	else
 	{
-		Interface::PrintError("Failed to begin session!\n");
-
-		delete [] dataBuffer;
-		return (false);
+		Interface::Print("Session begun with device of type: %d\n\n", result);
 	}
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to begin session!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	Interface::Print("Handshaking with Loke...\n");
-
-	int dataTransferred;
-
-	// Send "ODIN"
-	strcpy((char *)dataBuffer, "ODIN");
-
-	result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
-	if (result < 0)
-	{
-		if (verbose)
-			Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
-		else
-			Interface::PrintError("Failed to send data!");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	if (dataTransferred != 4)
-	{
-		if (verbose)
-			Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
-		else
-			Interface::PrintError("Failed to complete sending of data!");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	// Expect "LOKE"
-	memset(dataBuffer, 0, 7);
-
-	result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to receive response!\n");
-
-		delete [] dataBuffer;
-		return (false);;
-	}
-
-	if (dataTransferred != 4 || memcmp(dataBuffer, "LOKE", 4) != 0)
-	{
-		Interface::PrintError("Unexpected communication!\n");
-
-		if (verbose)
-			Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
-
-		Interface::PrintError("Handshake failed!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	Interface::Print("\n");
 
 	return (true);
 }
@@ -529,7 +614,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	return (true);
 }
 
-bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
+bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) const
 {
 	packet->Pack();
 
@@ -537,7 +622,7 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, packet->GetData(), packet->GetSize(),
 		&dataTransferred, timeout);
 
-	if (result < 0)
+	if (result < 0 && retry)
 	{
 		// max(250, communicationDelay)
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
@@ -577,13 +662,13 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 	return (true);
 }
 
-bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
+bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry) const
 {
 	int dataTransferred;
 	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, packet->GetData(), packet->GetSize(),
 		&dataTransferred, timeout);
 
-	if (result < 0)
+	if (result < 0 && retry)
 	{
 		// max(250, communicationDelay)
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
@@ -608,12 +693,6 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 
 			if (verbose)
 				Interface::PrintError("libusb error %d whilst receiving packet.", result);
-
-			if (i >= 3)
-			{
-				int breakHere = 0;
-				breakHere++;
-			}
 		}
 
 		if (verbose)
@@ -633,8 +712,8 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 
 bool BridgeManager::RequestDeviceInfo(unsigned int request, int *result) const
 {
-	DeviceInfoPacket deviceInfoPacket(request);
-	bool success = SendPacket(&deviceInfoPacket);
+	SetupSessionPacket beginSessionPacket(request);
+	bool success = SendPacket(&beginSessionPacket);
 
 	if (!success)
 	{
@@ -646,8 +725,10 @@ bool BridgeManager::RequestDeviceInfo(unsigned int request, int *result) const
 		return (false);
 	}
 
-	DeviceInfoResponse deviceInfoResponse;
-	success = ReceivePacket(&deviceInfoResponse);
+	SetupSessionResponse deviceInfoResponse;
+	if (!ReceivePacket(&deviceInfoResponse))
+		return (false);
+
 	*result = deviceInfoResponse.GetUnknown();
 
 	return (true);
@@ -718,7 +799,28 @@ bool BridgeManager::SendPitFile(FILE *file) const
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to receive PIT file transfer count!\n");
+		Interface::PrintError("Failed to receive PIT file part response!\n");
+		return (false);
+	}
+
+	// End pit file transfer
+	EndPitFileTransferPacket *endPitFileTransferPacket = new EndPitFileTransferPacket(fileSize);
+	success = SendPacket(endPitFileTransferPacket);
+	delete endPitFileTransferPacket;
+
+	if (!success)
+	{
+		Interface::PrintError("Failed to send end PIT file transfer packet!\n");
+		return (false);
+	}
+
+	pitFileResponse = new PitFileResponse();
+	success = ReceivePacket(pitFileResponse);
+	delete pitFileResponse;
+
+	if (!success)
+	{
+		Interface::PrintError("Failed to confirm end of PIT file transfer!\n");
 		return (false);
 	}
 

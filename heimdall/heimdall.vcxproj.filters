@@ -16,12 +16,6 @@
     <ClInclude Include="source\ControlPacket.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\DeviceInfoPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\DeviceInfoResponse.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="source\DumpPartFileTransferPacket.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -79,10 +73,19 @@
     <ClInclude Include="source\SendFilePartResponse.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\EndSessionPacket.h">
+    <ClInclude Include="source\Interface.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\Interface.h">
+    <ClInclude Include="source\EndPitFileTransferPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SetupSessionPacket.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SetupSessionResponse.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndSessionPacket.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

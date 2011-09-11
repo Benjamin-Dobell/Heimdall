@@ -29,8 +29,8 @@
 
 // Heimdall
 #include "BridgeManager.h"
-#include "DeviceInfoPacket.h"
-#include "DeviceInfoResponse.h"
+#include "SetupSessionPacket.h"
+#include "SetupSessionResponse.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
 #include "Interface.h"
@@ -244,37 +244,6 @@ void closeFiles(map<string, FILE *> argumentfileMap)
 	argumentfileMap.clear();
 }
 
-bool retrieveDeviceInfo(BridgeManager *bridgeManager)
-{
-	// ---------- GET DEVICE INFORMATION ----------
-
-	int deviceInfoResult;
-	
-	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown1, &deviceInfoResult))
-		return (false);
-
-	// 131072 for Galaxy S II, 0 for other devices.
-	if (deviceInfoResult != 0 && deviceInfoResult != 131072)
-	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", deviceInfoResult);
-		return (false);
-	}
-
-	// -------------------- KIES DOESN'T DO THIS --------------------
-
-	if (!bridgeManager->RequestDeviceInfo(DeviceInfoPacket::kUnknown2, &deviceInfoResult))
-		return (false);
-
-	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
-	if (deviceInfoResult != 180 && deviceInfoResult != 0 && deviceInfoResult != 3 && deviceInfoResult != 190)
-	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceInfoResult);
-		return (false);
-	}
-
-	return (true);
-}
-
 int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
 {
 	Interface::Print("Downloading device's PIT file...\n");
@@ -390,7 +359,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		}
 	}
 	
-	DeviceInfoPacket *deviceInfoPacket = new DeviceInfoPacket(DeviceInfoPacket::kTotalBytes, totalBytes);
+	SetupSessionPacket *deviceInfoPacket = new SetupSessionPacket(SetupSessionPacket::kTotalBytes, totalBytes);
 	success = bridgeManager->SendPacket(deviceInfoPacket);
 	delete deviceInfoPacket;
 
@@ -400,7 +369,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		return (false);
 	}
 
-	DeviceInfoResponse *deviceInfoResponse = new DeviceInfoResponse();
+	SetupSessionResponse *deviceInfoResponse = new SetupSessionResponse();
 	success = bridgeManager->ReceivePacket(deviceInfoResponse);
 	int deviceInfoResult = deviceInfoResponse->GetUnknown();
 	delete deviceInfoResponse;
@@ -670,7 +639,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession())
 			{
 				closeFiles(argumentFileMap);
 				delete bridgeManager;
@@ -690,7 +659,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionClosePcScreen:
 		{
-			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession())
 			{
 				delete bridgeManager;
 				return (-1);
@@ -717,7 +686,7 @@ int main(int argc, char **argv)
 				return (0);
 			}
 
-			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession())
 			{
 				delete bridgeManager;
 				fclose(outputPitFile);
@@ -768,7 +737,7 @@ int main(int argc, char **argv)
 
 			int chipId = atoi(argumentMap.find(Interface::actions[Interface::kActionDump].valueArguments[Interface::kDumpValueArgChipId])->second.c_str());
 
-			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession())
 			{
 				fclose(dumpFile);
 
@@ -787,7 +756,7 @@ int main(int argc, char **argv)
 
 		case Interface::kActionPrintPit:
 		{
-			if (!bridgeManager->BeginSession() || !retrieveDeviceInfo(bridgeManager))
+			if (!bridgeManager->BeginSession())
 			{
 				delete bridgeManager;
 				return (-1);

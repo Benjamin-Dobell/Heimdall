@@ -33,7 +33,7 @@ namespace Heimdall
 			enum
 			{
 				kResponseTypeSendFilePart   = 0x00,
-				kResponseTypeDeviceInfo     = 0x64,
+				kResponseTypeBeginSession     = 0x64,
 				kResponseTypePitFile        = 0x65,
 				kResponseTypeFileTransfer   = 0x66,
 				kResponseTypeEndSession     = 0x67

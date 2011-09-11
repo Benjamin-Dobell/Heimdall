@@ -103,14 +103,15 @@
     <ClInclude Include="source\BeginDumpPacket.h" />
     <ClInclude Include="source\BridgeManager.h" />
     <ClInclude Include="source\ControlPacket.h" />
-    <ClInclude Include="source\DeviceInfoPacket.h" />
-    <ClInclude Include="source\DeviceInfoResponse.h" />
+    <ClInclude Include="source\SetupSessionPacket.h" />
+    <ClInclude Include="source\SetupSessionResponse.h" />
     <ClInclude Include="source\DumpPartFileTransferPacket.h" />
     <ClInclude Include="source\DumpPartPitFilePacket.h" />
     <ClInclude Include="source\DumpResponse.h" />
     <ClInclude Include="source\EndFileTransferPacket.h" />
     <ClInclude Include="source\EndModemFileTransferPacket.h" />
     <ClInclude Include="source\EndPhoneFileTransferPacket.h" />
+    <ClInclude Include="source\EndPitFileTransferPacket.h" />
     <ClInclude Include="source\FileTransferPacket.h" />
     <ClInclude Include="source\FlashPartFileTransferPacket.h" />
     <ClInclude Include="source\FlashPartPitFilePacket.h" />

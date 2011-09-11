@@ -1022,6 +1022,8 @@ void MainWindow::DownloadPit(void)
 	arguments.append("--output");
 	arguments.append(pitDestinationLineEdit->text());
 
+	arguments.append("--no-reboot");
+
 	arguments.append("--stdout-errors");
 
 	StartHeimdall(arguments);
