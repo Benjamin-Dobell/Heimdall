@@ -961,14 +961,16 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 	unsigned int sequenceCount = fileSize / (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
 	unsigned int lastSequenceSize = kMaxSequenceLength;
-	unsigned int partialPacketLength = fileSize % SendFilePartPacket::kDefaultPacketSize;
+	unsigned int partialPacketByteCount = fileSize % SendFilePartPacket::kDefaultPacketSize;
+
 	if (fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize) != 0)
 	{
 		sequenceCount++;
 
 		int lastSequenceBytes = fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
 		lastSequenceSize = lastSequenceBytes / SendFilePartPacket::kDefaultPacketSize;
-		if (partialPacketLength != 0)
+
+		if (partialPacketByteCount != 0)
 			lastSequenceSize++;
 	}
 
@@ -982,6 +984,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		// Min(lastSequenceSize, 131072)
 		bool isLastSequence = sequenceIndex == sequenceCount - 1;
 		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : kMaxSequenceLength;
+		unsigned int sequenceByteCount = ((isLastSequence) ? lastSequenceSize : kMaxSequenceLength) * SendFilePartPacket::kDefaultPacketSize + partialPacketByteCount;
 
 		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(0, 2 * sequenceSize);
 		success = SendPacket(beginFileTransferPacket);
@@ -1118,13 +1121,10 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			previousPercent = currentPercent;
 		}
 
-		unsigned int lastFullPacketIndex = 2 * ((isLastSequence && partialPacketLength != 0) ? sequenceSize - 1 : sequenceSize);
-
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
-			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(
-				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, partitionType, fileIdentifier,
-				isLastSequence);
+			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, partitionType,
+				fileIdentifier, isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, 3000);
 			delete endPhoneFileTransferPacket;
@@ -1138,8 +1138,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		}
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
-			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(
-				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, partitionType, isLastSequence);
+			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, partitionType, isLastSequence);
 
 			success = SendPacket(endModemFileTransferPacket, 3000);
 			delete endModemFileTransferPacket;

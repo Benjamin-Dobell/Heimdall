@@ -46,30 +46,17 @@ namespace Heimdall
 		private:
 
 			unsigned int destination;			// Chip identifier perhaps
-			unsigned short partialPacketLength;	// Length or (length - 65536) if lastFullPacket is odd.
-			unsigned int lastFullPacketIndex;	
-			unsigned short unknown1;
+			unsigned int sequenceByteCount;
+			unsigned int unknown1;
 			unsigned int partitionType;
 
 		protected:
 
-			EndFileTransferPacket(unsigned int destination, unsigned int partialPacketLength, unsigned int lastFullPacketIndex,
-				unsigned short unknown1, unsigned int partitionType)
+			EndFileTransferPacket(unsigned int destination, unsigned int sequenceByteCount, unsigned int unknown1, unsigned int partitionType)
 				: FileTransferPacket(FileTransferPacket::kRequestEnd)
 			{
 				this->destination = destination;
-
-				if (partialPacketLength > 65535)
-				{
-					this->partialPacketLength = (partialPacketLength - 65536);
-					this->lastFullPacketIndex = lastFullPacketIndex + 1;
-				}
-				else
-				{
-					this->partialPacketLength = partialPacketLength;
-					this->lastFullPacketIndex = lastFullPacketIndex;
-				}
-				
+				this->sequenceByteCount = sequenceByteCount;
 				this->unknown1 = unknown1;
 				this->partitionType = partitionType;
 			}
@@ -81,20 +68,12 @@ namespace Heimdall
 				return (destination);
 			}
 
-			unsigned int GetPartialPacketLength(void) const
+			unsigned int GetSequenceByteCount(void) const
 			{
-				if (lastFullPacketIndex % 2 == 0)
-					return (partialPacketLength);
-				else
-					return (partialPacketLength + 65536);
+				return (sequenceByteCount);
 			}
 
-			unsigned int GetLastFullPacketIndex(void) const
-			{
-				return (lastFullPacketIndex - lastFullPacketIndex % 2);
-			}
-
-			unsigned short GetUnknown1(void) const
+			unsigned int GetUnknown1(void) const
 			{
 				return (unknown1);
 			}
@@ -109,9 +88,8 @@ namespace Heimdall
 				FileTransferPacket::Pack();
 
 				PackInteger(FileTransferPacket::kDataSize, destination);
-				PackShort(FileTransferPacket::kDataSize + 4, partialPacketLength);
-				PackInteger(FileTransferPacket::kDataSize + 6, lastFullPacketIndex);
-				PackShort(FileTransferPacket::kDataSize + 10, unknown1);
+				PackInteger(FileTransferPacket::kDataSize + 4, sequenceByteCount);
+				PackInteger(FileTransferPacket::kDataSize + 8, unknown1);
 				PackInteger(FileTransferPacket::kDataSize + 12, partitionType);
 			}
 	};

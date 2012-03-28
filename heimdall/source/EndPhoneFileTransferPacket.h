@@ -57,10 +57,9 @@ namespace Heimdall
 
 		public:
 
-			EndPhoneFileTransferPacket(unsigned int partialPacketLength, unsigned int lastFullPacketIndex, unsigned short unknown1,
-				unsigned int partitionType, unsigned int fileIdentifier, bool endOfFile)
-				: EndFileTransferPacket(EndFileTransferPacket::kDestinationPhone, partialPacketLength,
-				lastFullPacketIndex, unknown1, partitionType)
+			EndPhoneFileTransferPacket(unsigned int sequenceByteCount, unsigned int unknown1, unsigned int partitionType,
+				unsigned int fileIdentifier, bool endOfFile)
+				: EndFileTransferPacket(EndFileTransferPacket::kDestinationPhone, sequenceByteCount, unknown1, partitionType)
 			{
 				this->fileIdentifier = fileIdentifier;
 				this->endOfFile = (endOfFile) ? 1 : 0;
