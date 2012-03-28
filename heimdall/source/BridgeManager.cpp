@@ -520,7 +520,7 @@ bool BridgeManager::BeginSession(void) const
 	if (!ReceivePacket(&setupSessionResponse))
 		return (false);
 
-	int result = setupSessionResponse.GetUnknown();
+	unsigned int result = setupSessionResponse.GetUnknown();
 
 	// 131072 for Galaxy S II, 0 for other devices.
 	if (result != 0 && result != 131072)
@@ -542,7 +542,7 @@ bool BridgeManager::BeginSession(void) const
 	if (!ReceivePacket(&setupSessionResponse))
 		return (false);
 
-	int deviceType = setupSessionResponse.GetUnknown();
+	unsigned int deviceType = setupSessionResponse.GetUnknown();
 
 	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
 	if (deviceType != 180 && deviceType != 0 && deviceType != 3 && deviceType != 190)
@@ -846,7 +846,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 
 	PitFileResponse *pitFileResponse = new PitFileResponse();
 	success = ReceivePacket(pitFileResponse);
-	int fileSize = pitFileResponse->GetFileSize();
+	unsigned int fileSize = pitFileResponse->GetFileSize();
 	delete pitFileResponse;
 
 	if (!success)
@@ -855,7 +855,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 		return (0);
 	}
 
-	int transferCount = fileSize / ReceiveFilePartPacket::kDataSize;
+	unsigned int transferCount = fileSize / ReceiveFilePartPacket::kDataSize;
 	if (fileSize % ReceiveFilePartPacket::kDataSize != 0)
 		transferCount++;
 
@@ -863,7 +863,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	int offset = 0;
 
 	// NOTE: The PIT file appears to always be padded out to exactly 4 kilobytes.
-	for (int i = 0; i < transferCount; i++)
+	for (unsigned int i = 0; i < transferCount; i++)
 	{
 		DumpPartPitFilePacket *requestPacket = new DumpPartPitFilePacket(i);
 		success = SendPacket(requestPacket);
@@ -921,7 +921,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	return (fileSize);
 }
 
-bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) const
+bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int partitionType, unsigned int fileIdentifier) const
 {
 	if (destination != EndFileTransferPacket::kDestinationModem && destination != EndFileTransferPacket::kDestinationPhone)
 	{
@@ -929,7 +929,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 		return (false);
 	}
 
-	if (destination == EndFileTransferPacket::kDestinationModem && fileIdentifier != -1)
+	if (destination == EndFileTransferPacket::kDestinationModem && fileIdentifier != 0xFFFFFFFF)
 	{
 		Interface::PrintError("The modem file does not have an identifier!\n");
 		return (false);
@@ -959,10 +959,10 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 		return (false);
 	}
 
-	int sequenceCount = fileSize / (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
-	int lastSequenceSize = kMaxSequenceLength;
-	int partialPacketLength = fileSize % SendFilePartPacket::kDefaultPacketSize;
-	if  (fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize) != 0)
+	unsigned int sequenceCount = fileSize / (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
+	unsigned int lastSequenceSize = kMaxSequenceLength;
+	unsigned int partialPacketLength = fileSize % SendFilePartPacket::kDefaultPacketSize;
+	if (fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize) != 0)
 	{
 		sequenceCount++;
 
@@ -973,15 +973,15 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 	}
 
 	long bytesTransferred = 0;
-	int currentPercent;
-	int previousPercent = 0;
+	unsigned int currentPercent;
+	unsigned int previousPercent = 0;
 	Interface::Print("0%%");
 
-	for (int sequenceIndex = 0; sequenceIndex < sequenceCount; sequenceIndex++)
+	for (unsigned int sequenceIndex = 0; sequenceIndex < sequenceCount; sequenceIndex++)
 	{
 		// Min(lastSequenceSize, 131072)
 		bool isLastSequence = sequenceIndex == sequenceCount - 1;
-		int sequenceSize = (isLastSequence) ? lastSequenceSize : kMaxSequenceLength;
+		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : kMaxSequenceLength;
 
 		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(0, 2 * sequenceSize);
 		success = SendPacket(beginFileTransferPacket);
@@ -1008,7 +1008,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 		SendFilePartPacket *sendFilePartPacket;
 		SendFilePartResponse *sendFilePartResponse;
 
-		for (int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
+		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
 			// Send
 			sendFilePartPacket = new SendFilePartPacket(file);
@@ -1061,7 +1061,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 					// Response
 					sendFilePartResponse = new SendFilePartResponse();
 					success = ReceivePacket(sendFilePartResponse);
-					int receivedPartIndex = sendFilePartResponse->GetPartIndex();
+					unsigned int receivedPartIndex = sendFilePartResponse->GetPartIndex();
 
 					if (verbose)
 					{
@@ -1100,7 +1100,6 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 
 			currentPercent = (int)(100.0f * ((float)bytesTransferred / (float)fileSize));
 
-			
 			if (currentPercent != previousPercent)
 			{
 				if (!verbose)
@@ -1119,12 +1118,13 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 			previousPercent = currentPercent;
 		}
 
-		int lastFullPacketIndex = 2 * ((isLastSequence && partialPacketLength != 0) ? sequenceSize - 1 : sequenceSize);
+		unsigned int lastFullPacketIndex = 2 * ((isLastSequence && partialPacketLength != 0) ? sequenceSize - 1 : sequenceSize);
 
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
 			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(
-				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, 0, fileIdentifier, isLastSequence);
+				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, partitionType, fileIdentifier,
+				isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, 3000);
 			delete endPhoneFileTransferPacket;
@@ -1139,7 +1139,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
 			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(
-				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, 0, isLastSequence);
+				(isLastSequence) ? partialPacketLength : 0, lastFullPacketIndex, 0, partitionType, isLastSequence);
 
 			success = SendPacket(endModemFileTransferPacket, 3000);
 			delete endModemFileTransferPacket;
@@ -1170,7 +1170,7 @@ bool BridgeManager::SendFile(FILE *file, int destination, int fileIdentifier) co
 	return (true);
 }
 
-bool BridgeManager::ReceiveDump(int chipType, int chipId, FILE *file) const
+bool BridgeManager::ReceiveDump(unsigned int chipType, unsigned int chipId, FILE *file) const
 {
 	bool success;
 
@@ -1201,7 +1201,7 @@ bool BridgeManager::ReceiveDump(int chipType, int chipId, FILE *file) const
 		transferCount++;
 
 	char *buffer = new char[kDumpBufferSize * ReceiveFilePartPacket::kDataSize];
-	int bufferOffset = 0;
+	unsigned int bufferOffset = 0;
 
 	for (unsigned int i = 0; i < transferCount; i++)
 	{

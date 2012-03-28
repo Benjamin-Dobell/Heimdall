@@ -49,12 +49,12 @@ namespace Heimdall
 			unsigned short partialPacketLength;	// Length or (length - 65536) if lastFullPacket is odd.
 			unsigned int lastFullPacketIndex;	
 			unsigned short unknown1;
-			unsigned int unknown2;
+			unsigned int partitionType;
 
 		protected:
 
 			EndFileTransferPacket(unsigned int destination, unsigned int partialPacketLength, unsigned int lastFullPacketIndex,
-				unsigned short unknown1, unsigned int unknown2)
+				unsigned short unknown1, unsigned int partitionType)
 				: FileTransferPacket(FileTransferPacket::kRequestEnd)
 			{
 				this->destination = destination;
@@ -71,7 +71,7 @@ namespace Heimdall
 				}
 				
 				this->unknown1 = unknown1;
-				this->unknown2 = unknown2;
+				this->partitionType = partitionType;
 			}
 
 		public:
@@ -99,9 +99,9 @@ namespace Heimdall
 				return (unknown1);
 			}
 
-			unsigned int GetUnknown2(void) const
+			unsigned int GetPartitionType(void) const
 			{
-				return (unknown2);
+				return (partitionType);
 			}
 
 			virtual void Pack(void)
@@ -112,7 +112,7 @@ namespace Heimdall
 				PackShort(FileTransferPacket::kDataSize + 4, partialPacketLength);
 				PackInteger(FileTransferPacket::kDataSize + 6, lastFullPacketIndex);
 				PackShort(FileTransferPacket::kDataSize + 10, unknown1);
-				PackInteger(FileTransferPacket::kDataSize + 12, unknown2);
+				PackInteger(FileTransferPacket::kDataSize + 12, partitionType);
 			}
 	};
 }

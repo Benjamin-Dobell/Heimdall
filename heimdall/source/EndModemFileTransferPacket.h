@@ -35,9 +35,9 @@ namespace Heimdall
 		public:
 
 			EndModemFileTransferPacket(unsigned int partialPacketLength, unsigned int lastFullPacketIndex, unsigned short unknown1,
-				unsigned int unknown2, bool endOfFile)
+				unsigned int partitionType, bool endOfFile)
 				: EndFileTransferPacket(EndFileTransferPacket::kDestinationModem, partialPacketLength,
-				lastFullPacketIndex, unknown1, unknown2)
+				lastFullPacketIndex, unknown1, partitionType)
 			{
 				this->endOfFile = (endOfFile) ? 1 : 0;
 			}

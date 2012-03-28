@@ -38,7 +38,7 @@ namespace Heimdall
 			{
 			}
 
-			int GetUnknown(void) const
+			unsigned int GetUnknown(void) const
 			{
 				return (unknown);
 			}
