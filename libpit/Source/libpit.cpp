@@ -26,7 +26,7 @@ using namespace libpit;
 PitEntry::PitEntry()
 {
 	unused = false;
-	partitionType = 0;
+	chipIdentifier = 0;
 	partitionIdentifier = 0;
 	partitionFlags = 0;
 	unknown1 = 0;
@@ -45,7 +45,7 @@ PitEntry::~PitEntry()
 
 bool PitEntry::Matches(const PitEntry *otherPitEntry) const
 {
-	if (unused == otherPitEntry->unused && partitionType == otherPitEntry->partitionType && partitionIdentifier == otherPitEntry->partitionIdentifier
+	if (unused == otherPitEntry->unused && chipIdentifier == otherPitEntry->chipIdentifier && partitionIdentifier == otherPitEntry->partitionIdentifier
 		&& partitionFlags == otherPitEntry->partitionFlags && unknown1 == otherPitEntry->unknown1 && partitionBlockSize == otherPitEntry->partitionBlockSize
 		&& partitionBlockCount == otherPitEntry->partitionBlockCount && unknown2 == otherPitEntry->unknown2 && unknown3 == otherPitEntry->unknown3
 		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(filename, otherPitEntry->filename) == 0)
@@ -121,7 +121,7 @@ bool PitData::Unpack(const unsigned char *data)
 		entries[i]->SetUnused((integerValue != 0) ? true : false);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 4);
-		entries[i]->SetPartitionType(integerValue);
+		entries[i]->SetChipIdentifier(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 8);
 		entries[i]->SetPartitionIdentifier(integerValue);
@@ -177,7 +177,7 @@ void PitData::Pack(unsigned char *data) const
 
 		PitData::PackInteger(data, entryOffset, (entries[i]->GetUnused()) ? 1 : 0);
 
-		PitData::PackInteger(data, entryOffset + 4, entries[i]->GetPartitionType());
+		PitData::PackInteger(data, entryOffset + 4, entries[i]->GetChipIdentifier());
 		PitData::PackInteger(data, entryOffset + 8, entries[i]->GetPartitionIdentifier());
 		PitData::PackInteger(data, entryOffset + 12, entries[i]->GetPartitionFlags());
 

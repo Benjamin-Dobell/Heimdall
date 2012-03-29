@@ -71,13 +71,13 @@ vector<const char *> knownPartitionNames[kKnownPartitionCount];
 
 struct PartitionInfo
 {
-	unsigned int partitionType;
+	unsigned int chipIdentifier;
 	string partitionName;
 	FILE *file;
 
-	PartitionInfo(unsigned int partitionType, const char *partitionName, FILE *file)
+	PartitionInfo(unsigned int chipIdentifier, const char *partitionName, FILE *file)
 	{
-		this->partitionType = partitionType;
+		this->chipIdentifier = chipIdentifier;
 		this->partitionName = partitionName;
 		this->file = file;
 	}
@@ -218,7 +218,7 @@ bool mapFilesToPartitions(const map<string, FILE *>& argumentFileMap, const PitD
 
 			if (!pitEntry && knownPartition == kKnownPartitionPit)
 			{
-				// NOTE: We're assuming a PIT file always has partitionType zero.
+				// NOTE: We're assuming a PIT file always has chipIdentifier zero.
 				PartitionInfo partitionInfo(0, knownPartitionNames[kKnownPartitionPit][0], it->second);
 				partitionInfoMap.insert(pair<unsigned int, PartitionInfo>(0xFFFFFFFF, partitionInfo));
 
@@ -232,7 +232,7 @@ bool mapFilesToPartitions(const map<string, FILE *>& argumentFileMap, const PitD
 			return (false);
 		}
 
-		PartitionInfo partitionInfo(pitEntry->GetPartitionType(), pitEntry->GetPartitionName(), it->second);
+		PartitionInfo partitionInfo(pitEntry->GetChipIdentifier(), pitEntry->GetPartitionName(), it->second);
 		partitionInfoMap.insert(pair<unsigned int, PartitionInfo>(pitEntry->GetPartitionIdentifier(), partitionInfo));
 	}
 
@@ -264,7 +264,7 @@ int downloadPitFile(BridgeManager *bridgeManager, unsigned char **pitBuffer)
 	return (devicePitFileSize);
 }
 
-bool flashFile(BridgeManager *bridgeManager, unsigned int partitionType, unsigned int partitionIndex, const char *partitionName, FILE *file)
+bool flashFile(BridgeManager *bridgeManager, unsigned int chipIdentifier, unsigned int partitionIndex, const char *partitionName, FILE *file)
 {
 	// PIT files need to be handled differently, try determine if the partition we're flashing to is a PIT partition.
 	bool isPit = false;
@@ -313,7 +313,7 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionType, unsigne
 
 			//if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone,    // <-- Kies method. WARNING: Doesn't work on Galaxy Tab!
 			//	EndPhoneFileTransferPacket::kFileModem))
-			if (bridgeManager->SendFile(file, EndModemFileTransferPacket::kDestinationModem, partitionType))     // <-- Odin method
+			if (bridgeManager->SendFile(file, EndModemFileTransferPacket::kDestinationModem, chipIdentifier))     // <-- Odin method
 			{
 				Interface::Print("%s upload successful\n", partitionName);
 				return (true);
@@ -329,7 +329,7 @@ bool flashFile(BridgeManager *bridgeManager, unsigned int partitionType, unsigne
 			// We're uploading to a phone partition
 			Interface::Print("Uploading %s\n", partitionName);
 
-			if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone, partitionType, partitionIndex))
+			if (bridgeManager->SendFile(file, EndPhoneFileTransferPacket::kDestinationPhone, chipIdentifier, partitionIndex))
 			{
 				Interface::Print("%s upload successful\n", partitionName);
 				return (true);
@@ -474,7 +474,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 			{
 				PartitionInfo *partitionInfo = &(it->second);
 
-				if (!flashFile(bridgeManager, partitionInfo->partitionType, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
+				if (!flashFile(bridgeManager, partitionInfo->chipIdentifier, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
 					return (false);
 
 				break;
@@ -489,7 +489,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		{
 			PartitionInfo *partitionInfo = &(it->second);
 
-			if (!flashFile(bridgeManager, partitionInfo->partitionType, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
+			if (!flashFile(bridgeManager, partitionInfo->chipIdentifier, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
 				return (false);
 		}
 	}
@@ -501,7 +501,7 @@ bool attemptFlash(BridgeManager *bridgeManager, map<string, FILE *> argumentFile
 		{
 			PartitionInfo *partitionInfo = &(it->second);
 
-			if (!flashFile(bridgeManager, partitionInfo->partitionType, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
+			if (!flashFile(bridgeManager, partitionInfo->chipIdentifier, it->first, partitionInfo->partitionName.c_str(), partitionInfo->file))
 				return (false);
 		}
 	}

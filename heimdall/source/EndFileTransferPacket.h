@@ -45,20 +45,20 @@ namespace Heimdall
 
 		private:
 
-			unsigned int destination;			// Chip identifier perhaps
+			unsigned int destination;			// PDA / Modem
 			unsigned int sequenceByteCount;
 			unsigned int unknown1;
-			unsigned int partitionType;
+			unsigned int chipIdentifier;
 
 		protected:
 
-			EndFileTransferPacket(unsigned int destination, unsigned int sequenceByteCount, unsigned int unknown1, unsigned int partitionType)
+			EndFileTransferPacket(unsigned int destination, unsigned int sequenceByteCount, unsigned int unknown1, unsigned int chipIdentifier)
 				: FileTransferPacket(FileTransferPacket::kRequestEnd)
 			{
 				this->destination = destination;
 				this->sequenceByteCount = sequenceByteCount;
 				this->unknown1 = unknown1;
-				this->partitionType = partitionType;
+				this->chipIdentifier = chipIdentifier;
 			}
 
 		public:
@@ -78,9 +78,9 @@ namespace Heimdall
 				return (unknown1);
 			}
 
-			unsigned int GetPartitionType(void) const
+			unsigned int GetChipIdentifier(void) const
 			{
-				return (partitionType);
+				return (chipIdentifier);
 			}
 
 			virtual void Pack(void)
@@ -90,7 +90,7 @@ namespace Heimdall
 				PackInteger(FileTransferPacket::kDataSize, destination);
 				PackInteger(FileTransferPacket::kDataSize + 4, sequenceByteCount);
 				PackInteger(FileTransferPacket::kDataSize + 8, unknown1);
-				PackInteger(FileTransferPacket::kDataSize + 12, partitionType);
+				PackInteger(FileTransferPacket::kDataSize + 12, chipIdentifier);
 			}
 	};
 }

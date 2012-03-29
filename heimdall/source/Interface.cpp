@@ -444,14 +444,9 @@ void Interface::PrintPit(const PitData *pitData)
 		Interface::Print("\n\n--- Entry #%d ---\n", i);
 		Interface::Print("Unused: %s\n", (entry->GetUnused()) ? "Yes" : "No");
 
-		const char *partitionTypeText = "Unknown";
+		const char *chipIdentifierText = "Unknown";
 
-		if (entry->GetPartitionType() == PitEntry::kPartitionTypeRfs)
-			partitionTypeText = "RFS";
-		else if (entry->GetPartitionType() == PitEntry::kPartitionTypeExt4)
-			partitionTypeText = "EXT4";
-
-		Interface::Print("Partition Type: %d (%s)\n", entry->GetPartitionType(), partitionTypeText);
+		Interface::Print("Chip Identifier: %d (%s)\n", entry->GetChipIdentifier());
 
 		Interface::Print("Partition Identifier: %d\n", entry->GetPartitionIdentifier());
 

@@ -34,8 +34,8 @@ namespace Heimdall
 
 		public:
 
-			EndModemFileTransferPacket(unsigned int sequenceByteCount, unsigned int unknown1, unsigned int partitionType, bool endOfFile)
-				: EndFileTransferPacket(EndFileTransferPacket::kDestinationModem, sequenceByteCount, unknown1, partitionType)
+			EndModemFileTransferPacket(unsigned int sequenceByteCount, unsigned int unknown1, unsigned int chipIdentifier, bool endOfFile)
+				: EndFileTransferPacket(EndFileTransferPacket::kDestinationModem, sequenceByteCount, unknown1, chipIdentifier)
 			{
 				this->endOfFile = (endOfFile) ? 1 : 0;
 			}

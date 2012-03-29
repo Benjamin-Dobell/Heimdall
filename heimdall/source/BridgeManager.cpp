@@ -921,7 +921,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	return (fileSize);
 }
 
-bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int partitionType, unsigned int fileIdentifier) const
+bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int chipIdentifier, unsigned int fileIdentifier) const
 {
 	if (destination != EndFileTransferPacket::kDestinationModem && destination != EndFileTransferPacket::kDestinationPhone)
 	{
@@ -1123,7 +1123,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
-			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, partitionType,
+			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, chipIdentifier,
 				fileIdentifier, isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, 3000);
@@ -1138,7 +1138,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		}
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
-			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, partitionType, isLastSequence);
+			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, chipIdentifier, isLastSequence);
 
 			success = SendPacket(endModemFileTransferPacket, 3000);
 			delete endModemFileTransferPacket;

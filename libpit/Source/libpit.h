@@ -48,13 +48,6 @@ namespace libpit
 
 			enum
 			{
-				kPartitionTypeRfs       = 0,
-				kPartitionTypeBlank     = 1, // ?
-				kPartitionTypeExt4      = 2
-			};
-
-			enum
-			{
 				kPartitionFlagWrite     = 1 << 1
 			};
 
@@ -62,7 +55,7 @@ namespace libpit
 
 			bool unused;
 
-			unsigned int partitionType;
+			unsigned int chipIdentifier;
 			unsigned int partitionIdentifier;
 			unsigned int partitionFlags;
 
@@ -94,14 +87,14 @@ namespace libpit
 				this->unused = unused;
 			}
 
-			unsigned int GetPartitionType(void) const
+			unsigned int GetChipIdentifier(void) const
 			{
-				return partitionType;
+				return chipIdentifier;
 			}
 
-			void SetPartitionType(unsigned int partitionType)
+			void SetChipIdentifier(unsigned int chipIdentifier)
 			{
-				this->partitionType = partitionType;
+				this->chipIdentifier = chipIdentifier;
 			}
 
 			unsigned int GetPartitionIdentifier(void) const
