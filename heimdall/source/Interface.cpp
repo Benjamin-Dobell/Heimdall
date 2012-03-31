@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ using namespace Heimdall;
 
 bool Interface::stdoutErrors = false;
 
-const char *Interface::version = "v1.3.1";
+const char *Interface::version = "v1.3.2";
 
 const char *Interface::usage = "Usage: heimdall <action> <action arguments> <common arguments>\n\
 \n\
@@ -90,7 +90,7 @@ Description: Displays the version number of this binary.\n\
 Action: help\n\
 Description: Displays this dialogue.\n";
 
-const char *Interface::releaseInfo = "Heimdall %s, Copyright (c) 2010-2011, Benjamin Dobell, Glass Echidna\n\
+const char *Interface::releaseInfo = "Heimdall %s, Copyright (c) 2010-2012, Benjamin Dobell, Glass Echidna\n\
 http://www.glassechidna.com.au\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
