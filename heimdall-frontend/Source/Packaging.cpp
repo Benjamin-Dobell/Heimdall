@@ -301,7 +301,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 
 	// Note: We don't support base-256 encoding. Support could be added later.
 	sprintf(tarHeader.fields.size, "%011llo", file.size());
-	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toMSecsSinceEpoch() / 1000);
+	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toTime_t());
 		
 	// Regular File
 	tarHeader.fields.typeFlag = '0';
