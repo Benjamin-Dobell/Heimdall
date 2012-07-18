@@ -64,7 +64,7 @@ const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupported
 
 enum
 {
-	kMaxSequenceLength = 800
+	kMaxSequenceLength = 80 // 800 Seems a bit aggressive, causes corruption on E4GT (Sprint variant of SGS2)
 };
 
 bool BridgeManager::CheckProtocol(void) const
@@ -959,9 +959,14 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		return (false);
 	}
 
+	// Transfer is a Double loop of Sequences (Outer) and Packets/FileParts (inner)
 	unsigned int sequenceCount = fileSize / (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
 	unsigned int lastSequenceSize = kMaxSequenceLength;
 	unsigned int partialPacketByteCount = fileSize % SendFilePartPacket::kDefaultPacketSize;
+
+	if (verbose)
+		Interface::Print("fileSize: %d kMaxSequenceLength: %d kDefaultPacketSize: %d sequenceCount: %d lastSequenceSize: %d partialPacketByteCount: %d\n",
+				fileSize, kMaxSequenceLength, SendFilePartPacket::kDefaultPacketSize, sequenceCount, lastSequenceSize, partialPacketByteCount);
 
 	if (fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize) != 0)
 	{
@@ -984,7 +989,11 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		// Min(lastSequenceSize, 131072)
 		bool isLastSequence = sequenceIndex == sequenceCount - 1;
 		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : kMaxSequenceLength;
-		unsigned int sequenceByteCount = ((isLastSequence) ? lastSequenceSize : kMaxSequenceLength) * SendFilePartPacket::kDefaultPacketSize + partialPacketByteCount;
+		
+		// This is the number of data bytes transferred in this sequence, not including the zero-pad on the final packet (Just the image data)
+		unsigned int sequenceByteCount = 
+			((isLastSequence) ? (lastSequenceSize - 1) : kMaxSequenceLength) * SendFilePartPacket::kDefaultPacketSize +
+			((isLastSequence) ? partialPacketByteCount : 0);
 
 		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(0, 2 * sequenceSize);
 		success = SendPacket(beginFileTransferPacket);
@@ -1014,6 +1023,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
 			// Send
+			// The final (short) packet data is zero-padded, so we do not need to specify the byte count,
+			// even though it is an option for SendFilePartPacket
 			sendFilePartPacket = new SendFilePartPacket(file);
 			success = SendPacket(sendFilePartPacket);
 			delete sendFilePartPacket;
@@ -1033,7 +1044,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			if (verbose)
 			{
 				const unsigned char *data = sendFilePartResponse->GetData();
-				Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
+				Interface::Print("(%3d%%) Seq: %d/%d File Part #%d/%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n",
+					currentPercent, sequenceIndex+1, sequenceCount, filePartIndex+1, sequenceSize,
 					data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 			}
 
@@ -1069,7 +1081,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 					if (verbose)
 					{
 						const unsigned char *data = sendFilePartResponse->GetData();
-						Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
+						Interface::Print("(%3d%%) Seq: %d/%d File Part #%d/%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n",
+							currentPercent, sequenceIndex, sequenceCount, filePartIndex, sequenceSize,
 							data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 					}
 
@@ -1111,10 +1124,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 						Interface::Print("\b\b%d%%", currentPercent);
 					else
 						Interface::Print("\b\b\b%d%%", currentPercent);
-				}
-				else
-				{
-					Interface::Print("\n%d%%\n", currentPercent);
 				}
 			}
 
@@ -1230,7 +1239,8 @@ bool BridgeManager::ReceiveDump(unsigned int chipType, unsigned int chipId, FILE
 		if (bufferOffset + receiveFilePartPacket->GetReceivedSize() > kDumpBufferSize * ReceiveFilePartPacket::kDataSize)
 		{
 			// Write the buffer to the output file
-			fwrite(buffer, 1, bufferOffset, file);
+			// bytesWritten is discarded (it's just there to stop GCC warnings)
+			int bytesWritten = fwrite(buffer, 1, bufferOffset, file);
 			bufferOffset = 0;
 		}
 
@@ -1244,7 +1254,8 @@ bool BridgeManager::ReceiveDump(unsigned int chipType, unsigned int chipId, FILE
 	if (bufferOffset != 0)
 	{
 		// Write the buffer to the output file
-		fwrite(buffer, 1, bufferOffset, file);
+		// bytesWritten is discarded (it's just there to stop GCC warnings)
+		int bytesWritten = fwrite(buffer, 1, bufferOffset, file);
 	}
 	
 	delete [] buffer;
