@@ -91,17 +91,22 @@ void initialiseKnownPartitionNames(void)
 	knownPartitionNames[kKnownPartitionDatabaseData].push_back("DBDATAFS");
 
 	knownPartitionNames[kKnownPartitionPrimaryBootloader].push_back("IBL+PBL");
-	knownPartitionNames[kKnownPartitionPrimaryBootloader].push_back("BOOT");
+	knownPartitionNames[kKnownPartitionPrimaryBootloader].push_back("BOOTLOADER");
 
 	knownPartitionNames[kKnownPartitionSecondaryBootloader].push_back("SBL");
 	knownPartitionNames[kKnownPartitionSecondaryBootloader].push_back("SBL1");
 
 	knownPartitionNames[kKnownPartitionSecondaryBootloaderBackup].push_back("SBL2");
 	knownPartitionNames[kKnownPartitionParam].push_back("PARAM");
+
 	knownPartitionNames[kKnownPartitionKernel].push_back("KERNEL");
+	knownPartitionNames[kKnownPartitionKernel].push_back("BOOT");
+
 	knownPartitionNames[kKnownPartitionRecovery].push_back("RECOVERY");
 	knownPartitionNames[kKnownPartitionEfs].push_back("EFS");
+
 	knownPartitionNames[kKnownPartitionModem].push_back("MODEM");
+	knownPartitionNames[kKnownPartitionModem].push_back("RADIO");
 
 	knownPartitionNames[kKnownPartitionNormalBoot].push_back("NORMALBOOT");
 	knownPartitionNames[kKnownPartitionSystem].push_back("SYSTEM");
