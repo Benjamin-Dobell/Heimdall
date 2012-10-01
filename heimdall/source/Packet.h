@@ -50,7 +50,7 @@ namespace Heimdall
 				delete [] data;
 			}
 
-			int GetSize(void) const
+			unsigned int GetSize(void) const
 			{
 				return (size);
 			}

@@ -23,6 +23,7 @@
 
 #ifdef OS_WINDOWS
 #include <Windows.h>
+#undef GetBinaryType
 #else
 
 #include "../config.h"

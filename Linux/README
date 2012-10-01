@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2011 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2012 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -85,10 +85,11 @@ Performing a Custom Flash with Heimdall Frontend:
 
     If you're not an advanced user or a developer, in the event that a Heimdall
     Firmware Package doesn't exist for the particular firmware (or files) that
-    you wish to flash, then I strongly recommend you get in touch with developer
-    of the firmware (or files) and politely ask them to create a Heimdall
-    Firmware Package for you. In doing so then you don't have to worry about
+    you wish to flash, then I strongly recommend you get in touch with the
+    developer of the firmware (or files) and politely ask them to create a
+    Heimdall Firmware Package for you. In doing so, you avoid the risk of
     making mistakes due to inexperience.
+
 
     If you're looking to customise an existing Heimdall Firmware Package then
     follow steps 1-8 of "Flashing Heimdall Firmware Package with Heimdall
@@ -104,7 +105,8 @@ Performing a Custom Flash with Heimdall Frontend:
        as multiple archives (nested or otherwise), extract them all to the same
        location.
 
-       NOTE: If you want to use the CSC then extract it last.
+       NOTE: If you want to use the CSC then extract it last. If you're asked
+             to overwrite files then do so.
 
     3. Open the a terminal and run Heimdall Frontend by typing:
 
@@ -121,9 +123,9 @@ Performing a Custom Flash with Heimdall Frontend:
        If you do not already have a valid PIT file stored on your computer you
        can download your device's PIT file from the "Utilities" tab.
 
-    6. If a valid PIT file has been selected then "Add" button below the
-       "Partitions (Files)" list-box will become enabled. Press this button to
-       add a partition to your flash.
+    6. If a valid PIT file has been selected then the "Add" button below the
+       "Partitions (Files)" list-box will be enabled. Press this button to add
+       a partition to your flash.
 
     7. When you first add a partition you will see the "Partition Name" and
        "Partition ID" be populated with information. Use the "Partition Name"
@@ -229,8 +231,7 @@ How to Create a Heimdall Firmware Package:
     create a package from scratch, or you can load an existing package, apply
     modifications and then save the package. Creating a package from scratch
     is the preferred approach, by taking this approach you're far less likely
-    to run into file name length limitations. These are not Heimdall's own
-    limitation but rather a limitation of the TAR archive format.
+    to run into file name length limitations.
 
     Before you can access Heimdall Frontend's firmware creation functionality
     (available from the "Create Package" tab) you must first specify which
@@ -255,13 +256,13 @@ How to Create a Heimdall Firmware Package:
             example would be "Cyanogenmod".
 
         Firmware Version - This is the version identifier for your package. Any
-            valid string will be accepted although a the inclusion of decimal
+            valid string will be accepted, although the inclusion of decimal
             point version number is preferred i.e. "7.1". If it makes sense
             then feel free to append a text string like "RC1" or "Beta 1" to
             the decimal point version.
 
-        Platform Name - This is the name of the platform (or operating system)
-            that your firmware is based on. In most cases this will simply be
+        Platform Name - This is the name of platform (or operating system) that
+            your firmware is based on. In most cases this will simply be
             "Android".
 
         Platform Version - This is the operating system version that your
@@ -295,7 +296,7 @@ How to Create a Heimdall Firmware Package:
             team name. Click "Add" and the developer will be added to the list
             on the right. If you make a mistake you can select a developer from
             the list and click "Remove". You can list as many developers as you
-            like however visual constraints of the "Load Package" tab means
+            like, however visual constraints of the "Load Package" tab means
             only a few names will be visible. Where possible you may want to
             opt for team names over listing individual team members.
 
@@ -361,6 +362,7 @@ for the format in their own software.
 All Heimdall Firmware Packages must contain a file called firmware.xml. This
 file stores flash information and meta-data for the package as well as
 information about other files contained within the package.
+
 
 The format is fairly straight-forward so it won't be explained in great detail.
 Nonetheless the following is an example of a valid firmware.xml file.
@@ -458,7 +460,6 @@ be included.
 
 
 
-
 Appendix B - Installing Heimdall from Source:
 
     1. First make sure you have installed build-tools, pkgconfig, zlib-dev and
@@ -469,9 +470,18 @@ Appendix B - Installing Heimdall from Source:
     2. Open a terminal and navigate to the directory you downloaded,
        or extracted, Heimdall to.
 
-    3. Enter the following commands to compile libpit.
+    3. Enter the following commands to compile libpit:
 
             cd libpit
+            ./configure
+            make
+            cd ..
+
+       If you have problems please consult http://www.libusb.org/
+
+    4. Enter the following commands to compile libpit.
+
+            cd libusb-1.0
             ./configure
             make
             cd ..
@@ -510,7 +520,7 @@ Appendix C - Installing Heimdall Frontend from Source:
     4. Enter the following commands to compile and install Heimdall Frontend:
 
             cd heimdall-frontend
-            qmake heimdall-frontend.pro
+            qmake-qt4 heimdall-frontend.pro
             make
             sudo make install
 

@@ -17,34 +17,34 @@ macx {
 
 	config += x86 x86_64 ppc
 
-	isEqual(OUTPUTDIR, "") {
+	isEmpty(OUTPUTDIR) {
 		DESTDIR = /Applications
 	} else {
-		DESTDIR = $$OUTPUTDIR
+		DESTDIR = $$(OUTPUTDIR)
 	}
 
 } else {
-	win32 {	# It's recommended that Windows users compile via VS2010, but just in case...
+	win32 {	# It is recommended that Windows users compile via VS2010, but just in case...
 		DESTDIR = ../Win32
 
-		!isEqual(OUTPUTDIR, "") {
-			target.path = $$OUTPUTDIR
+		!isEmpty(OUTPUTDIR) {
+			target.path = $$(OUTPUTDIR)
 			INSTALLS += target
 		}
 	} else {
 		DESTDIR = ../Linux
 
-		isEqual(OUTPUTDIR, "") {
+		isEmpty(OUTPUTDIR) {
 			target.path = /usr/local/bin
 		} else {
-			target.path = $$OUTPUTDIR
+			target.path = $$(OUTPUTDIR)
 		}
 
 		INSTALLS += target
 	}
 }
 
-unix:LIBS += -lz ../libpit/libpit-1.3.a
+unix:LIBS += -lz ../libpit/libpit-1.4.a
 win32:LIBS += ../Win32/Release/lib/libpit.lib
 
 QT += core gui xml

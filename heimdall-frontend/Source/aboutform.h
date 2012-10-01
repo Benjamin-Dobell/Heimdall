@@ -19,6 +19,7 @@
  THE SOFTWARE.*/
 
 // Qt
+#include <QProcess>
 #include <QWidget>
 
 // Heimdall Frontend
@@ -28,8 +29,24 @@ namespace HeimdallFrontend
 {
 	class AboutForm : public QWidget, public Ui::AboutForm
 	{
+		Q_OBJECT
+
+		private:
+
+			bool heimdallFailed;
+			QProcess heimdallProcess;
+
+			void RetrieveHeimdallVersion(void);
+
 		public:
 
 			explicit AboutForm(QWidget *parent = 0);
+
+		public slots:
+
+			// Heimdall Command Line
+			void HandleHeimdallStdout(void);
+			void HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus);
+			void HandleHeimdallError(QProcess::ProcessError error);
 	};
 }

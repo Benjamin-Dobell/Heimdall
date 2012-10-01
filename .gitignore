@@ -1,2 +1,10 @@
 .DS_Store
 ._*
+Debug/
+Release/
+GeneratedFiles/
+*.vcxproj.user
+*.suo
+*.sdf
+heimdall-frontend/Qt4VSPropertySheet.props
+*.opensdf

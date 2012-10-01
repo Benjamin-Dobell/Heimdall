@@ -26,9 +26,9 @@
 
 // Heimdall
 #include "BeginDumpPacket.h"
+#include "BeginSessionPacket.h"
 #include "BridgeManager.h"
-#include "SetupSessionPacket.h"
-#include "SetupSessionResponse.h"
+#include "DeviceTypePacket.h"
 #include "DumpPartFileTransferPacket.h"
 #include "DumpPartPitFilePacket.h"
 #include "DumpResponse.h"
@@ -36,6 +36,7 @@
 #include "EndPhoneFileTransferPacket.h"
 #include "EndPitFileTransferPacket.h"
 #include "EndSessionPacket.h"
+#include "FilePartSizePacket.h"
 #include "FileTransferPacket.h"
 #include "FlashPartFileTransferPacket.h"
 #include "FlashPartPitFilePacket.h"
@@ -48,11 +49,13 @@
 #include "ResponsePacket.h"
 #include "SendFilePartPacket.h"
 #include "SendFilePartResponse.h"
+#include "SessionSetupPacket.h"
+#include "SessionSetupResponse.h"
 
 // Future versions of libusb will use usb_interface instead of interface.
 #define usb_interface interface
 
-#define CLASS_CDC 0x0A
+#define USB_CLASS_CDC_DATA 0x0A
 
 using namespace Heimdall;
 
@@ -64,259 +67,26 @@ const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupported
 
 enum
 {
-	kMaxSequenceLength = 800
+	kDumpBufferSize = 4096
 };
 
-bool BridgeManager::CheckProtocol(void) const
+enum
 {
-	Interface::Print("Checking if protocol is initialised...\n");
+	kFileTransferSequenceMaxLengthDefault = 800,
+	kFileTransferPacketSizeDefault = 131072,
+	kFileTransferSequenceTimeoutDefault = 30000 // 30 seconds
+};
 
-	SetupSessionPacket deviceInfoPacket(SetupSessionPacket::kDeviceInfo);
-
-	if (!SendPacket(&deviceInfoPacket, 100, false))
-	{
-		Interface::Print("Protocol is not initialised.\n");
-		return (false);
-	}
-
-	SetupSessionResponse deviceInfoResponse;
-
-	if (!ReceivePacket(&deviceInfoResponse, 100, false))
-	{
-		Interface::Print("Protocol is not initialised.\n");
-		return (false);
-	}
-
-	Interface::Print("Protocol is initialised.\n");
-	return (true);
-}
-
-bool BridgeManager::InitialiseProtocol(void) const
+enum
 {
-	Interface::Print("Initialising protocol...\n");
+	kHandshakeMaxAttempts = 5,
+	kReceivePacketMaxAttempts = 5
+};
 
-	unsigned char *dataBuffer = new unsigned char[7];
-
-	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
-
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x07;
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x08;
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to initialise protocol!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	Interface::Print("Handshaking with Loke...\n");
-
-	int dataTransferred;
-
-	// Send "ODIN"
-	strcpy((char *)dataBuffer, "ODIN");
-
-	result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
-	if (result < 0)
-	{
-		if (verbose)
-			Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
-		else
-			Interface::PrintError("Failed to send data!");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	if (dataTransferred != 4)
-	{
-		if (verbose)
-			Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
-		else
-			Interface::PrintError("Failed to complete sending of data!");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	// Expect "LOKE"
-	memset(dataBuffer, 0, 7);
-
-	result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
-	if (result < 0)
-	{
-		Interface::PrintError("Failed to receive response!\n");
-
-		delete [] dataBuffer;
-		return (false);;
-	}
-
-	if (dataTransferred != 4 || memcmp(dataBuffer, "LOKE", 4) != 0)
-	{
-		Interface::PrintError("Unexpected communication!\n");
-
-		if (verbose)
-			Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
-
-		Interface::PrintError("Handshake failed!\n");
-
-		delete [] dataBuffer;
-		return (false);
-	}
-
-	return (true);
-}
-
-BridgeManager::BridgeManager(bool verbose, int communicationDelay)
+int BridgeManager::FindDeviceInterface(void)
 {
-	this->verbose = verbose;
-	this->communicationDelay = communicationDelay;
-
-	libusbContext = nullptr;
-	deviceHandle = nullptr;
-	heimdallDevice = nullptr;
-	inEndpoint = -1;
-	outEndpoint = -1;
-	interfaceIndex = -1;
-
-#ifdef OS_LINUX
-
-	detachedDriver = false;
-
-#endif
-}
-
-BridgeManager::~BridgeManager()
-{
-	if (interfaceIndex >= 0)
-		libusb_release_interface(deviceHandle, interfaceIndex);
-
-#ifdef OS_LINUX
-
-	if (detachedDriver)
-	{
-		Interface::Print("Re-attaching kernel driver...\n");
-		libusb_attach_kernel_driver(deviceHandle, interfaceIndex);
-	}
-
-#endif
-
-	if (deviceHandle)
-		libusb_close(deviceHandle);
-
-	if (heimdallDevice)
-		libusb_unref_device(heimdallDevice);
-
-	if (libusbContext)
-		libusb_exit(libusbContext);
-}
-
-bool BridgeManager::DetectDevice(void)
-{
-	// Initialise libusb-1.0
-	int result = libusb_init(&libusbContext);
-	if (result != LIBUSB_SUCCESS)
-	{
-		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
-		return (false);
-	}
-
-	// Get handle to Galaxy S device
-	struct libusb_device **devices;
-	int deviceCount = libusb_get_device_list(libusbContext, &devices);
-
-	for (int deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
-	{
-		libusb_device_descriptor descriptor;
-		libusb_get_device_descriptor(devices[deviceIndex], &descriptor);
-
-		for (int i = 0; i < BridgeManager::kSupportedDeviceCount; i++)
-		{
-			if (descriptor.idVendor == supportedDevices[i].vendorId && descriptor.idProduct == supportedDevices[i].productId)
-			{
-				libusb_free_device_list(devices, deviceCount);
-
-				Interface::Print("Device detected\n");
-				return (true);
-			}
-		}
-	}
-
-	libusb_free_device_list(devices, deviceCount);
-
-	Interface::PrintDeviceDetectionFailed();
-	return (false);
-}
-
-int BridgeManager::Initialise(void)
-{
-	Interface::Print("Initialising connection...\n");
-
-	// Initialise libusb-1.0
-	int result = libusb_init(&libusbContext);
-	if (result != LIBUSB_SUCCESS)
-	{
-		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
-		Interface::Print("Failed to connect to device!");
-		return (BridgeManager::kInitialiseFailed);
-	}
-
 	Interface::Print("Detecting device...\n");
 
-	// Get handle to Galaxy S device
 	struct libusb_device **devices;
 	int deviceCount = libusb_get_device_list(libusbContext, &devices);
 
@@ -347,7 +117,7 @@ int BridgeManager::Initialise(void)
 		return (BridgeManager::kInitialiseDeviceNotDetected);
 	}
 
-	result = libusb_open(heimdallDevice, &deviceHandle);
+	int result = libusb_open(heimdallDevice, &deviceHandle);
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Failed to access device. libusb error: %d\n", result);
@@ -403,8 +173,8 @@ int BridgeManager::Initialise(void)
 		return (BridgeManager::kInitialiseFailed);
 	}
 
-	int interfaceIndex = -1;
-	int altSettingIndex;
+	interfaceIndex = -1;
+	altSettingIndex = -1;
 
 	for (int i = 0; i < configDescriptor->bNumInterfaces; i++)
 	{
@@ -440,9 +210,11 @@ int BridgeManager::Initialise(void)
 					outEndpointAddress = endpoint->bEndpointAddress;
 			}
 
-			if (interfaceIndex < 0 && configDescriptor->usb_interface[i].altsetting[j].bNumEndpoints == 2
-				&& configDescriptor->usb_interface[i].altsetting[j].bInterfaceClass == CLASS_CDC
-				&& inEndpointAddress != -1 && outEndpointAddress != -1)
+			if (interfaceIndex < 0
+				&& configDescriptor->usb_interface[i].altsetting[j].bNumEndpoints == 2
+				&& configDescriptor->usb_interface[i].altsetting[j].bInterfaceClass == USB_CLASS_CDC_DATA
+				&& inEndpointAddress != -1
+				&& outEndpointAddress != -1)
 			{
 				interfaceIndex = i;
 				altSettingIndex = j;
@@ -459,9 +231,15 @@ int BridgeManager::Initialise(void)
 		Interface::PrintError("Failed to find correct interface configuration\n");
 		return (BridgeManager::kInitialiseFailed);
 	}
-	
+
+	return (BridgeManager::kInitialiseSucceeded);
+}
+
+bool BridgeManager::ClaimDeviceInterface(void)
+{
 	Interface::Print("Claiming interface...\n");
-	result = libusb_claim_interface(deviceHandle, interfaceIndex);
+
+	int result = libusb_claim_interface(deviceHandle, interfaceIndex);
 
 #ifdef OS_LINUX
 
@@ -479,19 +257,314 @@ int BridgeManager::Initialise(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Claiming interface failed!\n");
-		return (BridgeManager::kInitialiseFailed);
+		return (false);
 	}
 
+	interfaceClaimed = true;
+
+	return (true);
+}
+
+bool BridgeManager::SetupDeviceInterface(void)
+{
 	Interface::Print("Setting up interface...\n");
-	result = libusb_set_interface_alt_setting(deviceHandle, interfaceIndex, altSettingIndex);
+
+	int result = libusb_set_interface_alt_setting(deviceHandle, interfaceIndex, altSettingIndex);
 
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Setting up interface failed!\n");
-		return (BridgeManager::kInitialiseFailed);
+		return (false);
 	}
 
 	Interface::Print("\n");
+	return (true);
+}
+
+void BridgeManager::ReleaseDeviceInterface(void)
+{
+	Interface::Print("Releasing device interface...\n");
+
+	libusb_release_interface(deviceHandle, interfaceIndex);
+
+#ifdef OS_LINUX
+
+	if (detachedDriver)
+	{
+		Interface::Print("Re-attaching kernel driver...\n");
+		libusb_attach_kernel_driver(deviceHandle, interfaceIndex);
+	}
+
+#endif
+
+	interfaceClaimed = false;
+	Interface::Print("\n");
+}
+
+bool BridgeManager::CheckProtocol(void) const
+{
+	Interface::Print("Checking if protocol is initialised...\n");
+
+	DeviceTypePacket deviceTypePacket;
+
+	if (!SendPacket(&deviceTypePacket, 150, false))
+	{
+		Interface::Print("Protocol is not initialised.\n");
+		return (false);
+	}
+
+	unsigned char buffer[1024];
+	memset(buffer, 0, sizeof(buffer));
+
+	SessionSetupResponse deviceTypeResponse;
+
+	if (!ReceivePacket(&deviceTypeResponse, 150, false, buffer, sizeof(buffer)))
+	{
+		Interface::Print("Protocol is not initialised.\n\n");
+		return (false);
+	}
+
+	Interface::Print("Protocol is initialised.\n\n");
+	return (true);
+}
+
+bool BridgeManager::InitialiseProtocol(void) const
+{
+	Interface::Print("Initialising protocol...\n");
+
+	unsigned char dataBuffer[7];
+
+	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #1 failed. Result: %d\n", result);
+
+	memset(dataBuffer, 0, 7);
+	dataBuffer[1] = 0xC2;
+	dataBuffer[2] = 0x01;
+	dataBuffer[6] = 0x07;
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #2 failed. Result: %d\n", result);
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #3 failed. Result: %d\n", result);
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #4 failed. Result: %d\n", result);
+
+	memset(dataBuffer, 0, 7);
+	dataBuffer[1] = 0xC2;
+	dataBuffer[2] = 0x01;
+	dataBuffer[6] = 0x08;
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #5 failed. Result: %d\n", result);
+
+	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
+
+	if (result < 0 && verbose)
+		Interface::PrintWarning("Control transfer #6 failed. Result: %d\n", result);
+
+	unsigned int attempt = 0;
+
+	// max(250, communicationDelay)
+	int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+
+	for (; attempt < kHandshakeMaxAttempts; attempt++)
+	{
+		if (attempt > 0)
+		{
+			if (verbose)
+				Interface::PrintErrorSameLine(" Retrying...\n");
+			
+			// Wait longer each retry
+			Sleep(retryDelay * (attempt + 1));
+		}
+
+		int dataTransferred = 0;
+
+		// Send "ODIN"
+		memcpy(dataBuffer, "ODIN", 4);
+		memset(dataBuffer + 4, 0, 1);
+
+		result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
+		if (result < 0)
+		{
+			if (verbose)
+				Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
+			else
+				Interface::PrintError("Failed to send data!");
+
+			return (false);
+		}
+
+		if (dataTransferred != 4)
+		{
+			if (verbose)
+				Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
+			else
+				Interface::PrintError("Failed to complete sending of data!");
+
+			return (false);
+		}
+
+		// Expect "LOKE"
+		memset(dataBuffer, 0, 7);
+
+		int retry = 0;
+		dataTransferred = 0;
+
+		result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
+
+		if (result < 0)
+		{
+			if (verbose)
+				Interface::PrintError("Failed to receive handshake response.");
+		}
+		else
+		{
+			if (dataTransferred == 4 && memcmp(dataBuffer, "LOKE", 4) == 0)
+			{
+				// Successfully received "LOKE"
+				break;
+			}
+			else
+			{
+				if (verbose)
+					Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
+
+				Interface::PrintError("Unexpected handshake response!");
+			}
+		}
+	}
+
+	if (attempt == kHandshakeMaxAttempts)
+	{
+		if (verbose)
+			Interface::PrintErrorSameLine("\n");
+
+		Interface::PrintError("Protocol initialisation failed!\n\n");
+		return (false);
+	}
+	else
+	{
+		Interface::Print("Protocol initialisation successful.\n\n");
+		return (true);
+	}
+}
+
+BridgeManager::BridgeManager(bool verbose, int communicationDelay)
+{
+	this->verbose = verbose;
+	this->communicationDelay = communicationDelay;
+
+	libusbContext = nullptr;
+	deviceHandle = nullptr;
+	heimdallDevice = nullptr;
+
+	inEndpoint = -1;
+	outEndpoint = -1;
+	interfaceIndex = -1;
+	altSettingIndex = -1;
+
+	interfaceClaimed = false;
+
+#ifdef OS_LINUX
+
+	detachedDriver = false;
+
+#endif
+
+	fileTransferSequenceMaxLength = kFileTransferSequenceMaxLengthDefault;
+	fileTransferPacketSize = kFileTransferPacketSizeDefault;
+	fileTransferSequenceTimeout = kFileTransferSequenceTimeoutDefault;
+}
+
+BridgeManager::~BridgeManager()
+{
+	if (interfaceClaimed)
+		ReleaseDeviceInterface();
+
+	if (deviceHandle)
+		libusb_close(deviceHandle);
+
+	if (heimdallDevice)
+		libusb_unref_device(heimdallDevice);
+
+	if (libusbContext)
+		libusb_exit(libusbContext);
+}
+
+bool BridgeManager::DetectDevice(void)
+{
+	// Initialise libusb-1.0
+	int result = libusb_init(&libusbContext);
+	if (result != LIBUSB_SUCCESS)
+	{
+		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
+		return (false);
+	}
+
+	// Get handle to Galaxy S device
+	struct libusb_device **devices;
+	int deviceCount = libusb_get_device_list(libusbContext, &devices);
+
+	for (int deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
+	{
+		libusb_device_descriptor descriptor;
+		libusb_get_device_descriptor(devices[deviceIndex], &descriptor);
+
+		for (int i = 0; i < BridgeManager::kSupportedDeviceCount; i++)
+		{
+			if (descriptor.idVendor == supportedDevices[i].vendorId && descriptor.idProduct == supportedDevices[i].productId)
+			{
+				libusb_free_device_list(devices, deviceCount);
+
+				Interface::Print("Device detected\n");
+				return (true);
+			}
+		}
+	}
+
+	libusb_free_device_list(devices, deviceCount);
+
+	Interface::PrintDeviceDetectionFailed();
+	return (false);
+}
+
+int BridgeManager::Initialise()
+{
+	Interface::Print("Initialising connection...\n");
+
+	// Initialise libusb-1.0
+	int result = libusb_init(&libusbContext);
+
+	if (result != LIBUSB_SUCCESS)
+	{
+		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
+		Interface::Print("Failed to connect to device!");
+		return (BridgeManager::kInitialiseFailed);
+	}
+	
+	result = FindDeviceInterface();
+
+	if (result != BridgeManager::kInitialiseSucceeded)
+		return (result);
+
+	if (!ClaimDeviceInterface())
+		return (BridgeManager::kInitialiseFailed);
+
+	if (!SetupDeviceInterface())
+		return (BridgeManager::kInitialiseFailed);
 
 	if (!CheckProtocol())
 	{
@@ -499,16 +572,14 @@ int BridgeManager::Initialise(void)
 			return (BridgeManager::kInitialiseFailed);
 	}
 
-	Interface::Print("\n");
-
 	return (BridgeManager::kInitialiseSucceeded);
 }
 
-bool BridgeManager::BeginSession(void) const
+bool BridgeManager::BeginSession(void)
 {
 	Interface::Print("Beginning session...\n");
 
-	SetupSessionPacket beginSessionPacket(SetupSessionPacket::kBeginSession);
+	BeginSessionPacket beginSessionPacket;
 
 	if (!SendPacket(&beginSessionPacket))
 	{
@@ -516,22 +587,18 @@ bool BridgeManager::BeginSession(void) const
 		return (false);
 	}
 
-	SetupSessionResponse setupSessionResponse;
-	if (!ReceivePacket(&setupSessionResponse))
+	SessionSetupResponse beginSessionResponse;
+	if (!ReceivePacket(&beginSessionResponse))
 		return (false);
 
-	unsigned int result = setupSessionResponse.GetUnknown();
+	unsigned int result = beginSessionResponse.GetResult();
 
-	// 131072 for Galaxy S II, 0 for other devices.
-	if (result != 0 && result != 131072)
-	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", result);
-		return (false);
-	}
+	if (result != 0) // Assume 0 means don't care, otherwise use the response as the fileTransferPacketSize.
+		fileTransferPacketSize = result;
 
 	// -------------------- KIES DOESN'T DO THIS --------------------
 
-	SetupSessionPacket deviceTypePacket(SetupSessionPacket::kDeviceInfo);
+	DeviceTypePacket deviceTypePacket;
 
 	if (!SendPacket(&deviceTypePacket))
 	{
@@ -539,23 +606,67 @@ bool BridgeManager::BeginSession(void) const
 		return (false);
 	}
 
-	if (!ReceivePacket(&setupSessionResponse))
+	SessionSetupResponse deviceTypeResponse;
+
+	if (!ReceivePacket(&deviceTypeResponse))
 		return (false);
 
-	unsigned int deviceType = setupSessionResponse.GetUnknown();
+	unsigned int deviceType = deviceTypeResponse.GetResult();
 
-	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
-	if (deviceType != 180 && deviceType != 0 && deviceType != 3 && deviceType != 190)
+	switch (deviceType)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceType);
-		return (false);
-	}
-	else
-	{
-		Interface::Print("Session begun with device of type: %d\n\n", result);
-	}
+		// NOTE: If you add a new device type don't forget to update the error message below!
 
-	return (true);
+		case 0: // Galaxy S etc.
+		case 3: // Galaxy Tab
+		case 30: // Galaxy S 2 Skyrocket
+		case 180: // Galaxy S etc.
+		case 190: // M110S Galaxy S
+
+			if (verbose)
+				Interface::Print("Session begun with device of type: %d.\n\n", deviceType);
+			else
+				Interface::Print("Session begun.\n\n", deviceType);
+
+			if (deviceType == 30)
+			{
+				Interface::Print("In certain situations this device may take up to 2 minutes to respond.\nPlease be patient!\n\n", deviceType);
+				Sleep(2000); // Give the user time to read the message.
+
+				// The SGH-I727 is very unstable/unreliable using the default settings. Flashing
+				// seems to be much more reliable using the following setup.
+				
+				fileTransferSequenceMaxLength = 30;
+				fileTransferSequenceTimeout = 120000; // 2 minutes!
+				fileTransferPacketSize = 1048576; // 1 MiB
+
+				FilePartSizePacket filePartSizePacket(fileTransferPacketSize); // 1 MiB
+
+				if (!SendPacket(&filePartSizePacket))
+				{
+					Interface::PrintError("Failed to send file part size packet!\n");
+					return (false);
+				}
+
+				SessionSetupResponse filePartSizeResponse;
+
+				if (!ReceivePacket(&filePartSizeResponse))
+					return (false);
+
+				if (filePartSizeResponse.GetResult() != 0)
+				{
+					Interface::PrintError("Unexpected file part size response!\nExpected: 0\nReceived: %d\n", filePartSizeResponse.GetResult());
+					return (false);
+				}
+			}
+
+			return (true);
+
+		default:
+
+			Interface::PrintError("Unexpected device info response!\nExpected: 0, 3, 30, 180 or 190\nReceived:%d\n", deviceType);
+			return (false);
+	}
 }
 
 bool BridgeManager::EndSession(bool reboot) const
@@ -662,58 +773,79 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) 
 	return (true);
 }
 
-bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry) const
+bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry, unsigned char *buffer, unsigned int bufferSize) const
 {
-	int dataTransferred;
-	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, packet->GetData(), packet->GetSize(),
-		&dataTransferred, timeout);
+	bool bufferProvided = buffer != nullptr && bufferSize >= packet->GetSize();
 
-	if (result < 0 && retry)
+	if (!bufferProvided)
 	{
-		// max(250, communicationDelay)
-		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+		buffer = packet->GetData();
+		bufferSize = packet->GetSize();
+	}
 
-		if (verbose)
-			Interface::PrintError("libusb error %d whilst receiving packet.", result);
+	int dataTransferred;
+	int result;
 
-		// Retry
-		for (int i = 0; i < 5; i++)
+	unsigned int attempt = 0;
+	unsigned int maxAttempts = (retry) ? kReceivePacketMaxAttempts : 1;
+	
+	// max(250, communicationDelay)
+	int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+
+	for (; attempt < maxAttempts; attempt++)
+	{
+		if (attempt > 0)
 		{
 			if (verbose)
 				Interface::PrintErrorSameLine(" Retrying...\n");
-
+			
 			// Wait longer each retry
-			Sleep(retryDelay * (i + 1));
-
-			result = libusb_bulk_transfer(deviceHandle, inEndpoint, packet->GetData(), packet->GetSize(),
-				&dataTransferred, timeout);
-
-			if (result >= 0)
-				break;
-
-			if (verbose)
-				Interface::PrintError("libusb error %d whilst receiving packet.", result);
+			Sleep(retryDelay * (attempt + 1));
 		}
 
+		result = libusb_bulk_transfer(deviceHandle, inEndpoint, buffer, bufferSize, &dataTransferred, timeout);
+
+		if (result >= 0)
+			break;
+
 		if (verbose)
-			Interface::PrintErrorSameLine("\n");
+			Interface::PrintError("libusb error %d whilst receiving packet.", result);
 	}
+
+	if (verbose && attempt > 0)
+		Interface::PrintErrorSameLine("\n");
+
+	if (attempt == maxAttempts)
+		return (false);
 
 	if (communicationDelay != 0)
 		Sleep(communicationDelay);
 
-	if (result < 0 || (dataTransferred != packet->GetSize() && !packet->IsSizeVariable()))
+	if (dataTransferred != packet->GetSize() && !packet->IsSizeVariable())
+	{
+		if (verbose)
+			Interface::PrintError("Incorrect packet size received - expected size = %d, received size = %d.\n", packet->GetSize(), dataTransferred);
+
 		return (false);
+	}
+
+	if (bufferProvided)
+		memcpy(packet->GetData(), buffer, dataTransferred);
 
 	packet->SetReceivedSize(dataTransferred);
 
-	return (packet->Unpack());
+	bool unpacked = packet->Unpack();
+
+	if (!unpacked && verbose)
+		Interface::PrintError("Failed to unpack received packet.\n");
+
+	return (unpacked);
 }
 
-bool BridgeManager::RequestDeviceInfo(unsigned int request, int *result) const
+bool BridgeManager::RequestDeviceType(unsigned int request, int *result) const
 {
-	SetupSessionPacket beginSessionPacket(request);
-	bool success = SendPacket(&beginSessionPacket);
+	DeviceTypePacket deviceTypePacket;
+	bool success = SendPacket(&deviceTypePacket);
 
 	if (!success)
 	{
@@ -725,11 +857,12 @@ bool BridgeManager::RequestDeviceInfo(unsigned int request, int *result) const
 		return (false);
 	}
 
-	SetupSessionResponse deviceInfoResponse;
-	if (!ReceivePacket(&deviceInfoResponse))
+	SessionSetupResponse deviceTypeResponse;
+
+	if (!ReceivePacket(&deviceTypeResponse))
 		return (false);
 
-	*result = deviceInfoResponse.GetUnknown();
+	*result = deviceTypeResponse.GetResult();
 
 	return (true);
 }
@@ -921,7 +1054,23 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	return (fileSize);
 }
 
-bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int chipIdentifier, unsigned int fileIdentifier) const
+int BridgeManager::DownloadPitFile(unsigned char **pitBuffer) const
+{
+	Interface::Print("Downloading device's PIT file...\n");
+
+	int devicePitFileSize = ReceivePitFile(pitBuffer);
+
+	if (!*pitBuffer)
+	{
+		Interface::PrintError("Failed to download PIT file!\n");
+		return (0);
+	}
+
+	Interface::Print("PIT file download successful.\n\n");
+	return (devicePitFileSize);
+}
+
+bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int deviceType, unsigned int fileIdentifier) const
 {
 	if (destination != EndFileTransferPacket::kDestinationModem && destination != EndFileTransferPacket::kDestinationPhone)
 	{
@@ -959,16 +1108,16 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		return (false);
 	}
 
-	unsigned int sequenceCount = fileSize / (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
-	unsigned int lastSequenceSize = kMaxSequenceLength;
-	unsigned int partialPacketByteCount = fileSize % SendFilePartPacket::kDefaultPacketSize;
+	unsigned int sequenceCount = fileSize / (fileTransferSequenceMaxLength * fileTransferPacketSize);
+	unsigned int lastSequenceSize = fileTransferSequenceMaxLength;
+	unsigned int partialPacketByteCount = fileSize % fileTransferPacketSize;
 
-	if (fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize) != 0)
+	if (fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize) != 0)
 	{
 		sequenceCount++;
 
-		int lastSequenceBytes = fileSize % (kMaxSequenceLength * SendFilePartPacket::kDefaultPacketSize);
-		lastSequenceSize = lastSequenceBytes / SendFilePartPacket::kDefaultPacketSize;
+		int lastSequenceBytes = fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize);
+		lastSequenceSize = lastSequenceBytes / fileTransferPacketSize;
 
 		if (partialPacketByteCount != 0)
 			lastSequenceSize++;
@@ -981,12 +1130,16 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 	for (unsigned int sequenceIndex = 0; sequenceIndex < sequenceCount; sequenceIndex++)
 	{
-		// Min(lastSequenceSize, 131072)
-		bool isLastSequence = sequenceIndex == sequenceCount - 1;
-		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : kMaxSequenceLength;
-		unsigned int sequenceByteCount = ((isLastSequence) ? lastSequenceSize : kMaxSequenceLength) * SendFilePartPacket::kDefaultPacketSize + partialPacketByteCount;
+		bool isLastSequence = (sequenceIndex == sequenceCount - 1);
+		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : fileTransferSequenceMaxLength;
+		unsigned int sequenceByteCount;
 
-		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(0, 2 * sequenceSize);
+		if (isLastSequence)
+			sequenceByteCount = ((partialPacketByteCount) ? lastSequenceSize - 1 : lastSequenceSize) * fileTransferPacketSize + partialPacketByteCount;
+		else
+			sequenceByteCount = fileTransferSequenceMaxLength * fileTransferPacketSize;
+
+		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(sequenceByteCount);
 		success = SendPacket(beginFileTransferPacket);
 		delete beginFileTransferPacket;
 
@@ -1014,7 +1167,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
 			// Send
-			sendFilePartPacket = new SendFilePartPacket(file);
+			sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
 			success = SendPacket(sendFilePartPacket);
 			delete sendFilePartPacket;
 
@@ -1050,7 +1203,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 					Interface::PrintError("Retrying...");
 
 					// Send
-					sendFilePartPacket = new SendFilePartPacket(file);
+					sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
 					success = SendPacket(sendFilePartPacket);
 					delete sendFilePartPacket;
 
@@ -1097,7 +1250,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 				return (false);
 			}
 
-			bytesTransferred += SendFilePartPacket::kDefaultPacketSize;
+			bytesTransferred += fileTransferPacketSize;
+
 			if (bytesTransferred > fileSize)
 				bytesTransferred = fileSize;
 
@@ -1123,8 +1277,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
-			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, chipIdentifier,
-				fileIdentifier, isLastSequence);
+			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, 3000);
 			delete endPhoneFileTransferPacket;
@@ -1138,7 +1291,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		}
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
-			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, chipIdentifier, isLastSequence);
+			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, deviceType, isLastSequence);
 
 			success = SendPacket(endModemFileTransferPacket, 3000);
 			delete endModemFileTransferPacket;
@@ -1152,7 +1305,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		}
 
 		fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
-		success = ReceivePacket(fileTransferResponse, 30000);
+		success = ReceivePacket(fileTransferResponse, fileTransferSequenceTimeout);
 		delete fileTransferResponse;
 
 		if (!success)

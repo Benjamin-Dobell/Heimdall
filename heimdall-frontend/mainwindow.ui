@@ -414,9 +414,9 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>320</x>
+         <x>350</x>
          <y>130</y>
-         <width>301</width>
+         <width>271</width>
          <height>31</height>
         </rect>
        </property>
@@ -451,7 +451,7 @@
         <rect>
          <x>10</x>
          <y>130</y>
-         <width>301</width>
+         <width>331</width>
          <height>21</height>
         </rect>
        </property>
@@ -1348,7 +1348,7 @@
        <rect>
         <x>10</x>
         <y>80</y>
-        <width>471</width>
+        <width>461</width>
         <height>141</height>
        </rect>
       </property>
@@ -1360,7 +1360,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>451</width>
+         <width>441</width>
          <height>71</height>
         </rect>
        </property>
@@ -1375,7 +1375,7 @@
          <rect>
           <x>10</x>
           <y>30</y>
-          <width>321</width>
+          <width>311</width>
           <height>21</height>
          </rect>
         </property>
@@ -1389,7 +1389,7 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>350</x>
+          <x>340</x>
           <y>30</y>
           <width>91</width>
           <height>23</height>
@@ -1406,7 +1406,7 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>330</x>
+         <x>320</x>
          <y>110</y>
          <width>101</width>
          <height>23</height>
@@ -1419,7 +1419,7 @@
       <widget class="QLabel" name="downloadPitTipLabel">
        <property name="geometry">
         <rect>
-         <x>440</x>
+         <x>430</x>
          <y>110</y>
          <width>21</width>
          <height>23</height>
@@ -1432,7 +1432,7 @@
         </font>
        </property>
        <property name="toolTip">
-        <string notr="true">Download a devices PIT file.</string>
+        <string notr="true">Download and save a device's PIT file.</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -1494,7 +1494,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>301</width>
+        <width>291</width>
         <height>61</height>
        </rect>
       </property>
@@ -1504,7 +1504,7 @@
       <widget class="QPushButton" name="detectDeviceButton">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>170</x>
          <y>30</y>
          <width>81</width>
          <height>23</height>
@@ -1525,7 +1525,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>161</width>
+         <width>151</width>
          <height>21</height>
         </rect>
        </property>
@@ -1542,7 +1542,7 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>260</x>
          <y>30</y>
          <width>21</width>
          <height>23</height>
@@ -1555,7 +1555,7 @@
         </font>
        </property>
        <property name="toolTip">
-        <string notr="true">Detect for a device connected in download mode.</string>
+        <string notr="true">Detect whether or not a device is connected in download mode.</string>
        </property>
        <property name="statusTip">
         <string notr="true"/>
@@ -1586,10 +1586,10 @@
      <widget class="QGroupBox" name="printPitGroup">
       <property name="geometry">
        <rect>
-        <x>490</x>
+        <x>480</x>
         <y>10</y>
-        <width>161</width>
-        <height>61</height>
+        <width>291</width>
+        <height>211</height>
        </rect>
       </property>
       <property name="title">
@@ -1598,8 +1598,8 @@
       <widget class="QPushButton" name="printPitButton">
        <property name="geometry">
         <rect>
-         <x>40</x>
-         <y>30</y>
+         <x>160</x>
+         <y>180</y>
          <width>81</width>
          <height>23</height>
         </rect>
@@ -1611,8 +1611,8 @@
       <widget class="QLabel" name="printPitTipLabel">
        <property name="geometry">
         <rect>
-         <x>130</x>
-         <y>30</y>
+         <x>250</x>
+         <y>180</y>
          <width>21</width>
          <height>23</height>
         </rect>
@@ -1624,7 +1624,7 @@
         </font>
        </property>
        <property name="toolTip">
-        <string notr="true">Print the contents of a device's PIT file.</string>
+        <string notr="true">Print the contents of a PIT file in a human readable fashion.</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -1645,11 +1645,100 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
+      <widget class="QRadioButton" name="printPitDeviceRadioBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>30</y>
+         <width>261</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Device</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="printPitLocalFileRadioBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>60</y>
+         <width>261</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Local File</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="printLocalPitGroup">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>271</width>
+         <height>71</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>PIT File</string>
+       </property>
+       <widget class="QLineEdit" name="printLocalPitLineEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>171</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="printLocalPitBrowseButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>30</y>
+          <width>71</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Browse</string>
+        </property>
+       </widget>
+      </widget>
      </widget>
      <widget class="QGroupBox" name="closePcScreenGroup">
       <property name="geometry">
        <rect>
-        <x>320</x>
+        <x>310</x>
         <y>10</y>
         <width>161</width>
         <height>61</height>
@@ -1687,7 +1776,7 @@
         </font>
        </property>
        <property name="toolTip">
-        <string notr="true">Close the device &lt;--&gt; PC screen displayed on a device.</string>
+        <string notr="true">Close the &quot;device &lt;--&gt; PC&quot; screen displayed on a device.</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>

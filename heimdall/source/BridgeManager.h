@@ -41,8 +41,8 @@ namespace Heimdall
 			const int productId;
 
 			DeviceIdentifier(int vid, int pid) :
-				vendorId(vid),
-				productId(pid)
+					vendorId(vid),
+					productId(pid)
 			{
 			}
 	};
@@ -53,10 +53,12 @@ namespace Heimdall
 
 			enum
 			{
-				kSupportedDeviceCount		= 3,
+				kSupportedDeviceCount = 3,
+			};
 
-				kCommunicationDelayDefault	= 0,
-				kDumpBufferSize				= 4096
+			enum
+			{
+				kCommunicationDelayDefault = 0
 			};
 
 			enum
@@ -83,15 +85,18 @@ namespace Heimdall
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
 
 			bool verbose;
+			int communicationDelay;
 
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
 			libusb_device *heimdallDevice;
+
 			int interfaceIndex;
+			int altSettingIndex;
 			int inEndpoint;
 			int outEndpoint;
 
-			int communicationDelay;
+			bool interfaceClaimed;
 
 #ifdef OS_LINUX
 
@@ -99,29 +104,39 @@ namespace Heimdall
 
 #endif
 
+			unsigned int fileTransferSequenceMaxLength;
+			unsigned int fileTransferPacketSize;
+			unsigned int fileTransferSequenceTimeout;
+
+			int FindDeviceInterface(void);
+			bool ClaimDeviceInterface(void);
+			bool SetupDeviceInterface(void);
+			void ReleaseDeviceInterface(void);
+
 			bool CheckProtocol(void) const;
 			bool InitialiseProtocol(void) const;
 
 		public:
 
-			BridgeManager(bool verbose, int communicationDelay);
+			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault);
 			~BridgeManager();
 
 			bool DetectDevice(void);
 			int Initialise(void);
 
-			bool BeginSession(void) const;
+			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
 			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true, unsigned char *buffer = nullptr, unsigned int bufferSize = -1) const;
 
-			bool RequestDeviceInfo(unsigned int request, int *result) const;
+			bool RequestDeviceType(unsigned int request, int *result) const;
 
 			bool SendPitFile(FILE *file) const;
 			int ReceivePitFile(unsigned char **pitBuffer) const;
+			int DownloadPitFile(unsigned char **pitBuffer) const; // Thin wrapper around ReceivePitFile() with additional logging.
 
-			bool SendFile(FILE *file, unsigned int destination, unsigned int chipIdentifier, unsigned int fileIdentifier = 0xFFFFFFFF) const;
+			bool SendFile(FILE *file, unsigned int destination, unsigned int deviceType, unsigned int fileIdentifier = 0xFFFFFFFF) const;
 			bool ReceiveDump(unsigned int chipType, unsigned int chipId, FILE *file) const;
 
 			bool IsVerbose(void) const

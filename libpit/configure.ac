@@ -1,4 +1,4 @@
-AC_INIT([libpit], [1.3], [bug-report@glassechidna.com.au], [libpit], [http://www.glassechidna.com.au/])
+AC_INIT([libpit], [1.4], [bug-report@glassechidna.com.au], [libpit], [http://www.glassechidna.com.au/])
 AC_PREREQ([2.59])
 AC_CANONICAL_TARGET
 AC_CONFIG_MACRO_DIR([m4])
@@ -8,7 +8,7 @@ AC_PROG_CXX
 
 LT_INIT()
 
-AC_SUBST([LIBPIT_API_VERSION], [1.3])
+AC_SUBST([LIBPIT_API_VERSION], [1.4])
 AC_CONFIG_FILES([Makefile])
 
 AM_MAINTAINER_MODE

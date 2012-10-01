@@ -25,18 +25,19 @@ using namespace libpit;
 
 PitEntry::PitEntry()
 {
-	unused = false;
-	chipIdentifier = 0;
-	partitionIdentifier = 0;
-	partitionFlags = 0;
-	unknown1 = 0;
-	partitionBlockSize = 0;
-	partitionBlockCount = 0;
-	unknown2 = 0;
-	unknown3 = 0;
+	binaryType = false;
+	deviceType = 0;
+	identifier = 0;
+	attributes = 0;
+	updateAttributes = 0;
+	blockSize = 0;
+	blockCount = 0;
+	fileOffset = 0;
+	fileSize = 0;
 
-	memset(partitionName, 0, 32);
-	memset(filename, 0, 64);
+	memset(partitionName, 0, PitEntry::kPartitionNameMaxLength);
+	memset(flashFilename, 0, PitEntry::kFlashFilenameMaxLength);
+	memset(fotaFilename, 0, PitEntry::kFotaFilenameMaxLength);
 }
 
 PitEntry::~PitEntry()
@@ -45,10 +46,11 @@ PitEntry::~PitEntry()
 
 bool PitEntry::Matches(const PitEntry *otherPitEntry) const
 {
-	if (unused == otherPitEntry->unused && chipIdentifier == otherPitEntry->chipIdentifier && partitionIdentifier == otherPitEntry->partitionIdentifier
-		&& partitionFlags == otherPitEntry->partitionFlags && unknown1 == otherPitEntry->unknown1 && partitionBlockSize == otherPitEntry->partitionBlockSize
-		&& partitionBlockCount == otherPitEntry->partitionBlockCount && unknown2 == otherPitEntry->unknown2 && unknown3 == otherPitEntry->unknown3
-		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(filename, otherPitEntry->filename) == 0)
+	if (binaryType == otherPitEntry->binaryType && deviceType == otherPitEntry->deviceType && identifier == otherPitEntry->identifier
+		&& attributes == otherPitEntry->attributes && updateAttributes == otherPitEntry->updateAttributes && blockSize == otherPitEntry->blockSize
+		&& blockCount == otherPitEntry->blockCount && fileOffset == otherPitEntry->fileOffset && fileSize == otherPitEntry->fileSize
+		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(flashFilename, otherPitEntry->flashFilename) == 0
+		&& strcmp(fotaFilename, otherPitEntry->fotaFilename) == 0)
 	{
 		return (true);
 	}
@@ -118,34 +120,35 @@ bool PitData::Unpack(const unsigned char *data)
 		entries[i] = new PitEntry();
 
 		integerValue = PitData::UnpackInteger(data, entryOffset);
-		entries[i]->SetUnused((integerValue != 0) ? true : false);
+		entries[i]->SetBinaryType(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 4);
-		entries[i]->SetChipIdentifier(integerValue);
+		entries[i]->SetDeviceType(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 8);
-		entries[i]->SetPartitionIdentifier(integerValue);
+		entries[i]->SetIdentifier(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 12);
-		entries[i]->SetPartitionFlags(integerValue);
+		entries[i]->SetAttributes(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 16);
-		entries[i]->SetUnknown1(integerValue);
+		entries[i]->SetUpdateAttributes(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 20);
-		entries[i]->SetPartitionBlockSize(integerValue);
+		entries[i]->SetBlockSize(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 24);
-		entries[i]->SetPartitionBlockCount(integerValue);
+		entries[i]->SetBlockCount(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 28);
-		entries[i]->SetUnknown2(integerValue);
+		entries[i]->SetFileOffset(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 32);
-		entries[i]->SetUnknown3(integerValue);
+		entries[i]->SetFileSize(integerValue);
 
 		entries[i]->SetPartitionName((const char *)data + entryOffset + 36);
-		entries[i]->SetFilename((const char *)data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength);
+		entries[i]->SetFlashFilename((const char *)data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength);
+		entries[i]->SetFotaFilename((const char *)data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength + PitEntry::kFlashFilenameMaxLength);
 	}
 
 	return (true);
@@ -175,22 +178,24 @@ void PitData::Pack(unsigned char *data) const
 	{
 		entryOffset = PitData::kHeaderDataSize + i * PitEntry::kDataSize;
 
-		PitData::PackInteger(data, entryOffset, (entries[i]->GetUnused()) ? 1 : 0);
+		PitData::PackInteger(data, entryOffset, entries[i]->GetBinaryType());
 
-		PitData::PackInteger(data, entryOffset + 4, entries[i]->GetChipIdentifier());
-		PitData::PackInteger(data, entryOffset + 8, entries[i]->GetPartitionIdentifier());
-		PitData::PackInteger(data, entryOffset + 12, entries[i]->GetPartitionFlags());
+		PitData::PackInteger(data, entryOffset + 4, entries[i]->GetDeviceType());
+		PitData::PackInteger(data, entryOffset + 8, entries[i]->GetIdentifier());
+		PitData::PackInteger(data, entryOffset + 12, entries[i]->GetAttributes());
 
-		PitData::PackInteger(data, entryOffset + 16, entries[i]->GetUnknown1());
+		PitData::PackInteger(data, entryOffset + 16, entries[i]->GetUpdateAttributes());
 
-		PitData::PackInteger(data, entryOffset + 20, entries[i]->GetPartitionBlockSize());
-		PitData::PackInteger(data, entryOffset + 24, entries[i]->GetPartitionBlockCount());
+		PitData::PackInteger(data, entryOffset + 20, entries[i]->GetBlockSize());
+		PitData::PackInteger(data, entryOffset + 24, entries[i]->GetBlockCount());
 
-		PitData::PackInteger(data, entryOffset + 28, entries[i]->GetUnknown2());
-		PitData::PackInteger(data, entryOffset + 32, entries[i]->GetUnknown3());
+		PitData::PackInteger(data, entryOffset + 28, entries[i]->GetFileOffset());
+		PitData::PackInteger(data, entryOffset + 32, entries[i]->GetFileSize());
 
 		memcpy(data + entryOffset + 36, entries[i]->GetPartitionName(), PitEntry::kPartitionNameMaxLength);
-		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetPartitionName(), PitEntry::kFilenameMaxLength);
+		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetPartitionName(), PitEntry::kFlashFilenameMaxLength);
+		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength + PitEntry::kFlashFilenameMaxLength,
+			entries[i]->GetFotaFilename(), PitEntry::kFotaFilenameMaxLength);
 	}
 }
 
@@ -250,7 +255,7 @@ PitEntry *PitData::FindEntry(const char *partitionName)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (!entries[i]->GetUnused() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -261,7 +266,7 @@ const PitEntry *PitData::FindEntry(const char *partitionName) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (!entries[i]->GetUnused() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -272,7 +277,7 @@ PitEntry *PitData::FindEntry(unsigned int partitionIdentifier)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (!entries[i]->GetUnused() && entries[i]->GetPartitionIdentifier() == partitionIdentifier)
+		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
@@ -283,7 +288,7 @@ const PitEntry *PitData::FindEntry(unsigned int partitionIdentifier) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (!entries[i]->GetUnused() && entries[i]->GetPartitionIdentifier() == partitionIdentifier)
+		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 

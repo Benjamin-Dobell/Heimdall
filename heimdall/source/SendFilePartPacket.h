@@ -34,12 +34,7 @@ namespace Heimdall
 	{
 		public:
 
-			enum
-			{
-				kDefaultPacketSize = 131072
-			};
-
-			SendFilePartPacket(FILE *file, int size = SendFilePartPacket::kDefaultPacketSize) : OutboundPacket(size)
+			SendFilePartPacket(FILE *file, int size) : OutboundPacket(size)
 			{
 				memset(data, 0, size);
 

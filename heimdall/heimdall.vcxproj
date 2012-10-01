@@ -100,11 +100,23 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Arguments.h" />
     <ClInclude Include="source\BeginDumpPacket.h" />
+    <ClInclude Include="source\BeginSessionPacket.h" />
     <ClInclude Include="source\BridgeManager.h" />
+    <ClInclude Include="source\ClosePcScreenAction.h" />
+    <ClInclude Include="source\DetectAction.h" />
+    <ClInclude Include="source\DownloadPitAction.h" />
+    <ClInclude Include="source\DumpAction.h" />
+    <ClInclude Include="source\FlashAction.h" />
+    <ClInclude Include="source\HelpAction.h" />
+    <ClInclude Include="source\InfoAction.h" />
+    <ClInclude Include="source\PrintPitAction.h" />
     <ClInclude Include="source\ControlPacket.h" />
-    <ClInclude Include="source\SetupSessionPacket.h" />
-    <ClInclude Include="source\SetupSessionResponse.h" />
+    <ClInclude Include="source\DeviceTypePacket.h" />
+    <ClInclude Include="source\FilePartSizePacket.h" />
+    <ClInclude Include="source\SessionSetupPacket.h" />
+    <ClInclude Include="source\SessionSetupResponse.h" />
     <ClInclude Include="source\DumpPartFileTransferPacket.h" />
     <ClInclude Include="source\DumpPartPitFilePacket.h" />
     <ClInclude Include="source\DumpResponse.h" />
@@ -127,11 +139,25 @@
     <ClInclude Include="source\ResponsePacket.h" />
     <ClInclude Include="source\SendFilePartPacket.h" />
     <ClInclude Include="source\SendFilePartResponse.h" />
+    <ClInclude Include="source\TotalBytesPacket.h" />
+    <ClInclude Include="source\Utility.h" />
+    <ClInclude Include="source\VersionAction.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Arguments.cpp" />
     <ClCompile Include="source\BridgeManager.cpp" />
+    <ClCompile Include="source\ClosePcScreenAction.cpp" />
+    <ClCompile Include="source\DetectAction.cpp" />
+    <ClCompile Include="source\DownloadPitAction.cpp" />
+    <ClCompile Include="source\DumpAction.cpp" />
+    <ClCompile Include="source\FlashAction.cpp" />
+    <ClCompile Include="source\HelpAction.cpp" />
+    <ClCompile Include="source\InfoAction.cpp" />
+    <ClCompile Include="source\PrintPitAction.cpp" />
     <ClCompile Include="source\Interface.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Utility.cpp" />
+    <ClCompile Include="source\VersionAction.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

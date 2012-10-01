@@ -28,276 +28,55 @@
 // libpit
 #include "libpit.h"
 
+// Heimdall
+#include "Heimdall.h"
+
 using namespace std;
 using namespace libpit;
 
 namespace Heimdall
 {
-	struct Action
+	namespace Interface
 	{
-		public:
+		typedef int (*ActionExecuteFunction)(int, char **);
 
-			string name;
-			
-			string *valueArguments;
-			string *valueShortArguments;
-			unsigned int valueArgumentCount;
+		typedef struct ActionInfo
+		{
+			ActionExecuteFunction executeFunction;
+			const char *usage;
 
-			string *valuelessArguments;
-			string *valuelessShortArguments;
-			unsigned int valuelessArgumentCount;
-
-			Action(const char *name, string *valueArguments, string *valueShortArguments, unsigned int valueArgumentCount,
-				string *valuelessArguments, string *valuelessShortArguments, unsigned int valuelessArgumentCount)
+			ActionInfo()
 			{
-				this->name = name;
-
-				this->valueArguments = valueArguments;
-				this->valueShortArguments = valueShortArguments;
-				this->valueArgumentCount = valueArgumentCount;
-
-				this->valuelessArguments = valuelessArguments;
-				this->valuelessShortArguments = valuelessShortArguments;
-				this->valuelessArgumentCount = valuelessArgumentCount;
-			}
-	};
-
-	class Interface
-	{
-		public:
-
-			// Actions
-			enum
-			{
-				kActionFlash = 0,
-				kActionClosePcScreen,
-				kActionDump,
-				kActionPrintPit,
-				kActionVersion,
-				kActionHelp,
-				kActionDetect,
-				kActionDownloadPit,
-				kActionInfo,
-				kActionCount
-			};
-
-			// Flash value arguments
-			enum
-			{
-				kFlashValueArgPit,
-				kFlashValueArgFactoryFs,
-				kFlashValueArgCache,
-				kFlashValueArgDatabaseData,
-				kFlashValueArgPrimaryBootloader,
-				kFlashValueArgSecondaryBootloader,
-				kFlashValueArgSecondaryBootloaderBackup,
-				kFlashValueArgParam,
-				kFlashValueArgKernel,
-				kFlashValueArgRecovery,
-				kFlashValueArgEfs,
-				kFlashValueArgModem,
-
-				kFlashValueArgNormalBoot,
-				kFlashValueArgSystem,
-				kFlashValueArgUserData,
-				kFlashValueArgFota,
-				kFlashValueArgHidden,
-				kFlashValueArgMovinand,
-				kFlashValueArgData,
-				kFlashValueArgUms,
-				kFlashValueArgEmmc,
-
-				kFlashValueArgPartitionIndex,
-
-				kFlashValueArgCount
-			};
-
-			// Flash valueless arguments
-			enum
-			{
-				kFlashValuelessArgRepartition = 0,
-
-				kFlashValuelessArgCount
-			};
-
-			// Close PC Screen value arguments
-			enum
-			{
-				kClosePcScreenValueArgCount = 0
-			};
-
-			// Close PC Screen valueless arguments
-			enum
-			{
-				kClosePcScreenValuelessArgCount = 0
-			};
-
-			// Dump value arguments
-			enum
-			{
-				kDumpValueArgChipType = 0,
-				kDumpValueArgChipId,
-				kDumpValueArgOutput,
-
-				kDumpValueArgCount
-			};
-
-			// Dump valueless arguments
-			enum
-			{
-				kDumpValuelessArgCount = 0
-			};
-
-			// Print PIT value arguments
-			enum
-			{
-				kPrintPitValueArgCount = 0
-			};
-
-			// Print PIT valueless arguments
-			enum
-			{
-				kPrintPitValuelessArgCount = 0
-			};
-
-			// Version value arguments
-			enum
-			{
-				kVersionValueArgCount = 0
-			};
-
-			// Version valueless arguments
-			enum
-			{
-				kVersionValuelessArgCount = 0
-			};
-
-			// Help value arguments
-			enum
-			{
-				kHelpValueArgCount = 0
-			};
-
-			// Help valueless arguments
-			enum
-			{
-				kHelpValuelessArgCount = 0
-			};
-
-			// Info value arguments
-			enum
-			{
-				kInfoValueArgCount = 0
-			};
-
-			// Info valueless arguments
-			enum
-			{
-				kInfoValuelessArgCount = 0
-			};
-
-			// Detect value arguments
-			enum
-			{
-				kDetectValueArgCount = 0
-			};
-
-			// Detect valueless arguments
-			enum
-			{
-				kDetectValuelessArgCount = 0
-			};
-
-			// Download PIT value arguments
-			enum
-			{
-				kDownloadPitValueArgOutput = 0,
-				kDownloadPitValueArgCount
-			};
-
-			// Download PIT valueless arguments
-			enum
-			{
-				kDownloadPitValuelessArgCount = 0
-			};
-
-			// Common value arguments
-			enum
-			{
-				kCommonValueArgDelay = 0,
-
-				kCommonValueArgCount
-			};
-
-			// Comon valueless arguments
-			enum
-			{
-				kCommonValuelessArgVerbose = 0,
-				kCommonValuelessArgNoReboot,
-				kCommonValuelessArgStdoutErrors,
-
-				kCommonValuelessArgCount
-			};
-
-		private:
-
-			static bool stdoutErrors;
-		
-			static const char *version;
-			static const char *usage;
-			static const char *releaseInfo;
-			static const char *extraInfo;
-
-			// Flash arguments
-			static string flashValueArguments[kFlashValueArgCount];
-			static string flashValueShortArguments[kFlashValueArgCount];
-
-			static string flashValuelessArguments[kFlashValuelessArgCount];
-			static string flashValuelessShortArguments[kFlashValuelessArgCount];
-
-			// Download PIT arguments
-			static string downloadPitValueArguments[kDownloadPitValueArgCount];
-			static string downloadPitValueShortArguments[kDownloadPitValueArgCount];
-
-			// Dump arguments
-			static string dumpValueArguments[kDumpValueArgCount];
-			static string dumpValueShortArguments[kDumpValueArgCount];
-
-		public:
-
-			// Common arguments
-			static string commonValueArguments[kCommonValueArgCount];
-			static string commonValueShortArguments[kCommonValueArgCount];
-
-			static string commonValuelessArguments[kCommonValuelessArgCount];
-			static string commonValuelessShortArguments[kCommonValuelessArgCount];
-
-			static Action actions[kActionCount];
-
-			static bool GetArguments(int argc, char **argv, map<string, string>& argumentMap, int *actionIndex);
-
-			static void Print(const char *format, ...);
-			static void PrintError(const char *format, ...);
-			static void PrintErrorSameLine(const char *format, ...);
-
-			static void PrintVersion(void);
-			static void PrintUsage(void);
-			static void PrintReleaseInfo(void);
-			static void PrintFullInfo(void);
-
-			static void PrintDeviceDetectionFailed(void);
-
-			static void PrintPit(const PitData *pitData);
-
-			static string& GetPitArgument(void)
-			{
-				return (flashValueArguments[kFlashValueArgPit]);
+				executeFunction = nullptr;
+				usage = nullptr;
 			}
 
-			static void SetStdoutErrors(bool enabled)
+			ActionInfo(ActionExecuteFunction executeFunction, const char *usage)
 			{
-				stdoutErrors = enabled;
+				this->executeFunction = executeFunction;
+				this->usage = usage;
 			}
+
+		} ActionInfo;
+
+		const map<string, ActionInfo>& GetActionMap(void);
+
+		void Print(const char *format, ...);
+		void PrintWarning(const char *format, ...);
+		void PrintWarningSameLine(const char *format, ...);
+		void PrintError(const char *format, ...);
+		void PrintErrorSameLine(const char *format, ...);
+
+		void PrintVersion(void);
+		void PrintUsage(void);
+		void PrintReleaseInfo(void);
+		void PrintFullInfo(void);
+
+		void PrintDeviceDetectionFailed(void);
+
+		void PrintPit(const PitData *pitData);
+
+		void SetStdoutErrors(bool enabled);
 	};
 }
 

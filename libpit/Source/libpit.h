@@ -43,32 +43,53 @@ namespace libpit
 			{
 				kDataSize = 132,
 				kPartitionNameMaxLength = 32,
-				kFilenameMaxLength = 64
+				kFlashFilenameMaxLength = 32,
+				kFotaFilenameMaxLength = 32
 			};
 
 			enum
 			{
-				kPartitionFlagWrite     = 1 << 1
+				kBinaryTypeApplicationProcessor = 0,
+				kBinaryTypeCommunicationProcessor = 1
+			};
+
+			enum
+			{
+				kDeviceTypeOneNand = 0,
+				kDeviceTypeFile, // FAT
+				kDeviceTypeMMC,
+				kDeviceTypeAll // ?
+			};
+
+			enum
+			{
+				kAttributeWrite = 1,
+				kAttributeSTL = 1 << 1
+			};
+
+			enum
+			{
+				kUpdateAttributeFota = 1,
+				kUpdateAttributeSecure = 1 << 1
 			};
 
 		private:
 
-			bool unused;
+			unsigned int binaryType;
+			unsigned int deviceType;
+			unsigned int identifier;
+			unsigned int attributes;
+			unsigned int updateAttributes;
 
-			unsigned int chipIdentifier;
-			unsigned int partitionIdentifier;
-			unsigned int partitionFlags;
+			unsigned int blockSize;
+			unsigned int blockCount;
 
-			unsigned int unknown1;
-
-			unsigned int partitionBlockSize;
-			unsigned int partitionBlockCount;
-
-			unsigned int unknown2;
-			unsigned int unknown3;
+			unsigned int fileOffset; // Obsolete
+			unsigned int fileSize; // Obsolete
 
 			char partitionName[kPartitionNameMaxLength];
-			char filename[kFilenameMaxLength];
+			char flashFilename[kFlashFilenameMaxLength]; // USB flash filename
+			char fotaFilename[kFotaFilenameMaxLength]; // Firmware over the air
 
 		public:
 
@@ -77,94 +98,94 @@ namespace libpit
 
 			bool Matches(const PitEntry *otherPitEntry) const;
 
-			bool GetUnused(void) const
+			unsigned int GetBinaryType(void) const
 			{
-				return unused;
+				return binaryType;
 			}
 
-			void SetUnused(bool unused)
+			void SetBinaryType(unsigned int binaryType)
 			{
-				this->unused = unused;
+				this->binaryType = binaryType;
 			}
 
-			unsigned int GetChipIdentifier(void) const
+			unsigned int GetDeviceType(void) const
 			{
-				return chipIdentifier;
+				return deviceType;
 			}
 
-			void SetChipIdentifier(unsigned int chipIdentifier)
+			void SetDeviceType(unsigned int deviceType)
 			{
-				this->chipIdentifier = chipIdentifier;
+				this->deviceType = deviceType;
 			}
 
-			unsigned int GetPartitionIdentifier(void) const
+			unsigned int GetIdentifier(void) const
 			{
-				return partitionIdentifier;
+				return identifier;
 			}
 
-			void SetPartitionIdentifier(unsigned int partitionIdentifier)
+			void SetIdentifier(unsigned int identifier)
 			{
-				this->partitionIdentifier = partitionIdentifier;
+				this->identifier = identifier;
 			}
 
-			unsigned int GetPartitionFlags(void) const
+			unsigned int GetAttributes(void) const
 			{
-				return partitionFlags;
+				return attributes;
 			}
 
-			void SetPartitionFlags(unsigned int partitionFlags)
+			void SetAttributes(unsigned int attributes)
 			{
-				this->partitionFlags = partitionFlags;
+				this->attributes = attributes;
 			}
 
-			unsigned int GetUnknown1(void) const
+			unsigned int GetUpdateAttributes(void) const
 			{
-				return unknown1;
+				return updateAttributes;
 			}
 
-			void SetUnknown1(unsigned int unknown1)
+			void SetUpdateAttributes(unsigned int updateAttributes)
 			{
-				this->unknown1 = unknown1;
+				this->updateAttributes = updateAttributes;
 			}
 
-			unsigned int GetPartitionBlockSize(void) const
+			unsigned int GetBlockSize(void) const
 			{
-				return partitionBlockSize;
+				return blockSize;
 			}
 
-			void SetPartitionBlockSize(unsigned int partitionBlockSize)
+			void SetBlockSize(unsigned int blockSize)
 			{
-				this->partitionBlockSize = partitionBlockSize;
+				this->blockSize = blockSize;
 			}
 
-			unsigned int GetPartitionBlockCount(void) const
+			unsigned int GetBlockCount(void) const
 			{
-				return partitionBlockCount;
+				return blockCount;
 			}
 
-			void SetPartitionBlockCount(unsigned int partitionBlockCount)
+			void SetBlockCount(unsigned int blockCount)
 			{
-				this->partitionBlockCount = partitionBlockCount;
+				this->blockCount = blockCount;
 			}
 
-			unsigned int GetUnknown2(void) const
+			unsigned int GetFileOffset(void) const
 			{
-				return unknown2;
+				return fileOffset;
 			}
 
-			void SetUnknown2(unsigned int unknown2)
+			void SetFileOffset(unsigned int fileOffset)
 			{
-				this->unknown2 = unknown2;
+				this->fileOffset = fileOffset;
 			}
 
-			unsigned int GetUnknown3(void) const
+			unsigned int GetFileSize(void) const
 			{
-				return unknown3;
+				return fileSize;
 			}
 
-			void SetUnknown3(unsigned int unknown3)
+			void SetFileSize(unsigned int fileSize)
 			{
-				this->unknown3 = unknown3;
+				this->fileSize = fileSize;
 			}
 
 			const char *GetPartitionName(void) const
@@ -183,20 +204,36 @@ namespace libpit
 					memcpy(this->partitionName, partitionName, 63);
 			}
 
-			const char *GetFilename(void) const
+			const char *GetFlashFilename(void) const
 			{
-				return filename;
+				return flashFilename;
 			}
 
-			void SetFilename(const char *filename)
+			void SetFlashFilename(const char *flashFilename)
 			{
 				// This isn't strictly necessary but ensures no junk is left in our PIT file.
-				memset(this->filename, 0, 32);
+				memset(this->flashFilename, 0, kFlashFilenameMaxLength);
 
 				if (strlen(partitionName) < 32)
-					strcpy(this->filename, filename);
+					strcpy(this->flashFilename, flashFilename);
 				else
-					memcpy(this->filename, filename, 31);
+					memcpy(this->flashFilename, flashFilename, 31);
+			}
+
+			const char *GetFotaFilename(void) const
+			{
+				return fotaFilename;
+			}
+
+			void SetFotaFilename(const char *fotaFilename)
+			{
+				// This isn't strictly necessary but ensures no junk is left in our PIT file.
+				memset(this->fotaFilename, 0, kFotaFilenameMaxLength);
+
+				if (strlen(partitionName) < 32)
+					strcpy(this->fotaFilename, fotaFilename);
+				else
+					memcpy(this->fotaFilename, fotaFilename, 31);
 			}
 	};
 
@@ -217,7 +254,7 @@ namespace libpit
 			unsigned int unknown2;   // 0x0C
 
 			unsigned short unknown3; // 0x10 (7508 = I9000, 7703 = I9100 & P1000)?
-			unsigned short unknown4; // 0x12 (Always 65, probably flags of some sort)
+			unsigned short unknown4; // 0x12 (Always 65, probably attributes of some sort)
 
 			unsigned short unknown5; // 0x14
 			unsigned short unknown6; // 0x16

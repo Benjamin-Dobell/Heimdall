@@ -56,6 +56,12 @@ namespace HeimdallFrontend
 				kHeimdallStateCount
 			};
 
+			enum
+			{
+				kPrintPitSourceDevice = 0,
+				kPrintPitSourceLocalFile
+			};
+
 			AboutForm aboutForm;
 		
 			QString lastDirectory;
@@ -64,7 +70,7 @@ namespace HeimdallFrontend
 
 			bool heimdallFailed;
 			int heimdallState;
-			QProcess process;
+			QProcess heimdallProcess;
 
 			PackageData loadedPackageData;
 			
@@ -76,6 +82,7 @@ namespace HeimdallFrontend
 
 			bool verboseOutput;
 
+
 			void StartHeimdall(const QStringList& arguments);
 
 			void UpdateUnusedPartitionIds(void);
@@ -85,13 +92,16 @@ namespace HeimdallFrontend
 
 			bool IsArchive(QString path);
 
-			QString PromptFileSelection(void);
-			QString PromptFileCreation(void);
-
-			void UpdatePartitionNamesInterface(void);
+			QString PromptFileSelection(const QString& caption = QString("Select File"), const QString& filter = QString());
+			QString PromptFileCreation(const QString& caption = QString("Save File"), const QString& filter = QString());
+			
+			void UpdateLoadPackageInterfaceAvailability(void);
+			void UpdateFlashInterfaceAvailability(void);
+			void UpdateCreatePackageInterfaceAvailability(void);
+			void UpdateUtilitiesInterfaceAvailability(void);
 			void UpdateInterfaceAvailability(void);
 
-			void UpdateBuildPackageButton(void);
+			void UpdatePartitionNamesInterface(void);
 
 		public:
 
@@ -155,6 +165,9 @@ namespace HeimdallFrontend
 			void SelectPitDestination(void);
 			void DownloadPit(void);
 
+			void DevicePrintPitToggled(bool checked);
+			void LocalFilePrintPitToggled(bool checked);
+			void SelectPrintPitFile(void);
 			void PrintPit(void);
 
 			// Heimdall Command Line

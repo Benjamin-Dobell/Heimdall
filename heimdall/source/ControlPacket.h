@@ -32,10 +32,10 @@ namespace Heimdall
 
 			enum
 			{
-				kControlTypeSetupSession      = 0x64,
-				kControlTypePitFile         = 0x65,
-				kControlTypeFileTransfer    = 0x66,
-				kControlTypeEndSession      = 0x67
+				kControlTypeSession = 0x64,
+				kControlTypePitFile = 0x65,
+				kControlTypeFileTransfer = 0x66,
+				kControlTypeEndSession = 0x67
 			};
 
 		protected:

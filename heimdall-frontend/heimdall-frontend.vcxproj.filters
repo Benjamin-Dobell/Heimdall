@@ -61,6 +61,12 @@
     <ClCompile Include="Source\Alerts.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_aboutform.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_aboutform.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">
@@ -75,6 +81,9 @@
     <CustomBuild Include="AboutForm.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="Source\aboutform.h">
+      <Filter>Source</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
@@ -82,9 +91,6 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_AboutForm.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\aboutform.h">
-      <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Packaging.h">
       <Filter>Source</Filter>

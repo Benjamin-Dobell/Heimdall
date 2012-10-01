@@ -772,7 +772,9 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 	xml.writeStartElement("files");
 
 	for (int i = 0; i < fileInfos.length(); i++)
+	{
 		fileInfos[i].WriteXml(xml, Packaging::ClashlessFilename(fileInfos, i));
+	}
 
 	xml.writeEndElement();
 

@@ -301,7 +301,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 
 	// Note: We don't support base-256 encoding. Support could be added later.
 	sprintf(tarHeader.fields.size, "%011llo", file.size());
-	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toMSecsSinceEpoch() / 1000);
+	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toTime_t());
 		
 	// Regular File
 	tarHeader.fields.typeFlag = '0';
@@ -381,6 +381,24 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 
 	for (int i = 0; i < fileInfos.length(); i++)
 	{
+		// If the file was already compressed we don't compress it again.
+		bool skip = false;
+
+		for (int j = 0; j < i; j++)
+		{
+			if (fileInfos[i].GetFilename() == fileInfos[j].GetFilename())
+			{
+				skip = true;
+				break;
+			}
+		}
+
+		if (skip)
+		{
+			progressDialog.setValue(i);
+			continue;
+		}
+
 		QString filename = ClashlessFilename(fileInfos, i);
 
 		if (filename == "firmware.xml")
@@ -389,7 +407,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 			return (false);
 		}
 
-		if (!WriteTarEntry(fileInfos[i].GetFilename(), tarFile, ClashlessFilename(fileInfos, i)))
+		if (!WriteTarEntry(fileInfos[i].GetFilename(), tarFile, filename))
 		{
 			tarFile->resize(0);
 			tarFile->close();
@@ -666,7 +684,8 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 
 		QString otherFilename = fileInfos[i].GetFilename().mid(lastSlash + 1);
 
-		if (filename == otherFilename)
+		// If the filenames are the same, but the files themselves aren't the same (i.e. not the same path), then rename.
+		if (filename == otherFilename && fileInfos[i].GetFilename() != fileInfos[fileInfoIndex].GetFilename())
 			renameIndex++;
 	}
 

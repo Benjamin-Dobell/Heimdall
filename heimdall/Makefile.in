@@ -56,8 +56,15 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(udevrulesdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_heimdall_OBJECTS = source/BridgeManager.$(OBJEXT) \
-	source/Interface.$(OBJEXT) source/main.$(OBJEXT)
+am_heimdall_OBJECTS = source/Arguments.$(OBJEXT) \
+	source/BridgeManager.$(OBJEXT) \
+	source/ClosePcScreenAction.$(OBJEXT) \
+	source/DetectAction.$(OBJEXT) \
+	source/DownloadPitAction.$(OBJEXT) source/DumpAction.$(OBJEXT) \
+	source/FlashAction.$(OBJEXT) source/HelpAction.$(OBJEXT) \
+	source/InfoAction.$(OBJEXT) source/Interface.$(OBJEXT) \
+	source/main.$(OBJEXT) source/PrintPitAction.$(OBJEXT) \
+	source/Utility.$(OBJEXT) source/VersionAction.$(OBJEXT)
 heimdall_OBJECTS = $(am_heimdall_OBJECTS)
 am__DEPENDENCIES_1 =
 heimdall_DEPENDENCIES = $(am__DEPENDENCIES_1) $(STATIC_LIBS)
@@ -74,15 +81,6 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(heimdall_SOURCES)
 DIST_SOURCES = $(heimdall_SOURCES)
@@ -178,12 +176,9 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -251,18 +246,21 @@ udevadminstalled = @udevadminstalled@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = $(DEPS_CFLAGS) -I../libpit/Source
-STATIC_LIBS = ../libpit/libpit-1.3.a
-heimdall_SOURCES = source/BeginDumpPacket.h source/BridgeManager.cpp \
-	source/BridgeManager.h source/DumpPartPitFilePacket.h source/DumpResponse.h \
-	source/EndFileTransferPacket.h source/EndModemFileTransferPacket.h \
-	source/EndPitFileTransferPacket.h source/EndPhoneFileTransferPacket.h \
-	source/EndSessionPacket.h source/FileTransferPacket.h source/FlashPartFileTransferPacket.h \
-	source/FlashPartPitFilePacket.h source/Heimdall.h source/InboundPacket.h \
-	source/Interface.cpp source/Interface.h source/main.cpp source/OutboundPacket.h \
-	source/Packet.h source/PitFilePacket.h source/PitFileResponse.h source/ReceiveFilePartPacket.h \
-	source/ResponsePacket.h source/SendFilePartPacket.h source/SendFilePartResponse.h \
-	source/ControlPacket.h source/SessionSetupPacket.h source/SessionSetupResponse.h \
-	source/DumpPartFileTransferPacket.h
+STATIC_LIBS = ../libpit/libpit-1.4.a
+heimdall_SOURCES = source/Arguments.cpp \
+	source/BridgeManager.cpp \
+	source/ClosePcScreenAction.cpp \
+	source/DetectAction.cpp \
+	source/DownloadPitAction.cpp \
+	source/DumpAction.cpp \
+	source/FlashAction.cpp \
+	source/HelpAction.cpp \
+	source/InfoAction.cpp \
+	source/Interface.cpp \
+	source/main.cpp \
+	source/PrintPitAction.cpp \
+	source/Utility.cpp \
+	source/VersionAction.cpp
 
 heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 @LINUXTARGET_TRUE@udevrulesdir = /lib/udev/rules.d
@@ -373,11 +371,33 @@ source/$(am__dirstamp):
 source/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) source/$(DEPDIR)
 	@: > source/$(DEPDIR)/$(am__dirstamp)
+source/Arguments.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
 source/BridgeManager.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/ClosePcScreenAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/DetectAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/DownloadPitAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/DumpAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/FlashAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/HelpAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/InfoAction.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/Interface.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/main.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/PrintPitAction.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/Utility.$(OBJEXT): source/$(am__dirstamp) \
+	source/$(DEPDIR)/$(am__dirstamp)
+source/VersionAction.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 heimdall$(EXEEXT): $(heimdall_OBJECTS) $(heimdall_DEPENDENCIES) 
 	@rm -f heimdall$(EXEEXT)
@@ -385,15 +405,37 @@ heimdall$(EXEEXT): $(heimdall_OBJECTS) $(heimdall_DEPENDENCIES)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f source/Arguments.$(OBJEXT)
 	-rm -f source/BridgeManager.$(OBJEXT)
+	-rm -f source/ClosePcScreenAction.$(OBJEXT)
+	-rm -f source/DetectAction.$(OBJEXT)
+	-rm -f source/DownloadPitAction.$(OBJEXT)
+	-rm -f source/DumpAction.$(OBJEXT)
+	-rm -f source/FlashAction.$(OBJEXT)
+	-rm -f source/HelpAction.$(OBJEXT)
+	-rm -f source/InfoAction.$(OBJEXT)
 	-rm -f source/Interface.$(OBJEXT)
+	-rm -f source/PrintPitAction.$(OBJEXT)
+	-rm -f source/Utility.$(OBJEXT)
+	-rm -f source/VersionAction.$(OBJEXT)
 	-rm -f source/main.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/Arguments.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/BridgeManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/ClosePcScreenAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DetectAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DownloadPitAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DumpAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/FlashAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/HelpAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/InfoAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/Interface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/PrintPitAction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/Utility.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/VersionAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:
@@ -779,8 +821,12 @@ uninstall-am: uninstall-binPROGRAMS uninstall-udevrulesDATA
 
 
 @LINUXTARGET_TRUE@install-data-hook:
-@LINUXTARGET_TRUE@@UDEVADM_TRUE@	sudo udevadm control --reload_rules
-@LINUXTARGET_TRUE@@UDEVADM_FALSE@	sudo service udev restart
+@LINUXTARGET_TRUE@	@echo ""
+@LINUXTARGET_TRUE@	@echo "IMPORTANT - You must reboot your machine or execute the following as root:"
+
+@LINUXTARGET_TRUE@@UDEVADM_TRUE@	@echo "udevadm control --reload_rules"
+@LINUXTARGET_TRUE@@UDEVADM_FALSE@	@echo "service udev restart"
+@LINUXTARGET_TRUE@	@echo ""
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

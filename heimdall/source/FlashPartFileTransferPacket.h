@@ -30,34 +30,26 @@ namespace Heimdall
 	{
 		private:
 
-			unsigned short unknown;
-			unsigned int transferCount;
+			unsigned int sequenceByteCount;
 
 		public:
 
-			FlashPartFileTransferPacket(unsigned short unknown, unsigned int transferCount)
+			FlashPartFileTransferPacket(unsigned int sequenceByteCount)
 				: FileTransferPacket(FileTransferPacket::kRequestPart)
 			{
-				this->unknown = unknown;
-				this->transferCount = transferCount;
+				this->sequenceByteCount = sequenceByteCount;
 			}
 
-			unsigned short GetUnknown(void) const
+			unsigned int GetSequenceByteCount(void) const
 			{
-				return (unknown);
-			}
-
-			unsigned int GetTransferCount(void) const
-			{
-				return (transferCount);
+				return (sequenceByteCount);
 			}
 
 			void Pack(void)
 			{
 				FileTransferPacket::Pack();
 
-				PackShort(FileTransferPacket::kDataSize, unknown);
-				PackInteger(FileTransferPacket::kDataSize + 2, transferCount);
+				PackInteger(FileTransferPacket::kDataSize, sequenceByteCount);
 			}
 	};
 }

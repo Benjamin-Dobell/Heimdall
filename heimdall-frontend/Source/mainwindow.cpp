@@ -32,18 +32,18 @@
 #include "mainwindow.h"
 #include "Packaging.h"
 
+#define UNUSED(x) (void)(x)
+
 using namespace HeimdallFrontend;
 
 void MainWindow::StartHeimdall(const QStringList& arguments)
 {
-	flashProgressBar->setEnabled(true);
 	UpdateInterfaceAvailability();
+
+	heimdallProcess.setReadChannel(QProcess::StandardOutput);
 	
-	int pathIndex = -1;
-	process.setReadChannel(QProcess::StandardOutput);
-	
-	process.start("heimdall", arguments);
-	process.waitForStarted(3000);
+	heimdallProcess.start("heimdall", arguments);
+	heimdallProcess.waitForStarted(3000);
 	
 	// OS X was playing up and not finding heimdall, so we're manually checking the PATH.
 	if (heimdallFailed)
@@ -63,6 +63,8 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 			}
 		}
 		
+		int pathIndex = -1;
+
 		while (heimdallFailed && ++pathIndex < paths.length())
 		{
 			QString heimdallPath = paths[pathIndex];
@@ -76,8 +78,8 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 				
 				heimdallPath += "heimdall";
 				
-				process.start(heimdallPath, arguments);
-				process.waitForStarted(3000);
+				heimdallProcess.start(heimdallPath, arguments);
+				heimdallProcess.waitForStarted(3000);
 			}
 		}
 		
@@ -86,7 +88,6 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 			flashLabel->setText("Failed to start Heimdall!");
 			
 			heimdallState = MainWindow::kHeimdallStateStopped;
-			flashProgressBar->setEnabled(false);
 			UpdateInterfaceAvailability();
 		}
 	}
@@ -101,8 +102,8 @@ void MainWindow::UpdateUnusedPartitionIds(void)
 	{
 		const PitEntry *pitEntry = currentPitData.GetEntry(i);
 
-		if (!pitEntry->GetUnused() && strcmp(pitEntry->GetPartitionName(), "PIT") != 0)
-			unusedPartitionIds.append(pitEntry->GetPartitionIdentifier());
+		if (pitEntry->GetBlockCount() > 0 && strcmp(pitEntry->GetPartitionName(), "PIT") != 0 && strcmp(pitEntry->GetPartitionName(), "PT") != 0)
+			unusedPartitionIds.append(pitEntry->GetIdentifier());
 	}
 
 	// Remove any used partition IDs from unusedPartitionIds
@@ -145,14 +146,9 @@ void MainWindow::UpdatePackageUserInterface(void)
 		developerNamesLineEdit->clear();
 
 		platformLineEdit->clear();
-
-		developerHomepageButton->setEnabled(false);
-		developerDonateButton->setEnabled(false);
 		
 		repartitionRadioButton->setChecked(false);
 		noRebootRadioButton->setChecked(false);
-
-		loadFirmwareButton->setEnabled(false);
 	}
 	else
 	{
@@ -173,16 +169,6 @@ void MainWindow::UpdatePackageUserInterface(void)
 		platformLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetName() + " ("
 			+ loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetVersion() + ")");
 
-		if (!loadedPackageData.GetFirmwareInfo().GetUrl().isEmpty())
-			developerHomepageButton->setEnabled(true);
-		else
-			developerHomepageButton->setEnabled(false);
-
-		if (!loadedPackageData.GetFirmwareInfo().GetDonateUrl().isEmpty())
-			developerDonateButton->setEnabled(true);
-		else
-			developerDonateButton->setEnabled(false);
-
 		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetDeviceInfos().length(); i++)
 		{
 			const DeviceInfo& deviceInfo = loadedPackageData.GetFirmwareInfo().GetDeviceInfos()[i];
@@ -197,9 +183,9 @@ void MainWindow::UpdatePackageUserInterface(void)
 
 		repartitionRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetRepartition());
 		noRebootRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetNoReboot());
-
-		loadFirmwareButton->setEnabled(true);
 	}
+
+	UpdateLoadPackageInterfaceAvailability();
 }
 
 bool MainWindow::IsArchive(QString path)
@@ -209,9 +195,9 @@ bool MainWindow::IsArchive(QString path)
 		|| path.endsWith(".bz2", Qt::CaseInsensitive) || path.endsWith(".7z", Qt::CaseInsensitive) || path.endsWith(".rar", Qt::CaseInsensitive));
 }
 
-QString MainWindow::PromptFileSelection(void)
+QString MainWindow::PromptFileSelection(const QString& caption, const QString& filter)
 {
-	QString path = QFileDialog::getOpenFileName(this, "Select File", lastDirectory);
+	QString path = QFileDialog::getOpenFileName(this, caption, lastDirectory, filter);
 
 	if (path != "")
 		lastDirectory = path.left(path.lastIndexOf('/') + 1);
@@ -219,14 +205,175 @@ QString MainWindow::PromptFileSelection(void)
 	return (path);
 }
 
-QString MainWindow::PromptFileCreation(void)
+QString MainWindow::PromptFileCreation(const QString& caption, const QString& filter)
 {
-	QString path = QFileDialog::getSaveFileName(this, "Save File", lastDirectory);
+	QString path = QFileDialog::getSaveFileName(this, caption, lastDirectory, filter);
 
 	if (path != "")
 		lastDirectory = path.left(path.lastIndexOf('/') + 1);
 
 	return (path);
+}
+
+void MainWindow::UpdateLoadPackageInterfaceAvailability(void)
+{
+	if (loadedPackageData.IsCleared())
+	{
+		developerHomepageButton->setEnabled(false);
+		developerDonateButton->setEnabled(false);
+
+		loadFirmwareButton->setEnabled(false);
+	}
+	else
+	{
+		if (!loadedPackageData.GetFirmwareInfo().GetUrl().isEmpty())
+			developerHomepageButton->setEnabled(true);
+		else
+			developerHomepageButton->setEnabled(false);
+
+		if (!loadedPackageData.GetFirmwareInfo().GetDonateUrl().isEmpty())
+			developerDonateButton->setEnabled(true);
+		else
+			developerDonateButton->setEnabled(false);
+
+		loadFirmwareButton->setEnabled(heimdallState == MainWindow::kHeimdallStateStopped);
+	}
+}
+
+void MainWindow::UpdateFlashInterfaceAvailability(void)
+{
+	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	{
+		partitionNameComboBox->setEnabled(partitionsListWidget->currentRow() >= 0);
+
+		bool allPartitionsValid = true;
+		QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
+
+		for (int i = 0; i < fileList.length(); i++)
+		{
+			if (fileList[i].GetFilename().isEmpty())
+			{
+				allPartitionsValid = false;
+				break;
+			}
+		}
+
+		bool validFlashSettings = allPartitionsValid && fileList.length() > 0;
+		
+		flashProgressBar->setEnabled(false);
+		optionsGroup->setEnabled(true);
+		startFlashButton->setEnabled(validFlashSettings);
+	}
+	else
+	{
+		partitionNameComboBox->setEnabled(false);
+
+		flashProgressBar->setEnabled(true);
+		optionsGroup->setEnabled(false);
+		startFlashButton->setEnabled(false);
+	}
+}
+
+void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
+{
+	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	{
+		const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
+
+		if (firmwareInfo.GetName().isEmpty() || firmwareInfo.GetVersion().isEmpty() || firmwareInfo.GetPlatformInfo().GetName().isEmpty()
+			|| firmwareInfo.GetPlatformInfo().GetVersion().isEmpty() || firmwareInfo.GetDevelopers().isEmpty() || firmwareInfo.GetDeviceInfos().isEmpty())
+		{
+			buildPackageButton->setEnabled(false);
+		}
+		else
+		{
+			buildPackageButton->setEnabled(true);
+		}
+
+		if (addDeveloperButton->text().isEmpty())
+			addDeveloperButton->setEnabled(false);
+		else
+			addDeveloperButton->setEnabled(true);
+
+		if (createDevelopersListWidget->currentRow() >= 0)
+			removeDeveloperButton->setEnabled(true);
+		else
+			removeDeveloperButton->setEnabled(false);
+	}
+	else
+	{
+		buildPackageButton->setEnabled(false);
+	}
+}
+
+void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
+{
+	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	{
+		detectDeviceButton->setEnabled(true);
+		closePcScreenButton->setEnabled(true);
+		pitSaveAsButton->setEnabled(true);
+
+		if (!pitDestinationLineEdit->text().isEmpty())
+			downloadPitButton->setEnabled(true);
+		else
+			downloadPitButton->setEnabled(false);
+		
+		if (printPitDeviceRadioBox->isChecked())
+		{
+			// Device
+			printLocalPitGroup->setEnabled(false);
+			printPitButton->setEnabled(true);
+		}
+		else
+		{
+			// Local File
+			printLocalPitGroup->setEnabled(true);
+			printLocalPitLineEdit->setEnabled(true);
+			printLocalPitBrowseButton->setEnabled(true);
+			printPitButton->setEnabled(!printLocalPitLineEdit->text().isEmpty());
+		}
+	}
+	else
+	{
+		detectDeviceButton->setEnabled(false);
+		closePcScreenButton->setEnabled(false);
+		pitSaveAsButton->setEnabled(false);
+		downloadPitButton->setEnabled(false);
+
+		printLocalPitGroup->setEnabled(false);
+		printPitButton->setEnabled(false);
+	}
+}
+
+void MainWindow::UpdateInterfaceAvailability(void)
+{
+	UpdateLoadPackageInterfaceAvailability();
+	UpdateFlashInterfaceAvailability();
+	UpdateCreatePackageInterfaceAvailability();
+	UpdateUtilitiesInterfaceAvailability();
+
+	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	{		
+		// Enable/disable tabs
+
+		for (int i = 0; i < functionTabWidget->count(); i++)
+			functionTabWidget->setTabEnabled(i, true);
+
+		functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), startFlashButton->isEnabled());
+	}
+	else
+	{
+		// Disable non-current tabs
+
+		for (int i = 0; i < functionTabWidget->count(); i++)
+		{
+			if (i == functionTabWidget->currentIndex())
+				functionTabWidget->setTabEnabled(i, true);
+			else
+				functionTabWidget->setTabEnabled(i, false);
+		}
+	}
 }
 
 void MainWindow::UpdatePartitionNamesInterface(void)
@@ -246,78 +393,11 @@ void MainWindow::UpdatePartitionNamesInterface(void)
 
 		partitionNameComboBox->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
 		partitionNameComboBox->setCurrentIndex(unusedPartitionIds.length());
-
-		partitionNameComboBox->setEnabled(true);
-	}
-	else
-	{
-		partitionNameComboBox->setEnabled(false);
 	}
 
 	populatingPartitionNames = false;
-}
 
-void MainWindow::UpdateInterfaceAvailability(void)
-{
-	if (heimdallState != MainWindow::kHeimdallStateStopped)
-	{
-		startFlashButton->setEnabled(false);
-
-		detectDeviceButton->setEnabled(false);
-		closePcScreenButton->setEnabled(false);
-		pitSaveAsButton->setEnabled(false);
-		downloadPitButton->setEnabled(false);
-		printPitButton->setEnabled(false);
-
-		return;
-	}
-	else
-	{
-		detectDeviceButton->setEnabled(true);
-		closePcScreenButton->setEnabled(true);
-		pitSaveAsButton->setEnabled(true);
-
-		if (!pitDestinationLineEdit->text().isEmpty())
-			downloadPitButton->setEnabled(true);
-		else
-			downloadPitButton->setEnabled(false);
-
-		printPitButton->setEnabled(true);
-	}
-
-	bool allPartitionsValid = true;
-
-	QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
-
-	for (int i = 0; i < fileList.length(); i++)
-	{
-		if (fileList[i].GetFilename().isEmpty())
-		{
-			allPartitionsValid = false;
-			break;
-		}
-	}
-
-	bool validSettings = allPartitionsValid && fileList.length() > 0;
-
-	startFlashButton->setEnabled(validSettings);
-
-	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), validSettings);
-}
-
-void MainWindow::UpdateBuildPackageButton(void)
-{
-	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
-
-	if (firmwareInfo.GetName().isEmpty() || firmwareInfo.GetVersion().isEmpty() || firmwareInfo.GetPlatformInfo().GetName().isEmpty()
-		|| firmwareInfo.GetPlatformInfo().GetVersion().isEmpty() || firmwareInfo.GetDevelopers().isEmpty() || firmwareInfo.GetDeviceInfos().isEmpty())
-	{
-		buildPackageButton->setEnabled(false);
-	}
-	else
-	{
-		buildPackageButton->setEnabled(true);
-	}
+	UpdateFlashInterfaceAvailability();
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -388,15 +468,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	// Utilities Tab
 	QObject::connect(detectDeviceButton, SIGNAL(clicked()), this, SLOT(DetectDevice()));
+
 	QObject::connect(closePcScreenButton, SIGNAL(clicked()), this, SLOT(ClosePcScreen()));
+
+	QObject::connect(printPitDeviceRadioBox, SIGNAL(toggled(bool)), this, SLOT(DevicePrintPitToggled(bool)));
+	QObject::connect(printPitLocalFileRadioBox, SIGNAL(toggled(bool)), this, SLOT(LocalFilePrintPitToggled(bool)));
+	QObject::connect(printLocalPitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPrintPitFile()));
 	QObject::connect(printPitButton, SIGNAL(clicked()), this, SLOT(PrintPit()));
+
 	QObject::connect(pitSaveAsButton, SIGNAL(clicked()), this, SLOT(SelectPitDestination()));
 	QObject::connect(downloadPitButton, SIGNAL(clicked()), this, SLOT(DownloadPit()));
 
 	// Heimdall Command Line
-	QObject::connect(&process, SIGNAL(readyRead()), this, SLOT(HandleHeimdallStdout()));
-	QObject::connect(&process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(HandleHeimdallReturned(int, QProcess::ExitStatus)));
-	QObject::connect(&process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(HandleHeimdallError(QProcess::ProcessError)));
+	QObject::connect(&heimdallProcess, SIGNAL(readyRead()), this, SLOT(HandleHeimdallStdout()));
+	QObject::connect(&heimdallProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(HandleHeimdallReturned(int, QProcess::ExitStatus)));
+	QObject::connect(&heimdallProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(HandleHeimdallError(QProcess::ProcessError)));
 }
 
 MainWindow::~MainWindow()
@@ -429,7 +515,7 @@ void MainWindow::SelectFirmwarePackage(void)
 	loadedPackageData.Clear();
 	UpdatePackageUserInterface();
 
-	QString path = PromptFileSelection();
+	QString path = PromptFileSelection("Select Package", "*.tar.gz");
 	firmwarePackageLineEdit->setText(path);
 
 	if (firmwarePackageLineEdit->text() != "")
@@ -458,7 +544,6 @@ void MainWindow::LoadFirmwarePackage(void)
 	workingPackageData.Clear();
 	currentPitData.Clear();
 	
-	// Make flashSettings responsible for the temporary files
 	workingPackageData.GetFiles().append(loadedPackageData.GetFiles());
 	loadedPackageData.RemoveAllFiles();
 
@@ -575,10 +660,18 @@ void MainWindow::SelectPartitionName(int index)
 		unusedPartitionIds.append(fileInfo.GetPartitionId());
 		fileInfo.SetPartitionId(newPartitionIndex);
 
+		PitEntry *pitEntry = currentPitData.FindEntry(newPartitionIndex);
+
+		QString title("File");
+
+		if (pitEntry && strlen(pitEntry->GetFlashFilename()) > 0)
+			title += " (" + QString(pitEntry->GetFlashFilename()) + ")";
+
+		partitionFileGroup->setTitle(title);
+
 		if (!fileInfo.GetFilename().isEmpty())
 		{
-			PitEntry *pitEntry = currentPitData.FindEntry(newPartitionIndex);
-			QString partitionFilename = pitEntry->GetFilename();
+			QString partitionFilename = pitEntry->GetFlashFilename();
 			int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
 
 			if (lastPeriod >= 0)
@@ -610,7 +703,7 @@ void MainWindow::SelectPartitionFile(void)
 		FileInfo& fileInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
 		PitEntry *pitEntry = currentPitData.FindEntry(fileInfo.GetPartitionId());
 
-		QString partitionFilename = pitEntry->GetFilename();
+		QString partitionFilename = pitEntry->GetFlashFilename();
 		int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
 
 		if (lastPeriod >= 0)
@@ -648,6 +741,15 @@ void MainWindow::SelectPartition(int row)
 		partitionFileBrowseButton->setEnabled(true);
 
 		removePartitionButton->setEnabled(true);
+
+		QString title("File");
+
+		PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo.GetPartitionId());
+
+		if (pitEntry && strlen(pitEntry->GetFlashFilename()) > 0)
+			title += " (" + QString(pitEntry->GetFlashFilename()) + ")";
+
+		partitionFileGroup->setTitle(title);
 	}
 	else
 	{
@@ -658,6 +760,8 @@ void MainWindow::SelectPartition(int row)
 		partitionFileBrowseButton->setEnabled(false);
 
 		removePartitionButton->setEnabled(false);
+
+		partitionFileGroup->setTitle("File");
 	}
 }
 
@@ -673,6 +777,7 @@ void MainWindow::AddPartition(void)
 	partitionsListWidget->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
 	partitionsListWidget->setCurrentRow(partitionsListWidget->count() - 1);
 	partitionsListWidget->setEnabled(false);
+
 	UpdateInterfaceAvailability();
 }
 
@@ -693,7 +798,7 @@ void MainWindow::RemovePartition(void)
 
 void MainWindow::SelectPit(void)
 {
-	QString path = PromptFileSelection();
+	QString path = PromptFileSelection("Select PIT", "*.pit");
 	bool validPit = path != "";
 
 	if (validPit)
@@ -723,7 +828,7 @@ void MainWindow::SelectPit(void)
 				
 				if (pitEntry)
 				{
-					fileInfos[partitionInfoIndex++].SetPartitionId(pitEntry->GetPartitionIdentifier());
+					fileInfos[partitionInfoIndex++].SetPartitionId(pitEntry->GetIdentifier());
 					partitionsListWidget->addItem(pitEntry->GetPartitionName());
 				}
 				else
@@ -828,25 +933,25 @@ void MainWindow::StartFlash(void)
 void MainWindow::FirmwareNameChanged(const QString& text)
 {
 	workingPackageData.GetFirmwareInfo().SetName(text);
-	UpdateBuildPackageButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::FirmwareVersionChanged(const QString& text)
 {
 	workingPackageData.GetFirmwareInfo().SetVersion(text);
-	UpdateBuildPackageButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::PlatformNameChanged(const QString& text)
 {
 	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetName(text);
-	UpdateBuildPackageButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::PlatformVersionChanged(const QString& text)
 {
 	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetVersion(text);
-	UpdateBuildPackageButton();
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::HomepageUrlChanged(const QString& text)
@@ -861,18 +966,16 @@ void MainWindow::DonateUrlChanged(const QString& text)
 
 void MainWindow::DeveloperNameChanged(const QString& text)
 {
-	if (text.isEmpty())
-		addDeveloperButton->setEnabled(false);
-	else
-		addDeveloperButton->setEnabled(true);
+	UNUSED(text);
+
+	UpdateCreatePackageInterfaceAvailability();
 }
 
 void MainWindow::SelectDeveloper(int row)
 {
-	if (row >= 0)
-		removeDeveloperButton->setEnabled(true);
-	else
-		removeDeveloperButton->setEnabled(false);
+	UNUSED(row);
+
+	UpdateCreatePackageInterfaceAvailability();
 }
 
 void MainWindow::AddDeveloper(void)
@@ -881,8 +984,8 @@ void MainWindow::AddDeveloper(void)
 
 	createDevelopersListWidget->addItem(createDeveloperNameLineEdit->text());
 	createDeveloperNameLineEdit->clear();
-
-	UpdateBuildPackageButton();
+	
+	UpdateCreatePackageInterfaceAvailability();
 }
 
 void MainWindow::RemoveDeveloper(void)
@@ -894,12 +997,14 @@ void MainWindow::RemoveDeveloper(void)
 	delete item;
 
 	removeDeveloperButton->setEnabled(false);
-
-	UpdateBuildPackageButton();
+	
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::DeviceInfoChanged(const QString& text)
 {
+	UNUSED(text);
+
 	if (deviceManufacturerLineEdit->text().isEmpty() || deviceNameLineEdit->text().isEmpty() || deviceProductCodeLineEdit->text().isEmpty())
 		addDeviceButton->setEnabled(false);
 	else
@@ -923,8 +1028,8 @@ void MainWindow::AddDevice(void)
 	deviceManufacturerLineEdit->clear();
 	deviceNameLineEdit->clear();
 	deviceProductCodeLineEdit->clear();
-
-	UpdateBuildPackageButton();
+	
+	UpdateInterfaceAvailability();
 }
 
 void MainWindow::RemoveDevice(void)
@@ -936,13 +1041,13 @@ void MainWindow::RemoveDevice(void)
 	delete item;
 
 	removeDeviceButton->setEnabled(false);
-
-	UpdateBuildPackageButton();
+	
+	UpdateInterfaceAvailability();
 }
 			
 void MainWindow::BuildPackage(void)
 {
-	QString packagePath = PromptFileCreation();
+	QString packagePath = PromptFileCreation("Save Package", "*.tar.gz");
 
 	if (!packagePath.isEmpty())
 	{
@@ -995,7 +1100,7 @@ void MainWindow::ClosePcScreen(void)
 
 void MainWindow::SelectPitDestination(void)
 {
-	QString path = PromptFileCreation();
+	QString path = PromptFileCreation("Save PIT", "*.pit");
 
 	if (path != "")
 	{
@@ -1029,6 +1134,41 @@ void MainWindow::DownloadPit(void)
 	StartHeimdall(arguments);
 }
 
+void MainWindow::DevicePrintPitToggled(bool checked)
+{
+	if (checked)
+	{
+		if (printPitLocalFileRadioBox->isChecked())
+			printPitLocalFileRadioBox->setChecked(false);
+	}
+
+	UpdateUtilitiesInterfaceAvailability();
+}
+
+void MainWindow::LocalFilePrintPitToggled(bool checked)
+{
+	if (checked)
+	{
+		if (printPitDeviceRadioBox->isChecked())
+			printPitDeviceRadioBox->setChecked(false);
+	}
+
+	UpdateUtilitiesInterfaceAvailability();
+}
+
+void MainWindow::SelectPrintPitFile(void)
+{
+	QString path = PromptFileSelection("Select PIT", "*.pit");
+
+	if (path != "")
+		printLocalPitLineEdit->setText(path);
+
+	if (printLocalPitLineEdit->text() != "")
+		printPitButton->setEnabled(true);
+	else
+		printPitButton->setEnabled(false);
+}
+
 void MainWindow::PrintPit(void)
 {
 	utilityOutputPlainTextEdit->clear();
@@ -1039,14 +1179,21 @@ void MainWindow::PrintPit(void)
 	QStringList arguments;
 	arguments.append("print-pit");
 
+	if (printPitLocalFileRadioBox->isChecked())
+	{
+		arguments.append("--file");
+		arguments.append(printLocalPitLineEdit->text());
+	}
+
 	arguments.append("--stdout-errors");
+	arguments.append("--no-reboot");
 
 	StartHeimdall(arguments);
 }
 
 void MainWindow::HandleHeimdallStdout(void)
 {
-	QString output = process.readAll();
+	QString output = heimdallProcess.readAll();
 
 	// We often receive multiple lots of output from Heimdall at one time. So we use regular expressions
 	// to ensure we don't miss out on any important information.
@@ -1078,29 +1225,22 @@ void MainWindow::HandleHeimdallStdout(void)
 
 void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus)
 {
-	// This is a work-around for strange issues as a result of a exitCode being cast to
-	// a unsigned char.
-	char byteExitCode = exitCode;
-
-	if (exitStatus == QProcess::NormalExit && byteExitCode >= 0)
+	if (exitStatus == QProcess::NormalExit && exitCode == 0)
 	{
 		if (heimdallState == MainWindow::kHeimdallStateFlashing)
 		{
-			if (byteExitCode == 1)
-				flashLabel->setText("Failed to detect compatible device!");
-			else
-				flashLabel->setText("Flash completed sucessfully!");
+			flashLabel->setText("Flash completed successfully!");
 		}
 		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
 		{
-			deviceDetectedRadioButton->setChecked(byteExitCode == 0);
+			deviceDetectedRadioButton->setChecked(true);
 		}
 	}
 	else
 	{
 		if (heimdallState == MainWindow::kHeimdallStateFlashing)
 		{
-			QString error = process.readAllStandardError();
+			QString error = heimdallProcess.readAllStandardError();
 
 			int lastNewLineChar = error.lastIndexOf('\n');
 
@@ -1110,6 +1250,10 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 				error = error.left(lastNewLineChar).remove("ERROR: ");
 
 			flashLabel->setText(error);
+		}
+		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		{
+			deviceDetectedRadioButton->setChecked(false);
 		}
 	}
 

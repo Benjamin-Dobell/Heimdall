@@ -5,88 +5,145 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Source\Packets">
+      <UniqueIdentifier>{7022245a-f8d3-4dd6-b0f4-9cca8f9bdd69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Packets\Inbound">
+      <UniqueIdentifier>{0da20d7b-9a83-4c5b-89ea-5f312268048a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Packets\Outbound">
+      <UniqueIdentifier>{586c7149-045a-407e-82b5-56e437d71e9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Interface">
+      <UniqueIdentifier>{e334486e-629c-47ed-b8e6-daa083a1d2df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\BeginDumpPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="source\BridgeManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\ControlPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\DumpPartFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\DumpPartPitFilePacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\DumpResponse.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\EndFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\EndModemFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\EndPhoneFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FlashPartFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FlashPartPitFilePacket.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="source\Heimdall.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\InboundPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\OutboundPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="source\Packet.h">
-      <Filter>Source</Filter>
+      <Filter>Source\Packets</Filter>
     </ClInclude>
-    <ClInclude Include="source\PitFilePacket.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\BeginDumpPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\PitFileResponse.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\BeginSessionPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\ReceiveFilePartPacket.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\ControlPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\ResponsePacket.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\DeviceTypePacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\SendFilePartPacket.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\DumpPartFileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\SendFilePartResponse.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\DumpPartPitFilePacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
-    <ClInclude Include="source\Interface.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="source\EndFileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndModemFileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\EndPhoneFileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
     <ClInclude Include="source\EndPitFileTransferPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\SetupSessionPacket.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\SetupSessionResponse.h">
-      <Filter>Source</Filter>
+      <Filter>Source\Packets\Outbound</Filter>
     </ClInclude>
     <ClInclude Include="source\EndSessionPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FilePartSizePacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FlashPartFileTransferPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FlashPartPitFilePacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PitFilePacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SendFilePartPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SessionSetupPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\TotalBytesPacket.h">
+      <Filter>Source\Packets\Outbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DumpResponse.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PitFileResponse.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SendFilePartResponse.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SessionSetupResponse.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ReceiveFilePartPacket.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ResponsePacket.h">
+      <Filter>Source\Packets\Inbound</Filter>
+    </ClInclude>
+    <ClInclude Include="source\InboundPacket.h">
+      <Filter>Source\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="source\OutboundPacket.h">
+      <Filter>Source\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Interface.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Arguments.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PrintPitAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DownloadPitAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ClosePcScreenAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FlashAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utility.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DumpAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DetectAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\InfoAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\HelpAction.h">
+      <Filter>Source\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="source\VersionAction.h">
+      <Filter>Source\Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -97,7 +154,40 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="source\Interface.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Arguments.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\PrintPitAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DownloadPitAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ClosePcScreenAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FlashAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utility.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DumpAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DetectAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\InfoAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\HelpAction.cpp">
+      <Filter>Source\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\VersionAction.cpp">
+      <Filter>Source\Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
