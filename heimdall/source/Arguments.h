@@ -133,7 +133,7 @@ namespace Heimdall
 		public:
 
 			Arguments(const map<string, ArgumentType>& argumentTypes, const map<string, string>& shortArgumentAliases = (map<string, string>()),
-				const map<string, string> argumentAliases = (map<string, string>()));
+				const map<string, string>& argumentAliases = (map<string, string>()));
 			
 			~Arguments();
 

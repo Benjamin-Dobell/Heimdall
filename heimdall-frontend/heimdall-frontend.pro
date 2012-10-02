@@ -6,14 +6,43 @@ TEMPLATE = app
 TARGET = heimdall-frontend
 
 macx {
-	PRIVATE_FRAMEWORKS.files = /Library/Frameworks/QtCore.framework \
-		/Library/Frameworks/QtGui.framework /Library/Frameworks/QtXml.framework
+	message("")
+
+	QT_FRAMEWORKS_DIR = $$(QT_FRAMEWORKS_DIR)
+	isEmpty(QT_FRAMEWORKS_DIR) {
+		message("QT_FRAMEWORKS_DIR not specified, using default:")
+		QT_FRAMEWORKS_DIR = /System/Library/Frameworks
+	}
+
+	message("QT_FRAMEWORKS_DIR = $$QT_FRAMEWORKS_DIR")
+	message("")
+
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = $$(QMAKE_MACOSX_DEPLOYMENT_TARGET)
+	isEmpty(QMAKE_MACOSX_DEPLOYMENT_TARGET) {
+		message("QMAKE_MACOSX_DEPLOYMENT_TARGET not specified, using default:")
+		QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
+	}
+
+	message("QMAKE_MACOSX_DEPLOYMENT_TARGET = $$QMAKE_MACOSX_DEPLOYMENT_TARGET")
+	message("")
+
+	QMAKE_MAC_SDK = $$(QMAKE_MAC_SDK)
+	isEmpty(QMAKE_MAC_SDK) {
+		message("QMAKE_MAC_SDK not specified, using default:")
+		QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.4.sdk
+	}
+
+	message("QMAKE_MAC_SDK = $$QMAKE_MAC_SDK")
+	message("")
+
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = $$MACOSX_DEPLOYMENT_TARGET
+	QMAKE_MAC_SDK = $$MAC_SDK
+
+	PRIVATE_FRAMEWORKS.files = $$(QTFRAMEWORKSDIR)/QtCore.framework \
+		$$(QTFRAMEWORKSDIR)//QtGui.framework $$(QTFRAMEWORKSDIR)/QtXml.framework
 	PRIVATE_FRAMEWORKS.path = Contents/Frameworks
 
 	QMAKE_BUNDLE_DATA += PRIVATE_FRAMEWORKS
-
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
-	QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
 
 	config += x86 x86_64 ppc
 
