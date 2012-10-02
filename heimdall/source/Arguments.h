@@ -132,8 +132,9 @@ namespace Heimdall
 
 		public:
 
-			Arguments(const map<string, ArgumentType>& argumentTypes, const map<string, string>& shortArgumentAliases = map<string, string>(),
-				const map<string, string> argumentAliases = map<string, string>());
+			Arguments(const map<string, ArgumentType>& argumentTypes, const map<string, string>& shortArgumentAliases = (map<string, string>()),
+				const map<string, string> argumentAliases = (map<string, string>()));
+			
 			~Arguments();
 
 			// argi is the index of the first argument to parse.
