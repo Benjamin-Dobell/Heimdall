@@ -72,7 +72,7 @@ UnsignedIntegerArgument *UnsignedIntegerArgument::ParseArgument(int argc, char *
 
 
 Arguments::Arguments(const map<string, ArgumentType>& argumentTypes, const map<string, string>& shortArgumentAliases,
-	const map<string, string> argumentAliases) :
+	const map<string, string>& argumentAliases) :
 		argumentTypes(argumentTypes),
 		shortArgumentAliases(shortArgumentAliases),
 		argumentAliases(argumentAliases)
