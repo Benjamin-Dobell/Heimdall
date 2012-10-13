@@ -1078,6 +1078,9 @@ void MainWindow::DetectDevice(void)
 	QStringList arguments;
 	arguments.append("detect");
 
+	if (verboseOutput)
+		arguments.append("--verbose");
+
 	arguments.append("--stdout-errors");
 
 	StartHeimdall(arguments);
@@ -1092,6 +1095,9 @@ void MainWindow::ClosePcScreen(void)
 	
 	QStringList arguments;
 	arguments.append("close-pc-screen");
+
+	if (verboseOutput)
+		arguments.append("--verbose");
 
 	arguments.append("--stdout-errors");
 
@@ -1128,6 +1134,9 @@ void MainWindow::DownloadPit(void)
 	arguments.append(pitDestinationLineEdit->text());
 
 	arguments.append("--no-reboot");
+
+	if (verboseOutput)
+		arguments.append("--verbose");
 
 	arguments.append("--stdout-errors");
 
@@ -1187,6 +1196,9 @@ void MainWindow::PrintPit(void)
 
 	arguments.append("--stdout-errors");
 	arguments.append("--no-reboot");
+
+	if (verboseOutput)
+		arguments.append("--verbose");
 
 	StartHeimdall(arguments);
 }
