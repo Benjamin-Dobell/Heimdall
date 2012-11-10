@@ -638,6 +638,9 @@ bool BridgeManager::BeginSession(void)
 				
 				fileTransferSequenceMaxLength = 30;
 				fileTransferSequenceTimeout = 120000; // 2 minutes!
+#if 0
+// This may be correct for the SGH-I727, but it appears to not be correct
+// for the SGH-T989.
 				fileTransferPacketSize = 1048576; // 1 MiB
 
 				FilePartSizePacket filePartSizePacket(fileTransferPacketSize); // 1 MiB
@@ -658,6 +661,7 @@ bool BridgeManager::BeginSession(void)
 					Interface::PrintError("Unexpected file part size response!\nExpected: 0\nReceived: %d\n", filePartSizeResponse.GetResult());
 					return (false);
 				}
+#endif
 			}
 
 			return (true);
