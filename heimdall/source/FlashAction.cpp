@@ -514,7 +514,7 @@ int FlashAction::Execute(int argc, char **argv)
 
 	map<string, ArgumentType> argumentTypes;
 
-	argumentTypes["repartition"] = kArgumentTypeString;
+	argumentTypes["repartition"] = kArgumentTypeFlag;
 
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
