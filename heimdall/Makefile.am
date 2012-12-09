@@ -16,6 +16,7 @@ heimdall_SOURCES = source/Arguments.cpp \
 	source/Interface.cpp \
 	source/main.cpp \
 	source/PrintPitAction.cpp \
+	source/RebootAction.cpp \
 	source/Utility.cpp \
 	source/VersionAction.cpp
 
