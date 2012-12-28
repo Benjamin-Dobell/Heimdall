@@ -84,7 +84,7 @@ static void buildArgumentPartitionNamesMap(map< string, vector<string> >& argume
 	argumentPartitionNamesMap["dbdata"].push_back("DBDATAFS");
 
 	argumentPartitionNamesMap["primary-boot"].push_back("IBL+PBL");
-	argumentPartitionNamesMap["primary-boot"].push_back("BOOT");
+	argumentPartitionNamesMap["primary-boot"].push_back("BOOTLOADER");
 
 	argumentPartitionNamesMap["secondary-boot"].push_back("SBL");
 	argumentPartitionNamesMap["secondary-boot"].push_back("SBL1");
@@ -92,6 +92,7 @@ static void buildArgumentPartitionNamesMap(map< string, vector<string> >& argume
 	argumentPartitionNamesMap["secondary-boot-backup"].push_back("SBL2");
 	argumentPartitionNamesMap["param"].push_back("PARAM");
 	argumentPartitionNamesMap["kernel"].push_back("KERNEL");
+        argumentPartitionNamesMap["kernel"].push_back("BOOT");
 	argumentPartitionNamesMap["recovery"].push_back("RECOVERY");
 	argumentPartitionNamesMap["efs"].push_back("EFS");
 	argumentPartitionNamesMap["modem"].push_back("MODEM");
