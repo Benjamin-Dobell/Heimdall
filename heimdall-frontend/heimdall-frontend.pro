@@ -49,7 +49,7 @@ macx {
 	isEmpty(OUTPUTDIR) {
 		DESTDIR = /Applications
 	} else {
-		DESTDIR = $$(OUTPUTDIR)
+		DESTDIR = $$OUTPUTDIR
 	}
 
 } else {
@@ -57,7 +57,7 @@ macx {
 		DESTDIR = ../Win32
 
 		!isEmpty(OUTPUTDIR) {
-			target.path = $$(OUTPUTDIR)
+			target.path = $$OUTPUTDIR
 			INSTALLS += target
 		}
 	} else {
@@ -66,7 +66,7 @@ macx {
 		isEmpty(OUTPUTDIR) {
 			target.path = /usr/local/bin
 		} else {
-			target.path = $$(OUTPUTDIR)
+			target.path = $$OUTPUTDIR
 		}
 
 		INSTALLS += target
