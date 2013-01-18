@@ -444,21 +444,32 @@ static PitData *getPitData(const map<string, FILE *>& argumentFileMap, BridgeMan
 		FILE *localPitFile = localPitFileIt->second;
 
 		// Load the local pit file into memory.
-		unsigned char *pitFileBuffer = new unsigned char[4096];
-		memset(pitFileBuffer, 0, 4096);
-
 		fseek(localPitFile, 0, SEEK_END);
 		long localPitFileSize = ftell(localPitFile);
 		rewind(localPitFile);
 
+		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
+		memset(pitFileBuffer, 0, localPitFileSize);
+
 		// dataRead is discarded, it's here to remove warnings.
 		int dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile);
-		rewind(localPitFile);
 
-		localPitData = new PitData();
-		localPitData->Unpack(pitFileBuffer);
+		if (dataRead > 0)
+		{
+			rewind(localPitFile);
 
-		delete [] pitFileBuffer;
+			localPitData = new PitData();
+			localPitData->Unpack(pitFileBuffer);
+
+			delete [] pitFileBuffer;
+		}
+		else
+		{
+			Interface::PrintError("Failed to read PIT file.\n");
+
+			delete [] pitFileBuffer;
+			return (nullptr);
+		}
 	}
 
 	if (repartition)
@@ -503,7 +514,7 @@ int FlashAction::Execute(int argc, char **argv)
 
 	map<string, ArgumentType> argumentTypes;
 
-	argumentTypes["repartition"] = kArgumentTypeString;
+	argumentTypes["repartition"] = kArgumentTypeFlag;
 
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
