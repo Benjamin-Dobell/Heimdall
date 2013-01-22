@@ -53,7 +53,7 @@ namespace Heimdall
 
 			enum
 			{
-				kSupportedDeviceCount = 3,
+				kSupportedDeviceCount = 4
 			};
 
 			enum
@@ -77,7 +77,8 @@ namespace Heimdall
 			{
 				kPidGalaxyS		    = 0x6601,
 				kPidGalaxyS2        = 0x685D,
-				kPidDroidCharge     = 0x68C3
+				kPidDroidCharge     = 0x68C3,
+				kPidGalaxyCamera    = 0x6860 // Is this necessary?
 			};
 
 		private:
