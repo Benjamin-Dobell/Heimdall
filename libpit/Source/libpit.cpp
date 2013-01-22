@@ -30,7 +30,7 @@ PitEntry::PitEntry()
 	identifier = 0;
 	attributes = 0;
 	updateAttributes = 0;
-	blockSize = 0;
+	blockSizeOrOffset = 0;
 	blockCount = 0;
 	fileOffset = 0;
 	fileSize = 0;
@@ -47,7 +47,7 @@ PitEntry::~PitEntry()
 bool PitEntry::Matches(const PitEntry *otherPitEntry) const
 {
 	if (binaryType == otherPitEntry->binaryType && deviceType == otherPitEntry->deviceType && identifier == otherPitEntry->identifier
-		&& attributes == otherPitEntry->attributes && updateAttributes == otherPitEntry->updateAttributes && blockSize == otherPitEntry->blockSize
+		&& attributes == otherPitEntry->attributes && updateAttributes == otherPitEntry->updateAttributes && blockSizeOrOffset == otherPitEntry->blockSizeOrOffset
 		&& blockCount == otherPitEntry->blockCount && fileOffset == otherPitEntry->fileOffset && fileSize == otherPitEntry->fileSize
 		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(flashFilename, otherPitEntry->flashFilename) == 0
 		&& strcmp(fotaFilename, otherPitEntry->fotaFilename) == 0)
@@ -135,7 +135,7 @@ bool PitData::Unpack(const unsigned char *data)
 		entries[i]->SetUpdateAttributes(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 20);
-		entries[i]->SetBlockSize(integerValue);
+		entries[i]->SetBlockSizeOrOffset(integerValue);
 
 		integerValue = PitData::UnpackInteger(data, entryOffset + 24);
 		entries[i]->SetBlockCount(integerValue);
@@ -186,7 +186,7 @@ void PitData::Pack(unsigned char *data) const
 
 		PitData::PackInteger(data, entryOffset + 16, entries[i]->GetUpdateAttributes());
 
-		PitData::PackInteger(data, entryOffset + 20, entries[i]->GetBlockSize());
+		PitData::PackInteger(data, entryOffset + 20, entries[i]->GetBlockSizeOrOffset());
 		PitData::PackInteger(data, entryOffset + 24, entries[i]->GetBlockCount());
 
 		PitData::PackInteger(data, entryOffset + 28, entries[i]->GetFileOffset());

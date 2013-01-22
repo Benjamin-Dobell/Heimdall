@@ -591,14 +591,40 @@ bool BridgeManager::BeginSession(void)
 	if (!ReceivePacket(&beginSessionResponse))
 		return (false);
 
-	unsigned int result = beginSessionResponse.GetResult();
+	unsigned int deviceDefaultPacketSize = beginSessionResponse.GetResult();
 
-	if (result != 0) // Assume 0 means don't care, otherwise use the response as the fileTransferPacketSize.
-		fileTransferPacketSize = result;
+	if (deviceDefaultPacketSize != 0) // 0 means changing the packet size is not supported.
+	{
+		Interface::Print("\nThis device may take up to 2 minutes to respond.\nPlease be patient!\n\n");
+		Sleep(2000); // Give the user time to read the message.
+
+		fileTransferSequenceTimeout = 120000; // 2 minutes!
+		fileTransferPacketSize = 1048576; // 1 MiB
+		fileTransferSequenceMaxLength = 100; // 100 MiB per sequence. Which is the same as the default of 800 * 131072.
+
+		FilePartSizePacket filePartSizePacket(fileTransferPacketSize);
+
+		if (!SendPacket(&filePartSizePacket))
+		{
+			Interface::PrintError("Failed to send file part size packet!\n");
+			return (false);
+		}
+
+		SessionSetupResponse filePartSizeResponse;
+
+		if (!ReceivePacket(&filePartSizeResponse))
+			return (false);
+
+		if (filePartSizeResponse.GetResult() != 0)
+		{
+			Interface::PrintError("Unexpected file part size response!\nExpected: 0\nReceived: %d\n", filePartSizeResponse.GetResult());
+			return (false);
+		}
+	}
 
 	// -------------------- KIES DOESN'T DO THIS --------------------
 
-	DeviceTypePacket deviceTypePacket;
+	/*DeviceTypePacket deviceTypePacket;
 
 	if (!SendPacket(&deviceTypePacket))
 	{
@@ -626,39 +652,7 @@ bool BridgeManager::BeginSession(void)
 			if (verbose)
 				Interface::Print("Session begun with device of type: %d.\n\n", deviceType);
 			else
-				Interface::Print("Session begun.\n\n", deviceType);
-
-			if (deviceType == 30)
-			{
-				Interface::Print("In certain situations this device may take up to 2 minutes to respond.\nPlease be patient!\n\n", deviceType);
-				Sleep(2000); // Give the user time to read the message.
-
-				// The SGH-I727 is very unstable/unreliable using the default settings. Flashing
-				// seems to be much more reliable using the following setup.
-				
-				fileTransferSequenceMaxLength = 30;
-				fileTransferSequenceTimeout = 120000; // 2 minutes!
-				fileTransferPacketSize = 1048576; // 1 MiB
-
-				FilePartSizePacket filePartSizePacket(fileTransferPacketSize); // 1 MiB
-
-				if (!SendPacket(&filePartSizePacket))
-				{
-					Interface::PrintError("Failed to send file part size packet!\n");
-					return (false);
-				}
-
-				SessionSetupResponse filePartSizeResponse;
-
-				if (!ReceivePacket(&filePartSizeResponse))
-					return (false);
-
-				if (filePartSizeResponse.GetResult() != 0)
-				{
-					Interface::PrintError("Unexpected file part size response!\nExpected: 0\nReceived: %d\n", filePartSizeResponse.GetResult());
-					return (false);
-				}
-			}
+				Interface::Print("Session begun.\n\n");
 
 			return (true);
 
@@ -666,7 +660,10 @@ bool BridgeManager::BeginSession(void)
 
 			Interface::PrintError("Unexpected device info response!\nExpected: 0, 3, 30, 180 or 190\nReceived:%d\n", deviceType);
 			return (false);
-	}
+	}*/
+
+	Interface::Print("Session begun.\n\n");
+	return (true);
 }
 
 bool BridgeManager::EndSession(bool reboot) const

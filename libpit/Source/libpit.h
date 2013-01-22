@@ -25,12 +25,8 @@
 #pragma warning(disable : 4996)
 #endif
 
-#ifndef nullptr
-#define nullptr 0
-#endif
-
-// C Standard Library
-#include <string.h>
+// C/C++ Standard Library
+#include <string>
 #include <vector>
 
 namespace libpit
@@ -81,7 +77,7 @@ namespace libpit
 			unsigned int attributes;
 			unsigned int updateAttributes;
 
-			unsigned int blockSize;
+			unsigned int blockSizeOrOffset;
 			unsigned int blockCount;
 
 			unsigned int fileOffset; // Obsolete
@@ -147,15 +143,16 @@ namespace libpit
 			{
 				this->updateAttributes = updateAttributes;
 			}
-
-			unsigned int GetBlockSize(void) const
+			
+			// Different versions of Loke (secondary bootloaders) on different devices intepret this differently.
+			unsigned int GetBlockSizeOrOffset(void) const
 			{
-				return blockSize;
+				return blockSizeOrOffset;
 			}
 
-			void SetBlockSize(unsigned int blockSize)
+			void SetBlockSizeOrOffset(unsigned int blockSizeOrOffset)
 			{
-				this->blockSize = blockSize;
+				this->blockSizeOrOffset = blockSizeOrOffset;
 			}
 
 			unsigned int GetBlockCount(void) const
@@ -253,8 +250,8 @@ namespace libpit
 			unsigned int unknown1;   // 0x08
 			unsigned int unknown2;   // 0x0C
 
-			unsigned short unknown3; // 0x10 (7508 = I9000, 7703 = I9100 & P1000)?
-			unsigned short unknown4; // 0x12 (Always 65, probably attributes of some sort)
+			unsigned short unknown3; // 0x10
+			unsigned short unknown4; // 0x12
 
 			unsigned short unknown5; // 0x14
 			unsigned short unknown6; // 0x16

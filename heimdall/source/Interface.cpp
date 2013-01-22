@@ -299,7 +299,7 @@ void Interface::PrintPit(const PitData *pitData)
 			Interface::Print("\n");
 		}
 
-		Interface::Print("Partition Block Size: %d\n", entry->GetBlockSize());
+		Interface::Print("Partition Block Size/Offset: %d\n", entry->GetBlockSizeOrOffset());
 		Interface::Print("Partition Block Count: %d\n", entry->GetBlockCount());
 
 		Interface::Print("File Offset (Obsolete): %d\n", entry->GetFileOffset());
