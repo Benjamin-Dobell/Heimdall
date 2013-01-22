@@ -22,8 +22,10 @@
 #define HEIMDALL_H
 
 #ifdef OS_WINDOWS
+
 #include <Windows.h>
 #undef GetBinaryType
+
 #else
 
 #include "../config.h"
@@ -33,6 +35,14 @@
 #define Sleep(t) usleep(1000*t)
 #else
 #error operating system not supported
+#endif
+
+#endif
+
+#if (!(defined _MSC_VER) || (_MSC_VER < 1700))
+
+#ifndef nullptr
+#define nullptr 0
 #endif
 
 #endif

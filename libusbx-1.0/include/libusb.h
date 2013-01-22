@@ -1,7 +1,9 @@
 /*
- * Public libusb header file
- * Copyright (C) 2007-2008 Daniel Drake <dsd@gentoo.org>
- * Copyright (c) 2001 Johannes Erdfelt <johannes@erdfelt.com>
+ * Public libusbx header file
+ * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
+ * Copyright © 2007-2008 Daniel Drake <dsd@gentoo.org>
+ * Copyright © 2012 Pete Batard <pete@akeo.ie>
+ * For more information, please visit: http://libusbx.org
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,12 +20,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __LIBUSB_H__
-#define __LIBUSB_H__
+#ifndef LIBUSB_H
+#define LIBUSB_H
 
 #ifdef _MSC_VER
 /* on MS environments, the inline keyword is available in C++ only */
+#if !defined(__cplusplus)
 #define inline __inline
+#endif
 /* ssize_t is also not available (copy/paste from MinGW) */
 #ifndef _SSIZE_T_DEFINED
 #define _SSIZE_T_DEFINED
@@ -40,6 +44,7 @@
 #if defined(_MSC_VER) && (_MSC_VER < 1600) && (!defined(_STDINT)) && (!defined(_STDINT_H))
 typedef unsigned __int8   uint8_t;
 typedef unsigned __int16  uint16_t;
+typedef unsigned __int32  uint32_t;
 #else
 #include <stdint.h>
 #endif
@@ -53,7 +58,7 @@ typedef unsigned __int16  uint16_t;
 #endif
 
 /* 'interface' might be defined as a macro on Windows, so we need to
- * undefine it so as not to break the current libusb API, because
+ * undefine it so as not to break the current libusbx API, because
  * libusb_config_descriptor has an 'interface' member
  * As this can be problematic if you include windows.h after libusb.h
  * in your sources, we force windows.h to be included first. */
@@ -66,14 +71,14 @@ typedef unsigned __int16  uint16_t;
 
 /** \def LIBUSB_CALL
  * \ingroup misc
- * libusb's Windows calling convention.
+ * libusbx's Windows calling convention.
  *
  * Under Windows, the selection of available compilers and configurations
  * means that, unlike other platforms, there is not <em>one true calling
  * convention</em> (calling convention: the manner in which parameters are
  * passed to funcions in the generated assembly code).
  *
- * Matching the Windows API itself, libusb uses the WINAPI convention (which
+ * Matching the Windows API itself, libusbx uses the WINAPI convention (which
  * translates to the <tt>stdcall</tt> convention) and guarantees that the
  * library is compiled in this way. The public header file also includes
  * appropriate annotations so that your own software will use the right
@@ -81,7 +86,7 @@ typedef unsigned __int16  uint16_t;
  * your codebase.
  *
  * The one consideration that you must apply in your software is to mark
- * all functions which you use as libusb callbacks with this LIBUSB_CALL
+ * all functions which you use as libusbx callbacks with this LIBUSB_CALL
  * annotation, so that they too get compiled for the correct calling
  * convention.
  *
@@ -89,18 +94,43 @@ typedef unsigned __int16  uint16_t;
  * means that you can apply it to your code without worrying about
  * cross-platform compatibility.
  */
-/* LIBUSB_CALL must be defined on both definition and declaration of libusb
+/* LIBUSB_CALL must be defined on both definition and declaration of libusbx
  * functions. You'd think that declaration would be enough, but cygwin will
  * complain about conflicting types unless both are marked this way.
  * The placement of this macro is important too; it must appear after the
  * return type, before the function name. See internal documentation for
  * API_EXPORTED.
  */
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define LIBUSB_CALL WINAPI
 #else
 #define LIBUSB_CALL
 #endif
+
+/** \def LIBUSBX_API_VERSION
+ * \ingroup misc
+ * libusbx's API version.
+ *
+ * Since version 1.0.13, to help with feature detection, libusbx defines
+ * a LIBUSBX_API_VERSION macro that gets increased every time there is a
+ * significant change to the API, such as the introduction of a new call,
+ * the definition of a new macro/enum member, or any other element that
+ * libusbx applications may want to detect at compilation time.
+ *
+ * The macro is typically used in an application as follows:
+ * \code
+ * #if defined(LIBUSBX_API_VERSION) && (LIBUSBX_API_VERSION >= 0x01001234)
+ * // Use one of the newer features from the libusbx API
+ * #endif
+ * \endcode
+ *
+ * Another feature of LIBUSBX_API_VERSION is that it can be used to detect
+ * whether you are compiling against the libusb or the libusbx library.
+ *
+ * Internally, LIBUSBX_API_VERSION is defined as follows:
+ * (libusbx major << 24) | (libusbx minor << 16) | (16 bit incremental)
+ */
+#define LIBUSBX_API_VERSION 0x010000FF
 
 #ifdef __cplusplus
 extern "C" {
@@ -227,7 +257,10 @@ enum libusb_descriptor_type {
 	LIBUSB_DT_PHYSICAL = 0x23,
 
 	/** Hub descriptor */
-	LIBUSB_DT_HUB = 0x29
+	LIBUSB_DT_HUB = 0x29,
+
+	/** SuperSpeed Hub descriptor */
+	LIBUSB_DT_SUPERSPEED_HUB = 0x2A,
 };
 
 /* Descriptor sizes per descriptor type */
@@ -274,7 +307,7 @@ enum libusb_transfer_type {
 };
 
 /** \ingroup misc
- * Standard requests, as defined in table 9-3 of the USB2 specifications */
+ * Standard requests, as defined in table 9-5 of the USB 3.0 specifications */
 enum libusb_standard_request {
 	/** Request status of the specific recipient */
 	LIBUSB_REQUEST_GET_STATUS = 0x00,
@@ -311,7 +344,14 @@ enum libusb_standard_request {
 	LIBUSB_REQUEST_SET_INTERFACE = 0x0B,
 
 	/** Set then report an endpoint's synchronization frame */
-	LIBUSB_REQUEST_SYNCH_FRAME = 0x0C
+	LIBUSB_REQUEST_SYNCH_FRAME = 0x0C,
+
+	/** Sets both the U1 and U2 Exit Latency */
+	LIBUSB_REQUEST_SET_SEL = 0x30,
+
+	/** Delay from the time a host transmits a packet to the time it is
+	  * received by the device. */
+	LIBUSB_SET_ISOCH_DELAY = 0x31,
 };
 
 /** \ingroup misc
@@ -347,7 +387,7 @@ enum libusb_request_recipient {
 	LIBUSB_RECIPIENT_ENDPOINT = 0x02,
 
 	/** Other */
-	LIBUSB_RECIPIENT_OTHER = 0x03
+	LIBUSB_RECIPIENT_OTHER = 0x03,
 };
 
 #define LIBUSB_ISO_SYNC_TYPE_MASK		0x0C
@@ -386,12 +426,12 @@ enum libusb_iso_usage_type {
 	LIBUSB_ISO_USAGE_TYPE_FEEDBACK = 1,
 
 	/** Implicit feedback Data endpoint */
-	LIBUSB_ISO_USAGE_TYPE_IMPLICIT = 2
+	LIBUSB_ISO_USAGE_TYPE_IMPLICIT = 2,
 };
 
 /** \ingroup desc
  * A structure representing the standard USB device descriptor. This
- * descriptor is documented in section 9.6.1 of the USB 2.0 specification.
+ * descriptor is documented in section 9.6.1 of the USB 3.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_device_descriptor {
@@ -445,7 +485,7 @@ struct libusb_device_descriptor {
 
 /** \ingroup desc
  * A structure representing the standard USB endpoint descriptor. This
- * descriptor is documented in section 9.6.3 of the USB 2.0 specification.
+ * descriptor is documented in section 9.6.6 of the USB 3.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_endpoint_descriptor {
@@ -485,7 +525,7 @@ struct libusb_endpoint_descriptor {
 	/** For audio devices only: the address if the synch endpoint */
 	uint8_t  bSynchAddress;
 
-	/** Extra descriptors. If libusb encounters unknown endpoint descriptors,
+	/** Extra descriptors. If libusbx encounters unknown endpoint descriptors,
 	 * it will store them here, should you wish to parse them. */
 	const unsigned char *extra;
 
@@ -495,7 +535,7 @@ struct libusb_endpoint_descriptor {
 
 /** \ingroup desc
  * A structure representing the standard USB interface descriptor. This
- * descriptor is documented in section 9.6.5 of the USB 2.0 specification.
+ * descriptor is documented in section 9.6.5 of the USB 3.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_interface_descriptor {
@@ -535,7 +575,7 @@ struct libusb_interface_descriptor {
 	 * by the bNumEndpoints field. */
 	const struct libusb_endpoint_descriptor *endpoint;
 
-	/** Extra descriptors. If libusb encounters unknown interface descriptors,
+	/** Extra descriptors. If libusbx encounters unknown interface descriptors,
 	 * it will store them here, should you wish to parse them. */
 	const unsigned char *extra;
 
@@ -557,7 +597,7 @@ struct libusb_interface {
 
 /** \ingroup desc
  * A structure representing the standard USB configuration descriptor. This
- * descriptor is documented in section 9.6.3 of the USB 2.0 specification.
+ * descriptor is documented in section 9.6.3 of the USB 3.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_config_descriptor {
@@ -593,7 +633,7 @@ struct libusb_config_descriptor {
 	 * this array is determined by the bNumInterfaces field. */
 	const struct libusb_interface *interface;
 
-	/** Extra descriptors. If libusb encounters unknown configuration
+	/** Extra descriptors. If libusbx encounters unknown configuration
 	 * descriptors, it will store them here, should you wish to parse them. */
 	const unsigned char *extra;
 
@@ -631,33 +671,46 @@ struct libusb_control_setup {
 
 #define LIBUSB_CONTROL_SETUP_SIZE (sizeof(struct libusb_control_setup))
 
-/* libusb */
+/* libusbx */
 
 struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
 
 /** \ingroup lib
- * Structure providing the version of libusb being used
+ * Structure providing the version of the libusbx runtime
  */
 struct libusb_version {
-	uint16_t major;
-	uint16_t minor;
-	uint16_t micro;
-	uint16_t nano;
+	/** Library major version. */
+	const uint16_t major;
+
+	/** Library minor version. */
+	const uint16_t minor;
+
+	/** Library micro version. */
+	const uint16_t micro;
+
+	/** Library nano version. */
+	const uint16_t nano;
+
+	/** Library release candidate suffix string, e.g. "-rc4". */
+	const char *rc;
+
+	/** For ABI compatibility only. */
+	const char* describe;
 };
 
 /** \ingroup lib
- * Structure representing a libusb session. The concept of individual libusb
+ * Structure representing a libusbx session. The concept of individual libusbx
  * sessions allows for your program to use two libraries (or dynamically
  * load two modules) which both independently use libusb. This will prevent
- * interference between the individual libusb users - for example
+ * interference between the individual libusbx users - for example
  * libusb_set_debug() will not affect the other user of the library, and
  * libusb_exit() will not destroy resources that the other user is still
  * using.
  *
  * Sessions are created by libusb_init() and destroyed through libusb_exit().
- * If your application is guaranteed to only ever include a single libusb
+ * If your application is guaranteed to only ever include a single libusbx
  * user (i.e. you), you do not have to worry about contexts: pass NULL in
  * every function call where a context is required. The default context
  * will be used.
@@ -715,10 +768,10 @@ enum libusb_speed {
 };
 
 /** \ingroup misc
- * Error codes. Most libusb functions return 0 on success or one of these
+ * Error codes. Most libusbx functions return 0 on success or one of these
  * codes on failure.
- * You can use libusb_strerror() to retrieve a short string description of
- * a libusb_error enumeration value.
+ * You can call \ref libusb_error_name() to retrieve a string representation
+ * of an error code.
  */
 enum libusb_error {
 	/** Success (no error) */
@@ -760,11 +813,11 @@ enum libusb_error {
 	/** Operation not supported or unimplemented on this platform */
 	LIBUSB_ERROR_NOT_SUPPORTED = -12,
 
-	/** Other error */
-	LIBUSB_ERROR_OTHER = -99
+	/* NB! Remember to update libusb_error_name()
+	   when adding new error codes here. */
 
-	/* IMPORTANT: when adding new values to this enum, remember to
-	   update the libusb_strerror() function implementation! */
+	/** Other error */
+	LIBUSB_ERROR_OTHER = -99,
 };
 
 /** \ingroup asyncio
@@ -791,7 +844,10 @@ enum libusb_transfer_status {
 	LIBUSB_TRANSFER_NO_DEVICE,
 
 	/** Device sent more data than requested */
-	LIBUSB_TRANSFER_OVERFLOW
+	LIBUSB_TRANSFER_OVERFLOW,
+
+	/* NB! Remember to update libusb_error_name()
+	   when adding new status codes here. */
 };
 
 /** \ingroup asyncio
@@ -807,7 +863,32 @@ enum libusb_transfer_flags {
 	 * If this flag is set, it is illegal to call libusb_free_transfer()
 	 * from your transfer callback, as this will result in a double-free
 	 * when this flag is acted upon. */
-	LIBUSB_TRANSFER_FREE_TRANSFER = 1<<2
+	LIBUSB_TRANSFER_FREE_TRANSFER = 1<<2,
+
+	/** Terminate transfers that are a multiple of the endpoint's
+	 * wMaxPacketSize with an extra zero length packet. This is useful
+	 * when a device protocol mandates that each logical request is
+	 * terminated by an incomplete packet (i.e. the logical requests are
+	 * not separated by other means).
+	 *
+	 * This flag only affects host-to-device transfers to bulk and interrupt
+	 * endpoints. In other situations, it is ignored.
+	 *
+	 * This flag only affects transfers with a length that is a multiple of
+	 * the endpoint's wMaxPacketSize. On transfers of other lengths, this
+	 * flag has no effect. Therefore, if you are working with a device that
+	 * needs a ZLP whenever the end of the logical request falls on a packet
+	 * boundary, then it is sensible to set this flag on <em>every</em>
+	 * transfer (you do not have to worry about only setting it on transfers
+	 * that end on the boundary).
+	 *
+	 * This flag is currently only supported on Linux.
+	 * On other systems, libusb_submit_transfer() will return
+	 * LIBUSB_ERROR_NOT_SUPPORTED for every transfer where this flag is set.
+	 *
+	 * Available since libusb-1.0.9.
+	 */
+	LIBUSB_TRANSFER_ADD_ZERO_PACKET = 1 << 3,
 };
 
 /** \ingroup asyncio
@@ -829,7 +910,7 @@ struct libusb_transfer;
  * Asynchronous transfer callback function type. When submitting asynchronous
  * transfers, you pass a pointer to a callback function of this type via the
  * \ref libusb_transfer::callback "callback" member of the libusb_transfer
- * structure. libusb will call this function later, when the transfer has
+ * structure. libusbx will call this function later, when the transfer has
  * completed or failed. See \ref asyncio for more information.
  * \param transfer The libusb_transfer struct the callback function is being
  * notified about.
@@ -900,11 +981,40 @@ struct libusb_transfer {
 	;
 };
 
+/** \ingroup misc
+ * Capabilities supported by this instance of libusb. Test if the loaded
+ * library supports a given capability by calling
+ * \ref libusb_has_capability().
+ */
+enum libusb_capability {
+	/** The libusb_has_capability() API is available. */
+	LIBUSB_CAP_HAS_CAPABILITY = 0,
+};
+
+/** \ingroup lib
+ *  Log message levels.
+ *  - LIBUSB_LOG_LEVEL_NONE (0)    : no messages ever printed by the library (default)
+ *  - LIBUSB_LOG_LEVEL_ERROR (1)   : error messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_WARNING (2) : warning and error messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_INFO (3)    : informational messages are printed to stdout, warning
+ *    and error messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are printed to stdout,
+ *    warnings and errors to stderr
+ */
+enum libusb_log_level {
+	LIBUSB_LOG_LEVEL_NONE = 0,
+	LIBUSB_LOG_LEVEL_ERROR,
+	LIBUSB_LOG_LEVEL_WARNING,
+	LIBUSB_LOG_LEVEL_INFO,
+	LIBUSB_LOG_LEVEL_DEBUG,
+};
+
 int LIBUSB_CALL libusb_init(libusb_context **ctx);
 void LIBUSB_CALL libusb_exit(libusb_context *ctx);
 void LIBUSB_CALL libusb_set_debug(libusb_context *ctx, int level);
-const char * LIBUSB_CALL libusb_strerror(enum libusb_error errcode);
-const struct libusb_version * LIBUSB_CALL libusb_getversion(void);
+const struct libusb_version * LIBUSB_CALL libusb_get_version(void);
+int LIBUSB_CALL libusb_has_capability(uint32_t capability);
+const char * LIBUSB_CALL libusb_error_name(int errcode);
 
 ssize_t LIBUSB_CALL libusb_get_device_list(libusb_context *ctx,
 	libusb_device ***list);
@@ -930,7 +1040,7 @@ uint8_t LIBUSB_CALL libusb_get_port_number(libusb_device *dev);
 libusb_device * LIBUSB_CALL libusb_get_parent(libusb_device *dev);
 int LIBUSB_CALL libusb_get_port_path(libusb_context *ctx, libusb_device *dev, uint8_t* path, uint8_t path_length);
 uint8_t LIBUSB_CALL libusb_get_device_address(libusb_device *dev);
-enum libusb_speed LIBUSB_CALL libusb_get_device_speed(libusb_device *dev);
+int LIBUSB_CALL libusb_get_device_speed(libusb_device *dev);
 int LIBUSB_CALL libusb_get_max_packet_size(libusb_device *dev,
 	unsigned char endpoint);
 int LIBUSB_CALL libusb_get_max_iso_packet_size(libusb_device *dev,
@@ -1315,7 +1425,7 @@ static inline int libusb_get_string_descriptor(libusb_device_handle *dev,
 	uint8_t desc_index, uint16_t langid, unsigned char *data, int length)
 {
 	return libusb_control_transfer(dev, LIBUSB_ENDPOINT_IN,
-		LIBUSB_REQUEST_GET_DESCRIPTOR, (LIBUSB_DT_STRING << 8) | desc_index,
+		LIBUSB_REQUEST_GET_DESCRIPTOR, (uint16_t)((LIBUSB_DT_STRING << 8) | desc_index),
 		langid, data, (uint16_t) length, 1000);
 }
 
@@ -1335,7 +1445,10 @@ int LIBUSB_CALL libusb_wait_for_event(libusb_context *ctx, struct timeval *tv);
 
 int LIBUSB_CALL libusb_handle_events_timeout(libusb_context *ctx,
 	struct timeval *tv);
+int LIBUSB_CALL libusb_handle_events_timeout_completed(libusb_context *ctx,
+	struct timeval *tv, int *completed);
 int LIBUSB_CALL libusb_handle_events(libusb_context *ctx);
+int LIBUSB_CALL libusb_handle_events_completed(libusb_context *ctx, int *completed);
 int LIBUSB_CALL libusb_handle_events_locked(libusb_context *ctx,
 	struct timeval *tv);
 int LIBUSB_CALL libusb_pollfds_handle_timeouts(libusb_context *ctx);

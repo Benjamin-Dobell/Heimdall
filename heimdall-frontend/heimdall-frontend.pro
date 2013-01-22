@@ -73,6 +73,8 @@ macx {
 	}
 }
 
+QMAKE_CXXFLAGS += -std=c++0x
+
 unix:LIBS += -lz ../libpit/libpit-1.4.a
 win32:LIBS += ../Win32/Release/lib/libpit.lib
 

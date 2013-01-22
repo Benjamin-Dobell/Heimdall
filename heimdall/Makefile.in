@@ -245,7 +245,7 @@ top_srcdir = @top_srcdir@
 udevadminstalled = @udevadminstalled@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = $(DEPS_CFLAGS) -I../libpit/Source
+AM_CPPFLAGS = $(DEPS_CFLAGS) -std=c++0x -I../libpit/Source
 STATIC_LIBS = ../libpit/libpit-1.4.a
 heimdall_SOURCES = source/Arguments.cpp \
 	source/BridgeManager.cpp \
