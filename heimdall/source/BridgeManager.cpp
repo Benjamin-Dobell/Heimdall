@@ -628,7 +628,7 @@ bool BridgeManager::BeginSession(void)
 			else
 				Interface::Print("Session begun.\n\n", deviceType);
 
-			if (deviceType == 30)
+			if (deviceType == 30 || deviceType == 180)
 			{
 				Interface::Print("In certain situations this device may take up to 2 minutes to respond.\nPlease be patient!\n\n", deviceType);
 				Sleep(2000); // Give the user time to read the message.
