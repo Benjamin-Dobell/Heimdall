@@ -43,7 +43,7 @@ using namespace Heimdall;
 map<string, Interface::ActionInfo> actionMap;
 bool stdoutErrors = false;
 		
-const char *version = "v1.4 RC1";
+const char *version = "v1.4 RC2";
 const char *actionUsage = "Usage: heimdall <action> <action arguments>\n";
 
 const char *releaseInfo = "Heimdall %s\n\n\

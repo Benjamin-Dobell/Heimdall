@@ -98,7 +98,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\Release\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
+      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
