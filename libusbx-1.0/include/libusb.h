@@ -1,9 +1,7 @@
 /*
  * Public libusbx header file
- * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
  * Copyright © 2007-2008 Daniel Drake <dsd@gentoo.org>
- * Copyright © 2012 Pete Batard <pete@akeo.ie>
- * For more information, please visit: http://libusbx.org
+ * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -106,31 +104,6 @@ typedef unsigned __int32  uint32_t;
 #else
 #define LIBUSB_CALL
 #endif
-
-/** \def LIBUSBX_API_VERSION
- * \ingroup misc
- * libusbx's API version.
- *
- * Since version 1.0.13, to help with feature detection, libusbx defines
- * a LIBUSBX_API_VERSION macro that gets increased every time there is a
- * significant change to the API, such as the introduction of a new call,
- * the definition of a new macro/enum member, or any other element that
- * libusbx applications may want to detect at compilation time.
- *
- * The macro is typically used in an application as follows:
- * \code
- * #if defined(LIBUSBX_API_VERSION) && (LIBUSBX_API_VERSION >= 0x01001234)
- * // Use one of the newer features from the libusbx API
- * #endif
- * \endcode
- *
- * Another feature of LIBUSBX_API_VERSION is that it can be used to detect
- * whether you are compiling against the libusb or the libusbx library.
- *
- * Internally, LIBUSBX_API_VERSION is defined as follows:
- * (libusbx major << 24) | (libusbx minor << 16) | (16 bit incremental)
- */
-#define LIBUSBX_API_VERSION 0x010000FF
 
 #ifdef __cplusplus
 extern "C" {
@@ -258,9 +231,6 @@ enum libusb_descriptor_type {
 
 	/** Hub descriptor */
 	LIBUSB_DT_HUB = 0x29,
-
-	/** SuperSpeed Hub descriptor */
-	LIBUSB_DT_SUPERSPEED_HUB = 0x2A,
 };
 
 /* Descriptor sizes per descriptor type */
@@ -307,7 +277,7 @@ enum libusb_transfer_type {
 };
 
 /** \ingroup misc
- * Standard requests, as defined in table 9-5 of the USB 3.0 specifications */
+ * Standard requests, as defined in table 9-3 of the USB2 specifications */
 enum libusb_standard_request {
 	/** Request status of the specific recipient */
 	LIBUSB_REQUEST_GET_STATUS = 0x00,
@@ -345,13 +315,6 @@ enum libusb_standard_request {
 
 	/** Set then report an endpoint's synchronization frame */
 	LIBUSB_REQUEST_SYNCH_FRAME = 0x0C,
-
-	/** Sets both the U1 and U2 Exit Latency */
-	LIBUSB_REQUEST_SET_SEL = 0x30,
-
-	/** Delay from the time a host transmits a packet to the time it is
-	  * received by the device. */
-	LIBUSB_SET_ISOCH_DELAY = 0x31,
 };
 
 /** \ingroup misc
@@ -431,7 +394,7 @@ enum libusb_iso_usage_type {
 
 /** \ingroup desc
  * A structure representing the standard USB device descriptor. This
- * descriptor is documented in section 9.6.1 of the USB 3.0 specification.
+ * descriptor is documented in section 9.6.1 of the USB 2.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_device_descriptor {
@@ -485,7 +448,7 @@ struct libusb_device_descriptor {
 
 /** \ingroup desc
  * A structure representing the standard USB endpoint descriptor. This
- * descriptor is documented in section 9.6.6 of the USB 3.0 specification.
+ * descriptor is documented in section 9.6.3 of the USB 2.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_endpoint_descriptor {
@@ -535,7 +498,7 @@ struct libusb_endpoint_descriptor {
 
 /** \ingroup desc
  * A structure representing the standard USB interface descriptor. This
- * descriptor is documented in section 9.6.5 of the USB 3.0 specification.
+ * descriptor is documented in section 9.6.5 of the USB 2.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_interface_descriptor {
@@ -597,7 +560,7 @@ struct libusb_interface {
 
 /** \ingroup desc
  * A structure representing the standard USB configuration descriptor. This
- * descriptor is documented in section 9.6.3 of the USB 3.0 specification.
+ * descriptor is documented in section 9.6.3 of the USB 2.0 specification.
  * All multiple-byte fields are represented in host-endian format.
  */
 struct libusb_config_descriptor {
@@ -845,9 +808,6 @@ enum libusb_transfer_status {
 
 	/** Device sent more data than requested */
 	LIBUSB_TRANSFER_OVERFLOW,
-
-	/* NB! Remember to update libusb_error_name()
-	   when adding new status codes here. */
 };
 
 /** \ingroup asyncio
