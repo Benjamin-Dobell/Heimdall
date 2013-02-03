@@ -477,17 +477,6 @@ Appendix B - Installing Heimdall from Source:
             make
             cd ..
 
-       If you have problems please consult http://www.libusb.org/
-
-    4. Enter the following commands to compile libpit.
-
-            cd libusb-1.0
-            ./configure
-            make
-            cd ..
-
-       NOTE: There is no need to run "sudo make install".
-
     4. Enter the following commands to compile and install Heimdall:
 
             cd heimdall
