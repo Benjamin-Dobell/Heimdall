@@ -46,9 +46,65 @@ bool stdoutErrors = false;
 const char *version = "v1.4 RC2";
 const char *actionUsage = "Usage: heimdall <action> <action arguments>\n";
 
-const char *releaseInfo = "Heimdall %s\n\n\
-Copyright (c) 2010-2012, Benjamin Dobell, Glass Echidna\n\
-http://www.glassechidna.com.au/\n\n\
+const char *Interface::version = "v1.3.3-THS";
+
+const char *Interface::usage = "Usage: heimdall <action> <action arguments> <common arguments>\n\
+\n\
+Common Arguments:\n\
+    [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
+\n\
+\n\
+Action: flash\n\
+Arguments:\n\
+    --repartition --pit <filename> [--factoryfs <filename>]\n\
+    [--cache <filename>] [--dbdata <filename>] [--primary-boot <filename>]\n\
+    [--secondary-boot <filename>] [--param <filename>] [--kernel <filename>]\n\
+    [--modem <filename>] [--normal-boot <filename>] [--system <filename>]\n\
+    [--user-data <filename>] [--fota <filename>] [--hidden <filename>]\n\
+    [--movinand <filename>] [--data <filename>] [--ums <filename>]\n\
+    [--emmc <filename>] [--<partition identifier> <filename>]\n\
+  or:\n\
+    [--factoryfs <filename>] [--cache <filename>] [--dbdata <filename>]\n\
+    [--primary-boot <filename>] [--secondary-boot <filename>]\n\
+    [--secondary-boot-backup <filename>] [--param <filename>]\n\
+    [--kernel <filename>] [--recovery <filename>] [--efs <filename>]\n\
+    [--modem <filename>] [--normal-boot <filename>] [--system <filename>]\n\
+    [--user-data <filename>] [--fota <filename>] [--hidden <filename>]\n\
+    [--movinand <filename>] [--data <filename>] [--ums <filename>]\n\
+    [--emmc <filename>] [--<partition identifier> <filename>]\n\
+Description: Flashes firmware files to your phone.\n\
+WARNING: If you're repartitioning it's strongly recommended you specify\n\
+         all files at your disposal, including bootloaders.\n\
+\n\
+Action: close-pc-screen\n\
+Description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
+\n\
+Action: download-pit\n\
+Arguments: --output <filename>\n\
+Description: Downloads the connected device's PIT file to the specified\n\
+    output file.\n\
+\n\
+Action: detect\n\
+Description: Indicates whether or not a download mode device can be detected.\n\
+\n\
+Action: dump\n\
+Arguments: --chip-type <NAND | RAM> --chip-id <integer> --output <filename>\n\
+Description: Attempts to dump data from the phone corresponding to the\n\
+	specified chip type and chip ID.\n\
+NOTE: Galaxy S phones don't appear to properly support this functionality.\n\
+\n\
+Action: print-pit\n\
+Description: Dumps the PIT file from the connected device and prints it in\n\
+    a human readable format.\n\
+\n\
+Action: version\n\
+Description: Displays the version number of this binary.\n\
+\n\
+Action: help\n\
+Description: Displays this dialogue.\n";
+
+const char *Interface::releaseInfo = "Heimdall %s, Copyright (c) 2010-2012, Benjamin Dobell, Glass Echidna\n\
+http://www.glassechidna.com.au\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
 http://www.glassechidna.com.au/donate/\n\n";

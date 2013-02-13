@@ -255,7 +255,9 @@ PitEntry *PitData::FindEntry(const char *partitionName)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (
+		 (entries[i]->GetBlockCount()  > 0 || strcmp(entries[i]->GetFotaFilename(), "remaining"))&& 
+		strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -266,7 +268,9 @@ const PitEntry *PitData::FindEntry(const char *partitionName) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (
+			(entries[i]->GetBlockCount()  > 0 || strcmp(entries[i]->GetFotaFilename(), "remaining")) &&
+				strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -277,7 +281,9 @@ PitEntry *PitData::FindEntry(unsigned int partitionIdentifier)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
+		if (
+			(entries[i]->GetBlockCount()  > 0 || strcmp(entries[i]->GetFotaFilename(), "remaining")) &&
+			 entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
@@ -288,7 +294,9 @@ const PitEntry *PitData::FindEntry(unsigned int partitionIdentifier) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
+		if (
+			(entries[i]->GetBlockCount()  > 0 || strcmp(entries[i]->GetFotaFilename(), "remaining")) && 
+			entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
