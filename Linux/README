@@ -463,7 +463,8 @@ be included.
 Appendix B - Installing Heimdall from Source:
 
     1. First make sure you have installed build-tools, pkgconfig, zlib-dev and
-       libusb-1.0-dev (v1.0.8 or newer).
+       libusb-1.0-dev (v1.0.8 or newer). (Ubuntu users: build-essential
+       pkg-config zlib1g-dev libusb-dev)
 
        NOTE: Package names may not be absolutely identical to those above.
 
