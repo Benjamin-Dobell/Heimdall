@@ -480,7 +480,7 @@ Appendix B - Installing Heimdall from Source:
 
        If you have problems please consult http://www.libusb.org/
 
-    4. Enter the following commands to compile libpit.
+    4. Enter the following commands to compile libusb.
 
             cd libusb-1.0
             ./configure
