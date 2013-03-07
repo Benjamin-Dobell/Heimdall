@@ -81,6 +81,7 @@ namespace HeimdallFrontend
 			QList<unsigned int> unusedPartitionIds;
 
 			bool verboseOutput;
+			bool resume;
 
 
 			void StartHeimdall(const QStringList& arguments);
@@ -133,7 +134,10 @@ namespace HeimdallFrontend
 			void SelectPit(void);
 
 			void SetRepartition(int enabled);
+
 			void SetNoReboot(int enabled);
+			void SetResume(bool enabled);
+			void SetResume(int enabled);
 
 			void StartFlash(void);
 

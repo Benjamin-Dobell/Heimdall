@@ -262,7 +262,10 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 		
 		flashProgressBar->setEnabled(false);
 		optionsGroup->setEnabled(true);
+		sessionGroup->setEnabled(true);
 		startFlashButton->setEnabled(validFlashSettings);
+		noRebootCheckBox->setEnabled(validFlashSettings);
+		resumeCheckbox->setEnabled(validFlashSettings);
 	}
 	else
 	{
@@ -270,7 +273,7 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 
 		flashProgressBar->setEnabled(true);
 		optionsGroup->setEnabled(false);
-		startFlashButton->setEnabled(false);
+		sessionGroup->setEnabled(false);
 	}
 }
 
@@ -314,10 +317,7 @@ void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
 		closePcScreenButton->setEnabled(true);
 		pitSaveAsButton->setEnabled(true);
 
-		if (!pitDestinationLineEdit->text().isEmpty())
-			downloadPitButton->setEnabled(true);
-		else
-			downloadPitButton->setEnabled(false);
+		downloadPitButton->setEnabled(!pitDestinationLineEdit->text().isEmpty());
 		
 		if (printPitDeviceRadioBox->isChecked())
 		{
@@ -331,6 +331,7 @@ void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
 			printLocalPitGroup->setEnabled(true);
 			printLocalPitLineEdit->setEnabled(true);
 			printLocalPitBrowseButton->setEnabled(true);
+
 			printPitButton->setEnabled(!printLocalPitLineEdit->text().isEmpty());
 		}
 	}
@@ -420,6 +421,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	// Menu
 	QObject::connect(actionDonate, SIGNAL(triggered()), this, SLOT(OpenDonationWebpage()));
 	QObject::connect(actionVerboseOutput, SIGNAL(toggled(bool)), this, SLOT(SetVerboseOutput(bool)));
+	QObject::connect(actionResumeConnection, SIGNAL(toggled(bool)), this, SLOT(SetResume(bool)));
 	QObject::connect(actionAboutHeimdall, SIGNAL(triggered()), this, SLOT(ShowAbout()));
 
 	// Load Package Tab
@@ -439,7 +441,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	QObject::connect(pitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPit()));
 
 	QObject::connect(repartitionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRepartition(int)));
+
 	QObject::connect(noRebootCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetNoReboot(int)));
+	QObject::connect(resumeCheckbox, SIGNAL(stateChanged(int)), this, SLOT(SetResume(int)));
 	
 	QObject::connect(startFlashButton, SIGNAL(clicked()), this, SLOT(StartFlash()));
 
@@ -882,13 +886,32 @@ void MainWindow::SelectPit(void)
 	}
 }
 
+
 void MainWindow::SetRepartition(int enabled)
 {
 	workingPackageData.GetFirmwareInfo().SetRepartition(enabled);
+
+	repartitionCheckBox->setChecked(enabled);
 }
+
 void MainWindow::SetNoReboot(int enabled)
 {
 	workingPackageData.GetFirmwareInfo().SetNoReboot(enabled);
+
+	noRebootCheckBox->setChecked(enabled);
+}
+
+void MainWindow::SetResume(bool enabled)
+{
+	resume = enabled;
+
+	actionResumeConnection->setChecked(enabled);
+	resumeCheckbox->setChecked(enabled);
+}
+
+void MainWindow::SetResume(int enabled)
+{
+	SetResume(enabled != 0);
 }
 
 void MainWindow::StartFlash(void)
@@ -921,6 +944,9 @@ void MainWindow::StartFlash(void)
 
 	if (firmwareInfo.GetNoReboot())
 		arguments.append("--no-reboot");
+
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1095,6 +1121,9 @@ void MainWindow::ClosePcScreen(void)
 	
 	QStringList arguments;
 	arguments.append("close-pc-screen");
+	
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1134,6 +1163,9 @@ void MainWindow::DownloadPit(void)
 	arguments.append(pitDestinationLineEdit->text());
 
 	arguments.append("--no-reboot");
+
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1196,6 +1228,9 @@ void MainWindow::PrintPit(void)
 
 	arguments.append("--stdout-errors");
 	arguments.append("--no-reboot");
+	
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1237,6 +1272,8 @@ void MainWindow::HandleHeimdallStdout(void)
 
 void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus)
 {
+	HandleHeimdallStdout();
+
 	if (exitStatus == QProcess::NormalExit && exitCode == 0)
 	{
 		if (heimdallState == MainWindow::kHeimdallStateFlashing)
@@ -1247,6 +1284,12 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 		{
 			deviceDetectedRadioButton->setChecked(true);
 		}
+
+		bool executedNoReboot = (heimdallState == kHeimdallStateFlashing && loadedPackageData.GetFirmwareInfo().GetNoReboot())
+			|| (heimdallState == kHeimdallStatePrintingPit && printPitDeviceRadioBox->isChecked()) || heimdallState == kHeimdallStateDownloadingPit;
+
+		if (executedNoReboot)
+			SetResume(true);
 	}
 	else
 	{

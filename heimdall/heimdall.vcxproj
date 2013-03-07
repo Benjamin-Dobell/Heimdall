@@ -68,10 +68,10 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>libusb-1.0.lib;libpit.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\Release\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\Release\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
+      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,7 +95,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>libusb-1.0.lib;libpit.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\Release\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
@@ -109,7 +109,6 @@
     <ClInclude Include="source\ClosePcScreenAction.h" />
     <ClInclude Include="source\DetectAction.h" />
     <ClInclude Include="source\DownloadPitAction.h" />
-    <ClInclude Include="source\DumpAction.h" />
     <ClInclude Include="source\FlashAction.h" />
     <ClInclude Include="source\HelpAction.h" />
     <ClInclude Include="source\InfoAction.h" />
@@ -151,7 +150,6 @@
     <ClCompile Include="source\ClosePcScreenAction.cpp" />
     <ClCompile Include="source\DetectAction.cpp" />
     <ClCompile Include="source\DownloadPitAction.cpp" />
-    <ClCompile Include="source\DumpAction.cpp" />
     <ClCompile Include="source\FlashAction.cpp" />
     <ClCompile Include="source\HelpAction.cpp" />
     <ClCompile Include="source\InfoAction.cpp" />

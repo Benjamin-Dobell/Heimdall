@@ -31,9 +31,6 @@
 // Heimdall
 #include "Heimdall.h"
 
-using namespace std;
-using namespace libpit;
-
 namespace Heimdall
 {
 	namespace Interface
@@ -59,7 +56,7 @@ namespace Heimdall
 
 		} ActionInfo;
 
-		const map<string, ActionInfo>& GetActionMap(void);
+		const std::map<std::string, ActionInfo>& GetActionMap(void);
 
 		void Print(const char *format, ...);
 		void PrintWarning(const char *format, ...);
@@ -74,7 +71,7 @@ namespace Heimdall
 
 		void PrintDeviceDetectionFailed(void);
 
-		void PrintPit(const PitData *pitData);
+		void PrintPit(const libpit::PitData *pitData);
 
 		void SetStdoutErrors(bool enabled);
 	};

@@ -57,6 +57,7 @@
 
 #define USB_CLASS_CDC_DATA 0x0A
 
+using namespace libpit;
 using namespace Heimdall;
 
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
@@ -68,7 +69,7 @@ const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupported
 
 enum
 {
-	kDumpBufferSize = 4096
+	kDumpBufferSize = 4096,
 };
 
 enum
@@ -82,6 +83,11 @@ enum
 {
 	kHandshakeMaxAttempts = 5,
 	kReceivePacketMaxAttempts = 5
+};
+
+enum
+{
+	kPitSizeMultiplicand = 4096
 };
 
 int BridgeManager::FindDeviceInterface(void)
@@ -302,34 +308,7 @@ void BridgeManager::ReleaseDeviceInterface(void)
 	Interface::Print("\n");
 }
 
-bool BridgeManager::CheckProtocol(void) const
-{
-	Interface::Print("Checking if protocol is initialised...\n");
-
-	DeviceTypePacket deviceTypePacket;
-
-	if (!SendPacket(&deviceTypePacket, 150, false))
-	{
-		Interface::Print("Protocol is not initialised.\n");
-		return (false);
-	}
-
-	unsigned char buffer[1024];
-	memset(buffer, 0, sizeof(buffer));
-
-	SessionSetupResponse deviceTypeResponse;
-
-	if (!ReceivePacket(&deviceTypeResponse, 150, false, buffer, sizeof(buffer)))
-	{
-		Interface::Print("Protocol is not initialised.\n\n");
-		return (false);
-	}
-
-	Interface::Print("Protocol is initialised.\n\n");
-	return (true);
-}
-
-bool BridgeManager::InitialiseProtocol(void) const
+bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
 
@@ -488,6 +467,8 @@ BridgeManager::BridgeManager(bool verbose, int communicationDelay)
 	fileTransferSequenceMaxLength = kFileTransferSequenceMaxLengthDefault;
 	fileTransferPacketSize = kFileTransferPacketSizeDefault;
 	fileTransferSequenceTimeout = kFileTransferSequenceTimeoutDefault;
+
+	usbLogLevel = UsbLogLevel::Default;
 }
 
 BridgeManager::~BridgeManager()
@@ -507,12 +488,37 @@ BridgeManager::~BridgeManager()
 
 bool BridgeManager::DetectDevice(void)
 {
-	// Initialise libusb-1.0
+	// Initialise libusb
 	int result = libusb_init(&libusbContext);
+
 	if (result != LIBUSB_SUCCESS)
 	{
 		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
 		return (false);
+	}
+
+	// Setup libusb log level.
+	switch (usbLogLevel)
+	{
+		case UsbLogLevel::None:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
+			break;
+
+		case UsbLogLevel::Error:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
+			break;
+
+		case UsbLogLevel::Warning:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
+			break;
+
+		case UsbLogLevel::Info:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
+			break;
+
+		case UsbLogLevel::Debug:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
+			break;
 	}
 
 	// Get handle to Galaxy S device
@@ -542,11 +548,11 @@ bool BridgeManager::DetectDevice(void)
 	return (false);
 }
 
-int BridgeManager::Initialise()
+int BridgeManager::Initialise(bool resume)
 {
 	Interface::Print("Initialising connection...\n");
 
-	// Initialise libusb-1.0
+	// Initialise libusb
 	int result = libusb_init(&libusbContext);
 
 	if (result != LIBUSB_SUCCESS)
@@ -554,6 +560,30 @@ int BridgeManager::Initialise()
 		Interface::PrintError("Failed to initialise libusb. libusb error: %d\n", result);
 		Interface::Print("Failed to connect to device!");
 		return (BridgeManager::kInitialiseFailed);
+	}
+
+	// Setup libusb log level.
+	switch (usbLogLevel)
+	{
+		case UsbLogLevel::None:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
+			break;
+
+		case UsbLogLevel::Error:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
+			break;
+
+		case UsbLogLevel::Warning:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
+			break;
+
+		case UsbLogLevel::Info:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
+			break;
+
+		case UsbLogLevel::Debug:
+			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
+			break;
 	}
 	
 	result = FindDeviceInterface();
@@ -567,7 +597,7 @@ int BridgeManager::Initialise()
 	if (!SetupDeviceInterface())
 		return (BridgeManager::kInitialiseFailed);
 
-	if (!CheckProtocol())
+	if (!resume)
 	{
 		if (!InitialiseProtocol())
 			return (BridgeManager::kInitialiseFailed);
@@ -865,11 +895,9 @@ bool BridgeManager::RequestDeviceType(unsigned int request, int *result) const
 	return (true);
 }
 
-bool BridgeManager::SendPitFile(FILE *file) const
+bool BridgeManager::SendPitData(const PitData *pitData) const
 {
-	fseek(file, 0, SEEK_END);
-	long fileSize = ftell(file);
-	rewind(file);
+	unsigned int pitBufferSize = pitData->GetPaddedSize();
 
 	// Start file transfer
 	PitFilePacket *pitFilePacket = new PitFilePacket(PitFilePacket::kRequestFlash);
@@ -893,7 +921,7 @@ bool BridgeManager::SendPitFile(FILE *file) const
 	}
 
 	// Transfer file size
-	FlashPartPitFilePacket *flashPartPitFilePacket = new FlashPartPitFilePacket(fileSize);
+	FlashPartPitFilePacket *flashPartPitFilePacket = new FlashPartPitFilePacket(pitBufferSize);
 	success = SendPacket(flashPartPitFilePacket);
 	delete flashPartPitFilePacket;
 
@@ -913,10 +941,19 @@ bool BridgeManager::SendPitFile(FILE *file) const
 		return (false);
 	}
 
+	// Create packed in-memory PIT file
+
+	unsigned char *pitBuffer = new unsigned char[pitBufferSize];
+	memset(pitBuffer, 0, pitBufferSize);
+
+	pitData->Pack(pitBuffer);
+
 	// Flash pit file
-	SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(file, fileSize);
+	SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(pitBuffer, pitBufferSize);
 	success = SendPacket(sendFilePartPacket);
 	delete sendFilePartPacket;
+
+	delete [] pitBuffer;
 
 	if (!success)
 	{
@@ -935,7 +972,7 @@ bool BridgeManager::SendPitFile(FILE *file) const
 	}
 
 	// End pit file transfer
-	EndPitFileTransferPacket *endPitFileTransferPacket = new EndPitFileTransferPacket(fileSize);
+	EndPitFileTransferPacket *endPitFileTransferPacket = new EndPitFileTransferPacket(pitBufferSize);
 	success = SendPacket(endPitFileTransferPacket);
 	delete endPitFileTransferPacket;
 
@@ -1320,106 +1357,33 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	return (true);
 }
 
-bool BridgeManager::ReceiveDump(unsigned int chipType, unsigned int chipId, FILE *file) const
+void BridgeManager::SetUsbLogLevel(UsbLogLevel usbLogLevel)
 {
-	bool success;
+	this->usbLogLevel = usbLogLevel;
 
-	// Start file transfer
-	BeginDumpPacket *beginDumpPacket = new BeginDumpPacket(chipType, chipId);
-	success = SendPacket(beginDumpPacket);
-	delete beginDumpPacket;
-
-	if (!success)
+	if (libusbContext)
 	{
-		Interface::PrintError("Failed to request dump!\n");
-		return (false);
-	}
-
-	DumpResponse *dumpResponse = new DumpResponse();
-	success = ReceivePacket(dumpResponse);
-	unsigned int dumpSize = dumpResponse->GetDumpSize();
-	delete dumpResponse;
-
-	if (!success)
-	{
-		Interface::PrintError("Failed to receive dump size!\n");
-		return (false);
-	}
-
-	unsigned int transferCount = dumpSize / ReceiveFilePartPacket::kDataSize;
-	if (transferCount % ReceiveFilePartPacket::kDataSize != 0)
-		transferCount++;
-
-	char *buffer = new char[kDumpBufferSize * ReceiveFilePartPacket::kDataSize];
-	unsigned int bufferOffset = 0;
-
-	for (unsigned int i = 0; i < transferCount; i++)
-	{
-		DumpPartFileTransferPacket *dumpPartPacket = new DumpPartFileTransferPacket(i);
-		success = SendPacket(dumpPartPacket);
-		delete dumpPartPacket;
-
-		if (!success)
+		switch (usbLogLevel)
 		{
-			Interface::PrintError("Failed to request dump part #%d!\n", i);
-			delete [] buffer;
-			return (false);
+			case UsbLogLevel::None:
+				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
+				break;
+
+			case UsbLogLevel::Error:
+				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
+				break;
+
+			case UsbLogLevel::Warning:
+				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
+				break;
+
+			case UsbLogLevel::Info:
+				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
+				break;
+
+			case UsbLogLevel::Debug:
+				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
+				break;
 		}
-		
-		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
-		success = ReceivePacket(receiveFilePartPacket);
-		
-		if (!success)
-		{
-			Interface::PrintError("Failed to receive dump part #%d!\n", i);
-			continue;
-			delete receiveFilePartPacket;
-			delete [] buffer;
-			return (true);
-		}
-
-		if (bufferOffset + receiveFilePartPacket->GetReceivedSize() > kDumpBufferSize * ReceiveFilePartPacket::kDataSize)
-		{
-			// Write the buffer to the output file
-			fwrite(buffer, 1, bufferOffset, file);
-			bufferOffset = 0;
-		}
-
-		// Copy the packet data into pitFile.
-		memcpy(buffer + bufferOffset, receiveFilePartPacket->GetData(), receiveFilePartPacket->GetReceivedSize());
-		bufferOffset += receiveFilePartPacket->GetReceivedSize();
-
-		delete receiveFilePartPacket;
 	}
-
-	if (bufferOffset != 0)
-	{
-		// Write the buffer to the output file
-		fwrite(buffer, 1, bufferOffset, file);
-	}
-	
-	delete [] buffer;
-
-	// End file transfer
-	FileTransferPacket *fileTransferPacket = new FileTransferPacket(FileTransferPacket::kRequestEnd);
-	success = SendPacket(fileTransferPacket);
-	delete fileTransferPacket;
-
-	if (!success)
-	{
-		Interface::PrintError("Failed to send request to end dump transfer!\n");
-		return (false);
-	}
-
-	ResponsePacket *responsePacket = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
-	success = ReceivePacket(responsePacket);
-	delete responsePacket;
-
-	if (!success)
-	{
-		Interface::PrintError("Failed to receive end dump transfer verification!\n");
-		return (false);
-	}
-
-	return (true);
 }

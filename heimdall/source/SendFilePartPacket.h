@@ -51,6 +51,11 @@ namespace Heimdall
 				int bytesRead = fread(data, 1, bytesToRead, file);
 			}
 
+			SendFilePartPacket(unsigned char *buffer, int size) : OutboundPacket(size)
+			{
+				memcpy(data, buffer, size);
+			}
+
 			void Pack(void)
 			{
 			}

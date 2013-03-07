@@ -21,6 +21,9 @@
 #ifndef BRIDGEMANAGER_H
 #define BRIDGEMANAGER_H
 
+// libpit
+#include "libpit.h"
+
 // Heimdall
 #include "Heimdall.h"
 
@@ -81,6 +84,17 @@ namespace Heimdall
 				kPidGalaxyCamera    = 0x6860 // Is this necessary?
 			};
 
+			enum class UsbLogLevel
+			{
+				None = 0,
+				Error,
+				Warning,
+				Info,
+				Debug,
+
+				Default = Error
+			};
+
 		private:
 
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
@@ -109,13 +123,14 @@ namespace Heimdall
 			unsigned int fileTransferPacketSize;
 			unsigned int fileTransferSequenceTimeout;
 
+			UsbLogLevel usbLogLevel;
+
 			int FindDeviceInterface(void);
 			bool ClaimDeviceInterface(void);
 			bool SetupDeviceInterface(void);
 			void ReleaseDeviceInterface(void);
 
-			bool CheckProtocol(void) const;
-			bool InitialiseProtocol(void) const;
+			bool InitialiseProtocol(void);
 
 		public:
 
@@ -123,7 +138,7 @@ namespace Heimdall
 			~BridgeManager();
 
 			bool DetectDevice(void);
-			int Initialise(void);
+			int Initialise(bool resume);
 
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
@@ -133,12 +148,18 @@ namespace Heimdall
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 
-			bool SendPitFile(FILE *file) const;
+			bool SendPitData(const libpit::PitData *pitData) const;
 			int ReceivePitFile(unsigned char **pitBuffer) const;
 			int DownloadPitFile(unsigned char **pitBuffer) const; // Thin wrapper around ReceivePitFile() with additional logging.
 
 			bool SendFile(FILE *file, unsigned int destination, unsigned int deviceType, unsigned int fileIdentifier = 0xFFFFFFFF) const;
-			bool ReceiveDump(unsigned int chipType, unsigned int chipId, FILE *file) const;
+
+			void SetUsbLogLevel(UsbLogLevel usbLogLevel);
+
+			UsbLogLevel GetUsbLogLevel(void) const
+			{
+				return usbLogLevel;
+			}
 
 			bool IsVerbose(void) const
 			{
