@@ -197,7 +197,7 @@ bool Arguments::ParseArguments(int argc, char **argv, int argi)
 
 			if (!insertResult.second)
 			{
-				Interface::Print("Duplicate argument: %s (%s)\n\n", argv[argi], argumentName);
+				Interface::Print("Duplicate argument: %s (%s)\n\n", argv[argi], argumentName.c_str());
 				delete argument;
 
 				return (false);
