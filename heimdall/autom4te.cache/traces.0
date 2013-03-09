@@ -2247,9 +2247,6 @@ m4trace:configure.ac:3: -1- m4_pattern_allow([^DEPS_LIBS$])
 m4trace:configure.ac:3: -1- PKG_CHECK_EXISTS([libusb-1.0 >= 1.0.8], [pkg_cv_[]DEPS_CFLAGS=`$PKG_CONFIG --[]cflags "libusb-1.0 >= 1.0.8" 2>/dev/null`], [pkg_failed=yes])
 m4trace:configure.ac:3: -1- PKG_CHECK_EXISTS([libusb-1.0 >= 1.0.8], [pkg_cv_[]DEPS_LIBS=`$PKG_CONFIG --[]libs "libusb-1.0 >= 1.0.8" 2>/dev/null`], [pkg_failed=yes])
 m4trace:configure.ac:3: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:4: -1- _m4_warn([obsolete], [The macro `AC_PROGRAM_CHECK' is obsolete.
-You should run autoupdate.], [../../lib/autoconf/oldnames.m4:62: AC_PROGRAM_CHECK is expanded from...
-configure.ac:4: the top level])
 m4trace:configure.ac:4: -1- m4_pattern_allow([^udevadminstalled$])
 m4trace:configure.ac:5: -1- m4_pattern_allow([^build$])
 m4trace:configure.ac:5: -1- m4_pattern_allow([^build_cpu$])
@@ -2497,7 +2494,7 @@ m4trace:configure.ac:41: -1- m4_pattern_allow([^LINUXTARGET_TRUE$])
 m4trace:configure.ac:41: -1- m4_pattern_allow([^LINUXTARGET_FALSE$])
 m4trace:configure.ac:41: -1- _AM_SUBST_NOTMAKE([LINUXTARGET_TRUE])
 m4trace:configure.ac:41: -1- _AM_SUBST_NOTMAKE([LINUXTARGET_FALSE])
-m4trace:configure.ac:42: -1- AM_CONDITIONAL([UDEVADM], [test x$udevadmninstalled = xtrue])
+m4trace:configure.ac:42: -1- AM_CONDITIONAL([UDEVADM], [test x$udevadminstalled = x"yes"])
 m4trace:configure.ac:42: -1- m4_pattern_allow([^UDEVADM_TRUE$])
 m4trace:configure.ac:42: -1- m4_pattern_allow([^UDEVADM_FALSE$])
 m4trace:configure.ac:42: -1- _AM_SUBST_NOTMAKE([UDEVADM_TRUE])

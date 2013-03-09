@@ -1,7 +1,7 @@
 AC_INIT([Heimdall], [1.3], [bug-report@glassechidna.com.au], [heimdall], [http://www.glassechidna.com.au/])
 AC_PREREQ([2.59])
 PKG_CHECK_MODULES([DEPS], [libusb-1.0 >= 1.0.8])
-AC_PROGRAM_CHECK(udevadminstalled, udevadm)
+AC_CHECK_PROG(udevadminstalled, udevadm, "yes")
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.10 -Wall no-define foreign])
 AC_CONFIG_MACRO_DIR([m4])
@@ -39,7 +39,7 @@ case $target in
 esac
 
 AM_CONDITIONAL([LINUXTARGET], [test x$linuxtarget = xtrue])
-AM_CONDITIONAL([UDEVADM], [test x$udevadmninstalled = xtrue])
+AM_CONDITIONAL([UDEVADM], [test x$udevadminstalled = x"yes"])
 
 AC_C_BIGENDIAN
 

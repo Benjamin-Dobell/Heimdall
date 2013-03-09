@@ -9,7 +9,6 @@ heimdall_SOURCES = source/Arguments.cpp \
 	source/ClosePcScreenAction.cpp \
 	source/DetectAction.cpp \
 	source/DownloadPitAction.cpp \
-	source/DumpAction.cpp \
 	source/FlashAction.cpp \
 	source/HelpAction.cpp \
 	source/InfoAction.cpp \
@@ -31,7 +30,7 @@ install-data-hook:
 	@echo "IMPORTANT - You must reboot your machine or execute the following as root:"
 
 if UDEVADM
-	@echo "udevadm control --reload_rules"
+	@echo "udevadm control --reload-rules"
 else
 	@echo "service udev restart"
 endif

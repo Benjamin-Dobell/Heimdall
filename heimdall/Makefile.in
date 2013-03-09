@@ -60,7 +60,7 @@ am_heimdall_OBJECTS = source/Arguments.$(OBJEXT) \
 	source/BridgeManager.$(OBJEXT) \
 	source/ClosePcScreenAction.$(OBJEXT) \
 	source/DetectAction.$(OBJEXT) \
-	source/DownloadPitAction.$(OBJEXT) source/DumpAction.$(OBJEXT) \
+	source/DownloadPitAction.$(OBJEXT) \
 	source/FlashAction.$(OBJEXT) source/HelpAction.$(OBJEXT) \
 	source/InfoAction.$(OBJEXT) source/Interface.$(OBJEXT) \
 	source/main.$(OBJEXT) source/PrintPitAction.$(OBJEXT) \
@@ -252,7 +252,6 @@ heimdall_SOURCES = source/Arguments.cpp \
 	source/ClosePcScreenAction.cpp \
 	source/DetectAction.cpp \
 	source/DownloadPitAction.cpp \
-	source/DumpAction.cpp \
 	source/FlashAction.cpp \
 	source/HelpAction.cpp \
 	source/InfoAction.cpp \
@@ -381,8 +380,6 @@ source/DetectAction.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/DownloadPitAction.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
-source/DumpAction.$(OBJEXT): source/$(am__dirstamp) \
-	source/$(DEPDIR)/$(am__dirstamp)
 source/FlashAction.$(OBJEXT): source/$(am__dirstamp) \
 	source/$(DEPDIR)/$(am__dirstamp)
 source/HelpAction.$(OBJEXT): source/$(am__dirstamp) \
@@ -410,7 +407,6 @@ mostlyclean-compile:
 	-rm -f source/ClosePcScreenAction.$(OBJEXT)
 	-rm -f source/DetectAction.$(OBJEXT)
 	-rm -f source/DownloadPitAction.$(OBJEXT)
-	-rm -f source/DumpAction.$(OBJEXT)
 	-rm -f source/FlashAction.$(OBJEXT)
 	-rm -f source/HelpAction.$(OBJEXT)
 	-rm -f source/InfoAction.$(OBJEXT)
@@ -428,7 +424,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/ClosePcScreenAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DetectAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DownloadPitAction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/DumpAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/FlashAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/HelpAction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@source/$(DEPDIR)/InfoAction.Po@am__quote@
@@ -635,7 +630,7 @@ distcheck: dist
 	*.zip*) \
 	  unzip $(distdir).zip ;;\
 	esac
-	chmod -R a-w $(distdir); chmod a+w $(distdir)
+	chmod -R a-w $(distdir); chmod u+w $(distdir)
 	mkdir $(distdir)/_build
 	mkdir $(distdir)/_inst
 	chmod a-w $(distdir)
@@ -824,7 +819,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-udevrulesDATA
 @LINUXTARGET_TRUE@	@echo ""
 @LINUXTARGET_TRUE@	@echo "IMPORTANT - You must reboot your machine or execute the following as root:"
 
-@LINUXTARGET_TRUE@@UDEVADM_TRUE@	@echo "udevadm control --reload_rules"
+@LINUXTARGET_TRUE@@UDEVADM_TRUE@	@echo "udevadm control --reload-rules"
 @LINUXTARGET_TRUE@@UDEVADM_FALSE@	@echo "service udev restart"
 @LINUXTARGET_TRUE@	@echo ""
 
