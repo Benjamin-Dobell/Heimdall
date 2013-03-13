@@ -139,8 +139,8 @@ namespace Heimdall
 		public:
 
 			Arguments(const std::map<std::string, ArgumentType>& argumentTypes,
-				const std::map<std::string, std::string>& shortArgumentAliases = std::map<std::string, std::string>(),
-				const std::map<std::string, std::string>& argumentAliases = std::map<std::string, std::string>());
+				const std::map<std::string, std::string>& shortArgumentAliases = (std::map<std::string, std::string>()),
+				const std::map<std::string, std::string>& argumentAliases = (std::map<std::string, std::string>()));
 			
 			~Arguments();
 
