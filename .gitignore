@@ -3,6 +3,7 @@
 Debug/
 Release/
 GeneratedFiles/
+autom4te.cache/
 *.vcxproj.user
 *.suo
 *.sdf
