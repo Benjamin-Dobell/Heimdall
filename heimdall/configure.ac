@@ -6,10 +6,10 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.10 -Wall no-define foreign])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AC_PROG_CXX
+AM_PROG_AR
+m4_pattern_allow([AM_PROG_PR], [AM_PROG_AR])
 AC_PROG_LIBTOOL
 AC_CONFIG_FILES([Makefile])
-
 AM_MAINTAINER_MODE
 
 AC_MSG_CHECKING([operating system])
@@ -17,21 +17,25 @@ case $target in
 *-linux*)
 	AC_DEFINE(OS_LINUX, [], [Linux backend])
 	AC_MSG_RESULT([Linux])
+	AC_PROG_CXX
 	linuxtarget=true
 	;;
 *-darwin*)
 	AC_DEFINE(OS_DARWIN, [], [Darwin backend])
 	AC_MSG_RESULT([Darwin/MacOS X])
+	AC_PROG_CXX([clang++])
 	linuxtarget=false
 	;;
 *-mingw*)
 	AC_DEFINE(OS_WINDOWS, [], [Windows backend])
 	AC_MSG_RESULT([Windows])
+	AC_PROG_CXX
 	linuxtarget=false
 	;;
 *-cygwin*)
 	AC_DEFINE(OS_WINDOWS, [], [Windows backend])
 	AC_MSG_RESULT([Windows])
+	AC_PROG_CXX
 	linuxtarget=false
 	;;
 *)
