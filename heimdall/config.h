@@ -40,7 +40,7 @@
 /* Darwin backend */
 #if defined(__APPLE__)
 #define OS_DARWIN
-#elif defined(__LINUX__)
+#elif defined(__linux__)
 /* Linux backend */
 #define OS_LINUX
 #else
