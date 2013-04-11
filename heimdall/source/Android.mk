@@ -56,5 +56,9 @@ ifeq ($(HOST_OS),darwin)
 LOCAL_LDFLAGS := -framework CoreFoundation -framework IOKit
 endif
 
+ifeq ($(HOST_OS),linux)
+LOCAL_LDFLAGS := -lpthread -lrt
+endif
+
 LOCAL_MODULE := heimdall
 include $(BUILD_HOST_EXECUTABLE)
