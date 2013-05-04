@@ -519,27 +519,51 @@ bool BridgeManager::DetectDevice(void)
 	struct libusb_device **devices;
 	int deviceCount = libusb_get_device_list(libusbContext, &devices);
 
+	bool detected = false;
 	for (int deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
 	{
 		libusb_device_descriptor descriptor;
 		libusb_get_device_descriptor(devices[deviceIndex], &descriptor);
 
+		libusb_device *heimdallDevice = devices[deviceIndex];
+		libusb_ref_device(heimdallDevice);
+
 		for (int i = 0; i < BridgeManager::kSupportedDeviceCount; i++)
 		{
 			if (descriptor.idVendor == supportedDevices[i].vendorId && descriptor.idProduct == supportedDevices[i].productId)
 			{
-				libusb_free_device_list(devices, deviceCount);
-
-				Interface::Print("Device detected\n");
-				return (true);
+				detected = true;
+				if (verbose)
+				{
+					unsigned char stringBuffer[128];
+					libusb_device_handle *deviceHandle;
+					int result = libusb_open(heimdallDevice, &deviceHandle);
+					if (result == LIBUSB_SUCCESS) {
+						if (libusb_get_string_descriptor_ascii(deviceHandle, descriptor.iSerialNumber,
+							stringBuffer, 128) >= 0)
+						{
+							Interface::Print("%s\n", stringBuffer);
+						}
+						else {
+							Interface::Print("unknown\n", stringBuffer);
+						}
+						libusb_close(deviceHandle);
+					}
+				}
 			}
 		}
+
+		libusb_unref_device(heimdallDevice);
 	}
 
 	libusb_free_device_list(devices, deviceCount);
 
-	Interface::PrintDeviceDetectionFailed();
-	return (false);
+	if (!detected)
+		Interface::PrintDeviceDetectionFailed();
+	else if (!verbose)
+		Interface::Print("Device detected\n");
+
+	return (detected);
 }
 
 int BridgeManager::Initialise()
