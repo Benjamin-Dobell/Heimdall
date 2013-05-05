@@ -624,11 +624,11 @@ bool BridgeManager::BeginSession(void)
 
 	unsigned int deviceDefaultPacketSize = beginSessionResponse.GetResult();
 
+	Interface::Print("\nSome devices may take up to 2 minutes to respond.\nPlease be patient!\n\n");
+	Sleep(3000); // Give the user time to read the message.
+
 	if (deviceDefaultPacketSize != 0) // 0 means changing the packet size is not supported.
 	{
-		Interface::Print("\nThis device may take up to 2 minutes to respond.\nPlease be patient!\n\n");
-		Sleep(2000); // Give the user time to read the message.
-
 		fileTransferSequenceTimeout = 120000; // 2 minutes!
 		fileTransferPacketSize = 1048576; // 1 MiB
 		fileTransferSequenceMaxLength = 100; // 100 MiB per sequence. Which is the same as the default of 800 * 131072.
@@ -1218,13 +1218,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			success = ReceivePacket(sendFilePartResponse);
 			int receivedPartIndex = sendFilePartResponse->GetPartIndex();
 
-			if (verbose)
-			{
-				const unsigned char *data = sendFilePartResponse->GetData();
-				Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
-					data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-			}
-
 			delete sendFilePartResponse;
 
 			if (!success)
@@ -1253,13 +1246,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 					sendFilePartResponse = new SendFilePartResponse();
 					success = ReceivePacket(sendFilePartResponse);
 					unsigned int receivedPartIndex = sendFilePartResponse->GetPartIndex();
-
-					if (verbose)
-					{
-						const unsigned char *data = sendFilePartResponse->GetData();
-						Interface::Print("File Part #%d... Response: %X  %X  %X  %X  %X  %X  %X  %X \n", filePartIndex,
-							data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-					}
 
 					delete sendFilePartResponse;
 
