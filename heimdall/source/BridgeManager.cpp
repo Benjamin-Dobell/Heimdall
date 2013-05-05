@@ -631,7 +631,7 @@ bool BridgeManager::BeginSession(void)
 	{
 		fileTransferSequenceTimeout = 120000; // 2 minutes!
 		fileTransferPacketSize = 1048576; // 1 MiB
-		fileTransferSequenceMaxLength = 100; // 100 MiB per sequence. Which is the same as the default of 800 * 131072.
+		fileTransferSequenceMaxLength = 30; // Therefore, fileTransferPacketSize * fileTransferSequenceMaxLength == 30 MiB per sequence.
 
 		FilePartSizePacket filePartSizePacket(fileTransferPacketSize);
 
