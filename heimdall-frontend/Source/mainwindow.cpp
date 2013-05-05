@@ -87,7 +87,7 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 		{
 			flashLabel->setText("Failed to start Heimdall!");
 			
-			heimdallState = MainWindow::kHeimdallStateStopped;
+			heimdallState = HeimdallState::Stopped;
 			UpdateInterfaceAvailability();
 		}
 	}
@@ -236,13 +236,13 @@ void MainWindow::UpdateLoadPackageInterfaceAvailability(void)
 		else
 			developerDonateButton->setEnabled(false);
 
-		loadFirmwareButton->setEnabled(heimdallState == MainWindow::kHeimdallStateStopped);
+		loadFirmwareButton->setEnabled(heimdallState == HeimdallState::Stopped);
 	}
 }
 
 void MainWindow::UpdateFlashInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		partitionNameComboBox->setEnabled(partitionsListWidget->currentRow() >= 0);
 
@@ -279,7 +279,7 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 
 void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
 
@@ -311,7 +311,7 @@ void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
 
 void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		detectDeviceButton->setEnabled(true);
 		closePcScreenButton->setEnabled(true);
@@ -354,7 +354,7 @@ void MainWindow::UpdateInterfaceAvailability(void)
 	UpdateCreatePackageInterfaceAvailability();
 	UpdateUtilitiesInterfaceAvailability();
 
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{		
 		// Enable/disable tabs
 
@@ -405,7 +405,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setupUi(this);
 
-	heimdallState = MainWindow::kHeimdallStateStopped;
+	heimdallState = HeimdallState::Stopped;
 
 	lastDirectory = QDir::toNativeSeparators(QApplication::applicationDirPath());
 
@@ -918,7 +918,7 @@ void MainWindow::StartFlash(void)
 {
 	outputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateFlashing;
+	heimdallState = HeimdallState::Flashing;
 	heimdallFailed = false;
 
 	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
@@ -1098,7 +1098,7 @@ void MainWindow::DetectDevice(void)
 	deviceDetectedRadioButton->setChecked(false);
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallState = HeimdallState::DetectingDevice;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1116,7 +1116,7 @@ void MainWindow::ClosePcScreen(void)
 {
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateClosingPcScreen;
+	heimdallState = HeimdallState::ClosingPcScreen;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1153,7 +1153,7 @@ void MainWindow::DownloadPit(void)
 	deviceDetectedRadioButton->setChecked(false);
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallState = HeimdallState::DownloadingPit;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1214,7 +1214,7 @@ void MainWindow::PrintPit(void)
 {
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStatePrintingPit;
+	heimdallState = HeimdallState::PrintingPit;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1258,7 +1258,7 @@ void MainWindow::HandleHeimdallStdout(void)
 	output.remove(QChar('\b'));
 	output.replace(QChar('%'), QString("%\n"));
 
-	if (heimdallState == MainWindow::kHeimdallStateFlashing)
+	if (heimdallState == HeimdallState::Flashing)
 	{
 		outputPlainTextEdit->insertPlainText(output);
 		outputPlainTextEdit->ensureCursorVisible();
@@ -1276,24 +1276,23 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 
 	if (exitStatus == QProcess::NormalExit && exitCode == 0)
 	{
-		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+		bool executedNoReboot = (heimdallState == HeimdallState::Flashing && loadedPackageData.GetFirmwareInfo().GetNoReboot())
+			|| (heimdallState == HeimdallState::PrintingPit && printPitDeviceRadioBox->isChecked()) || heimdallState == HeimdallState::DownloadingPit;
+
+		SetResume(executedNoReboot);
+
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Flash completed successfully!");
 		}
-		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		else if (heimdallState == HeimdallState::DetectingDevice)
 		{
 			deviceDetectedRadioButton->setChecked(true);
 		}
-
-		bool executedNoReboot = (heimdallState == kHeimdallStateFlashing && loadedPackageData.GetFirmwareInfo().GetNoReboot())
-			|| (heimdallState == kHeimdallStatePrintingPit && printPitDeviceRadioBox->isChecked()) || heimdallState == kHeimdallStateDownloadingPit;
-
-		if (executedNoReboot)
-			SetResume(true);
 	}
 	else
 	{
-		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			QString error = heimdallProcess.readAllStandardError();
 
@@ -1306,13 +1305,13 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 
 			flashLabel->setText(error);
 		}
-		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		else if (heimdallState == HeimdallState::DetectingDevice)
 		{
 			deviceDetectedRadioButton->setChecked(false);
 		}
 	}
 
-	heimdallState = MainWindow::kHeimdallStateStopped;
+	heimdallState = HeimdallState::Stopped;
 	flashProgressBar->setEnabled(false);
 	UpdateInterfaceAvailability();
 }
@@ -1321,7 +1320,7 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 {	
 	if (error == QProcess::FailedToStart || error == QProcess::Timedout)
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Failed to start Heimdall!");
 			flashProgressBar->setEnabled(false);
@@ -1332,12 +1331,12 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 		}
 
 		heimdallFailed = true;
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 	else if (error == QProcess::Crashed)
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Heimdall crashed!");
 			flashProgressBar->setEnabled(false);
@@ -1347,12 +1346,12 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall crashed!");
 		}
 		
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 	else
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Heimdall reported an unknown error!");
 			flashProgressBar->setEnabled(false);
@@ -1362,7 +1361,7 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall reported an unknown error!");
 		}
 		
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 }

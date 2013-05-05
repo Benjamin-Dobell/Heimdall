@@ -45,15 +45,14 @@ namespace HeimdallFrontend
 
 		private:
 
-			enum
+			enum class HeimdallState
 			{
-				kHeimdallStateStopped = 0,
-				kHeimdallStateFlashing,
-				kHeimdallStateDetectingDevice,
-				kHeimdallStateClosingPcScreen,
-				kHeimdallStatePrintingPit,
-				kHeimdallStateDownloadingPit,
-				kHeimdallStateCount
+				Stopped = 0,
+				Flashing,
+				DetectingDevice,
+				ClosingPcScreen,
+				PrintingPit,
+				DownloadingPit
 			};
 
 			enum
@@ -69,7 +68,7 @@ namespace HeimdallFrontend
 			int tabIndex;
 
 			bool heimdallFailed;
-			int heimdallState;
+			HeimdallState heimdallState;
 			QProcess heimdallProcess;
 
 			PackageData loadedPackageData;
