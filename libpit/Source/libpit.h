@@ -103,6 +103,11 @@ namespace libpit
 
 			bool Matches(const PitEntry *otherPitEntry) const;
 
+			bool IsFlashable(void) const
+			{
+				return strlen(partitionName) != 0;
+			}
+
 			unsigned int GetBinaryType(void) const
 			{
 				return binaryType;

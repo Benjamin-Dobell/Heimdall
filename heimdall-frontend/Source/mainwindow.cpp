@@ -102,7 +102,7 @@ void MainWindow::UpdateUnusedPartitionIds(void)
 	{
 		const PitEntry *pitEntry = currentPitData.GetEntry(i);
 
-		if (pitEntry->GetBlockCount() > 0 && strcmp(pitEntry->GetPartitionName(), "PIT") != 0 && strcmp(pitEntry->GetPartitionName(), "PT") != 0)
+		if (pitEntry->IsFlashable() && strcmp(pitEntry->GetPartitionName(), "PIT") != 0 && strcmp(pitEntry->GetPartitionName(), "PT") != 0)
 			unusedPartitionIds.append(pitEntry->GetIdentifier());
 	}
 
