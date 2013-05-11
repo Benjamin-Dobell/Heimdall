@@ -63,8 +63,7 @@ using namespace Heimdall;
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
 	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS),
 	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS2),
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidDroidCharge),
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyCamera)
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidDroidCharge)
 };
 
 enum
