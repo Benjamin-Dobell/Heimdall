@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2011 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2013 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -32,7 +32,7 @@ Troubleshooting:
 
 Driver Installation Instructions:
 
-    1. Put your Samsung Galaxy S into download mode and plug it in.
+    1. Put your device into download mode and plug it in.
 
     2. Run zadig.exe included in the Drivers subdirectory.
 
@@ -50,7 +50,7 @@ Driver Installation Instructions:
 
 Driver Uninstallation Instructions:
 
-    1. Put your Samsung Galaxy S into download mode by holding Volume Down + Home + Power.
+    1. Put your device into download mode by holding Volume Down + Home + Power.
 
     2. Plug your phone into your PC.
 
@@ -151,7 +151,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
     1. Fully charge your device (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -236,7 +236,7 @@ Flashing Firmware from Command Line:
 	
     1. Fully charge your phone (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -258,17 +258,30 @@ Flashing Firmware from Command Line:
 
             heimdall help
 
-    7. Use the instructions to manually enter a command with all the files you
-       want to flash.
+    7. Before flashing, you must first know the names of the partitions you
+       wish to flash. These can be obtained by executing:
+
+            heimdall print-pit --no-reboot
+
+       The inclusion of --no-reboot ensures the phone will not reboot after PIT
+       file has been downloaded and displayed. After executing a command with
+       the --no-reboot argument, the next command should include the --resume
+       argument.
+
+       NOTE: You can still safely reboot your phone manually (with the power
+             button) after executing --no-reboot commands.
+
+    8. Use the help and print-pit output to construct a command with all the
+       file you want to flash.
 
        Here is an example that does a full flash and repartition on a GT-I9000:
 		
-            heimdall flash --repartition --pit s1_odin_20100512.pit --factoryfs factoryfs.rfs --cache cache.rfs --dbdata dbdata.rfs --primary-boot boot.bin --secondary-boot Sbl.bin --param param.lfs --kernel zImage --modem modem.bin
+            heimdall flash --repartition --resume --pit s1_odin_20100512.pit --FACTORYFS factoryfs.rfs --CACHE cache.rfs --DBDATA dbdata.rfs --IBL+PBL boot.bin --SBL Sbl.bin --PARAM param.lfs --KERNEL zImage --MODEM modem.bin
 
        NOTE: The above command assumes the files specified are installed in the
              same directory as Heimdall.
 
-    8. Heimdall will display the progress as it flashes so that you know things
+    9. Heimdall will display the progress as it flashes so that you know things
        are working as they should.
 
 

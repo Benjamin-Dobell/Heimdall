@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ using namespace Heimdall;
 const char *ClosePcScreenAction::usage = "Action: close-pc-screen\n\
 Arguments: [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
            [--usb-log-level <none/error/warning/debug>]\n\
-Description: Attempts to get rid off the \"connect phone to PC\" screen.\n"; // TODO: usb-log-level
+Description: Attempts to get rid off the \"connect phone to PC\" screen.\n";
 
 int ClosePcScreenAction::Execute(int argc, char **argv)
 {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,20 +42,20 @@ using namespace Heimdall;
 map<string, Interface::ActionInfo> actionMap;
 bool stdoutErrors = false;
 		
-const char *version = "v1.4 RC3";
+const char *version = "v1.4.0";
 const char *actionUsage = "Usage: heimdall <action> <action arguments>\n";
 
 const char *releaseInfo = "Heimdall %s\n\n\
-Copyright (c) 2010-2012, Benjamin Dobell, Glass Echidna\n\
+Copyright (c) 2010-2013, Benjamin Dobell, Glass Echidna\n\
 http://www.glassechidna.com.au/\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
 http://www.glassechidna.com.au/donate/\n\n";
 
-static const char *extraInfo = "Heimdall utilises libusb-1.0 for all USB communication:\n\
+static const char *extraInfo = "Heimdall utilises libusbx for all USB communication:\n\
     http://www.libusb.org/\n\
 \n\
-libusb-1.0 is licensed under the LGPL-2.1:\n\
+libusbx is licensed under the LGPL-2.1:\n\
     http://www.gnu.org/licenses/licenses.html#LGPL\n\n";
 
 void populateActionMap(void)

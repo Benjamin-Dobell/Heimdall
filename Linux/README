@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2012 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2013 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -98,7 +98,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
     1. Fully charge your device (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -186,7 +186,7 @@ Flashing Firmware from Command Line:
 	
     1. Fully charge your phone (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -204,15 +204,27 @@ Flashing Firmware from Command Line:
 
             heimdall help
 
-    7. Use the instructions to manually enter a command with all the files you
-       want to flash.
+    7. Before flashing, you must first know the names of the partitions you
+       wish to flash. These can be obtained by executing:
+
+            heimdall print-pit --no-reboot
+
+       The inclusion of --no-reboot ensures the phone will not reboot after PIT
+       file has been downloaded and displayed. After executing a command with
+       the --no-reboot argument, the next command should include the --resume
+       argument.
+
+       NOTE: You can still safely reboot your phone manually (with the power
+             button) after executing --no-reboot commands.
+
+    8. Use the help and print-pit output to construct a command with all the
+	   files you want to flash.
 
        Here is an example that does a full flash and repartition on a GT-I9000:
 		
-            heimdall flash --repartition --pit s1_odin_20100512.pit --factoryfs factoryfs.rfs --cache cache.rfs --dbdata dbdata.rfs --primary-boot boot.bin --secondary-boot Sbl.bin --param param.lfs --kernel zImage --modem modem.bin
+            heimdall flash --repartition --resume --pit s1_odin_20100512.pit --FACTORYFS factoryfs.rfs --CACHE cache.rfs --DBDATA dbdata.rfs --IBL+PBL boot.bin --SBL Sbl.bin --PARAM param.lfs --KERNEL zImage --MODEM modem.bin
 
-
-    8. Heimdall will display the progress as it flashes so that you know things
+    9. Heimdall will display the progress as it flashes so that you know things
        are working as they should.
 
 
@@ -463,7 +475,7 @@ be included.
 Appendix B - Installing Heimdall from Source:
 
     1. First make sure you have installed build-tools, pkgconfig, zlib-dev and
-       libusb-1.0-dev (v1.0.8 or newer).
+       libusbx.
 
        NOTE: Package names may not be absolutely identical to those above.
 
@@ -473,15 +485,6 @@ Appendix B - Installing Heimdall from Source:
     3. Enter the following commands to compile libpit:
 
             cd libpit
-            ./configure
-            make
-            cd ..
-
-       If you have problems please consult http://www.libusb.org/
-
-    4. Enter the following commands to compile libpit.
-
-            cd libusb-1.0
             ./configure
             make
             cd ..
