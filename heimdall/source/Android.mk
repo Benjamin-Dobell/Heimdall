@@ -44,7 +44,6 @@ LOCAL_SRC_FILES := \
   ../../libpit/Source/libpit.cpp
   
 LOCAL_SRC_FILES += $(LIBUSB_SRC_FILES)
-LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 LOCAL_C_INCLUDES := \
   external/heimdall/libpit/Source \
