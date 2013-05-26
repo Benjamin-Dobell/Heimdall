@@ -505,6 +505,8 @@ Appendix B - Installing Heimdall from Source:
     4. Enter the following commands to compile and install Heimdall:
 
             cd heimdall
+            export CC=/usr/bin/clang
+            export CXX=/usr/bin/clang++
             ./configure
             make
             sudo make install
