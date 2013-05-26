@@ -491,7 +491,7 @@ Appendix B - Installing Heimdall from Source:
 
        http://www.libusb.org/
 
-       NOTE: Alternatively you may install Macport's libusb-devel package.
+       NOTE: Alternatively you may install libusb using Macports or Homebrew.
 
     4. Enter the following commands to compile libpit.
 
