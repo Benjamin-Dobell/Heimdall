@@ -22,8 +22,8 @@ heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 
 if LINUXTARGET
 
-udevrulesdir = /lib/udev/rules.d
-udevrules_DATA = 60-heimdall-galaxy-s.rules
+udevrulesdir = ${libdir}/udev/rules.d
+udevrules_DATA = 60-heimdall.rules
 
 install-data-hook:
 	@echo ""

@@ -95,6 +95,7 @@ INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Release \
     ../libpit/Source \
     .
+unix:INCLUDEPATH += /usr/include
 DEPENDPATH += .
 MOC_DIR += ./GeneratedFiles/release
 OBJECTS_DIR += release
