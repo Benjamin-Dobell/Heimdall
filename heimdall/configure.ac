@@ -8,7 +8,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_PROG_AR
 m4_pattern_allow([AM_PROG_PR], [AM_PROG_AR])
-AC_PROG_LIBTOOL
 AC_CONFIG_FILES([Makefile])
 AM_MAINTAINER_MODE
 
@@ -41,6 +40,8 @@ case $target in
 *)
 	AC_MSG_ERROR([unsupported operating system])
 esac
+
+AC_PROG_LIBTOOL
 
 AM_CONDITIONAL([LINUXTARGET], [test x$linuxtarget = xtrue])
 AM_CONDITIONAL([UDEVADM], [test x$udevadminstalled = x"yes"])
