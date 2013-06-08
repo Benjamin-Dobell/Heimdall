@@ -11,22 +11,23 @@ DISCLAIMER:
     for the result of your actions.
 
 
-These instructions were written for Windows Vista / Server 2008 however the
+These instructions were written for Windows 7 / Vista / Server 2008 however the
 producedure should be essentially the same for all supported versions of
 Windows (XP onwards).
 
 
 Troubleshooting:
 
-    1. If you get an error as follows:
+    1. If when you try launch Heimdall or Heimdall Frontend you receive a
+       similar to:
 
-            The program can't start because MSVCP100.dll is missing from your
+            The program can't start because MSVCP110.dll is missing from your
             computer.
 
-       This means that you haven't installed the Microsoft Visual C++ 2010
+       This means that you haven't installed the Microsoft Visual C++ 2012
        runtimes. The runtimes can be downloaded from Microsoft's website:
 
-            http://www.microsoft.com/download/en/details.aspx?id=5555
+            http://www.microsoft.com/en-au/download/details.aspx?id=30679
 
 
 
@@ -233,7 +234,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
 
 Flashing Firmware from Command Line:
-	
+
     1. Fully charge your phone (use the wall charger as it's faster).
 
     2. Download a decrypted device ROM or a Heimdall Firmware Package
@@ -275,7 +276,7 @@ Flashing Firmware from Command Line:
        file you want to flash.
 
        Here is an example that does a full flash and repartition on a GT-I9000:
-		
+
             heimdall flash --repartition --resume --pit s1_odin_20100512.pit --FACTORYFS factoryfs.rfs --CACHE cache.rfs --DBDATA dbdata.rfs --IBL+PBL boot.bin --SBL Sbl.bin --PARAM param.lfs --KERNEL zImage --MODEM modem.bin
 
        NOTE: The above command assumes the files specified are installed in the
@@ -531,20 +532,20 @@ be included.
 
 Appendix B - Installing Heimdall Suite from Source
 
-    1. Ensure that you have both a version of Visual Studio 2010 with C++
-       support and Qt Developer Framework 4.7 (or newer) installed on your
-       system.
+    1. Ensure that you have both a version of Visual Studio 2012 with C++
+       support and Qt Developer Framework (4.7 or later, but prior to 5.0)
+       installed on your system.
 
-       A free version (Visual C++ 2010 Express) can be downloaded from
+       A free version (Visual C++ 2012 Express) can be downloaded from
        Microsoft's website:
 
-          http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express
+          http://www.microsoft.com/visualstudio/eng/products/visual-studio-express-products
 
-       Qt can also be downloaded freely from Nokia's website:
+       Qt can also be downloaded freely from:
 
-          http://qt.nokia.com/downloads/
+          http://qt-project.org/downloads
 
-    2. Open Heimdall/msvc2010.sln
+    2. Open msvc2012.sln
 
     3. From the Solutions Configuration drop-down change from "Debug" to
        "Release".

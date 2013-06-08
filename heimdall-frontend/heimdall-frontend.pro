@@ -53,8 +53,13 @@ macx {
 	PRIVATE_FRAMEWORKS.path = Contents/Frameworks
 
 	QMAKE_BUNDLE_DATA += PRIVATE_FRAMEWORKS
+	LIBS += -L/usr/lib
 
 	config += x86 x86_64 ppc
+	
+	QMAKE_CFLAGS_X86_64 = -m64 -mmacosx-version-min=10.5
+	QMAKE_CXXFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
+	QMAKE_LFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
 
 	isEmpty(OUTPUTDIR) {
 		DESTDIR = /Applications

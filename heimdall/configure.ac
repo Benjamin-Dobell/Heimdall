@@ -22,7 +22,7 @@ case $target in
 *-darwin*)
 	AC_DEFINE(OS_DARWIN, [], [Darwin backend])
 	AC_MSG_RESULT([Darwin/MacOS X])
-	AC_PROG_CXX([clang++])
+	AC_PROG_CXX
 	linuxtarget=false
 	;;
 *-mingw*)

@@ -52,13 +52,19 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 		
 		QStringList paths;
 
-		// Ensure /usr/bin is in PATH
+		// Ensure /usr/local/bin and /usr/bin are in PATH.
 		for (int i = 0; i < environment.length(); i++)
 		{
 			if (environment[i].left(5) == "PATH=")
 			{
 				paths = environment[i].mid(5).split(':');
-				paths.prepend("/usr/bin");
+				
+				if (!paths.contains("/usr/local/bin"))
+          paths.prepend("/usr/local/bin");
+				
+				if (!paths.contains("/usr/bin"))
+          paths.prepend("/usr/bin");
+				
 				break;
 			}
 		}
@@ -71,6 +77,7 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 			
 			if (heimdallPath.length() > 0)
 			{
+        utilityOutputPlainTextEdit->clear();
 				heimdallFailed = false;
 				
 				if (heimdallPath[heimdallPath.length() - 1] != QDir::separator())
