@@ -1,46 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"  "http://www.apple.com/DTDs/PropertyList-1.0.dtd";>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
+<dict>
+	<key>OSBundleLibraries</key>
 	<dict>
-		<key>CFBundleDevelopmentRegion</key> <string>English</string>
-		<key>CFBundleGetInfoString</key> <string>Galaxy S Download Mode (Heimdall)</string>
-		<key>CFBundleIdentifier</key> <string>au.com.glassechidna.heimdall_usb_shield</string>
-		<key>CFBundleInfoDictionaryVersion</key> <string>6.0</string>
-		<key>CFBundleName</key> <string>Galaxy S Download Mode (Heimdall)</string>
-		<key>CFBundlePackageType</key> <string>KEXT</string>
-		<key>CFBundleSignature</key> <string>????</string>
-		<key>CFBundleVersion</key> <string>6.0</string>
-		<key>IOKitPersonalities</key>
+		<key>com.apple.kpi.iokit</key>
+		<string>8.0.0</string>
+	</dict>
+	<key>CFBundleIdentifier</key>
+	<string>au.com.glassechidna.heimdall_usb_shield</string>
+	<key>IOKitPersonalities</key>
+	<dict>
+		<key>GalaxyNote2</key>
 		<dict>
-			<key>GalaxyS</key>
-			<dict>
-				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
-				<key>IOClass</key> <string>AppleUSBComposite</string>
-				<key>IOProviderClass</key> <string>IOUSBDevice</string>
-				<key>idVendor</key> <integer>1256</integer>
-				<key>idProduct</key> <integer>26113</integer>
-			</dict>
-			<key>GalaxyS2</key>
-			<dict>
-				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
-				<key>IOClass</key> <string>AppleUSBComposite</string>
-				<key>IOProviderClass</key> <string>IOUSBDevice</string>
-				<key>idVendor</key> <integer>1256</integer>
-				<key>idProduct</key> <integer>26717</integer>
-			</dict>
-			<key>DroidCharge</key>
-			<dict>
-				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
-				<key>IOClass</key> <string>AppleUSBComposite</string>
-				<key>IOProviderClass</key> <string>IOUSBDevice</string>
-				<key>idVendor</key> <integer>1256</integer>
-				<key>idProduct</key> <integer>26819</integer>
-			</dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.AppleUSBComposite</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBDevice</string>
+			<key>IOClass</key>
+			<string>AppleUSBComposite</string>
+			<key>idProduct</key>
+			<integer>26717</integer>
+			<key>idVendor</key>
+			<integer>1256</integer>
 		</dict>
-		<key>OSBundleCompatibleVersion</key> <string>1.8</string>
-		<key>OSBundleLibraries</key>
+		<key>DroidCharge</key>
 		<dict>
-			<key>com.apple.kpi.iokit</key> <string>8.0.0</string>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.AppleUSBComposite</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBDevice</string>
+			<key>IOClass</key>
+			<string>AppleUSBComposite</string>
+			<key>idProduct</key>
+			<integer>26819</integer>
+			<key>idVendor</key>
+			<integer>1256</integer>
+		</dict>
+		<key>GalaxyS</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.AppleUSBComposite</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBDevice</string>
+			<key>IOClass</key>
+			<string>AppleUSBComposite</string>
+			<key>idProduct</key>
+			<integer>26113</integer>
+			<key>idVendor</key>
+			<integer>1256</integer>
+		</dict>
+		<key>GalaxyS2</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.driver.AppleUSBComposite</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBDevice</string>
+			<key>IOClass</key>
+			<string>AppleUSBComposite</string>
+			<key>idProduct</key>
+			<integer>26717</integer>
+			<key>idVendor</key>
+			<integer>1256</integer>
 		</dict>
 	</dict>
+	<key>CFBundleName</key>
+	<string>Galaxy S Download Mode (Heimdall)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Galaxy S Download Mode (Heimdall)</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleVersion</key>
+	<string>6.0</string>
+	<key>OSBundleCompatibleVersion</key>
+	<string>1.8</string>
+</dict>
 </plist>
