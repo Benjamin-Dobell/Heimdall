@@ -377,7 +377,7 @@ heimdall_SOURCES = source/Arguments.cpp \
 	source/VersionAction.cpp
 
 heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
-@LINUXTARGET_TRUE@udevrulesdir = ${libdir}/udev/rules.d
+@LINUXTARGET_TRUE@udevrulesdir = /lib/udev/rules.d
 @LINUXTARGET_TRUE@udevrules_DATA = 60-heimdall.rules
 dist_noinst_SCRIPTS = autogen.sh
 all: config.h
