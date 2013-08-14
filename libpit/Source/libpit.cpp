@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -193,7 +193,7 @@ void PitData::Pack(unsigned char *data) const
 		PitData::PackInteger(data, entryOffset + 32, entries[i]->GetFileSize());
 
 		memcpy(data + entryOffset + 36, entries[i]->GetPartitionName(), PitEntry::kPartitionNameMaxLength);
-		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetPartitionName(), PitEntry::kFlashFilenameMaxLength);
+		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength, entries[i]->GetFlashFilename(), PitEntry::kFlashFilenameMaxLength);
 		memcpy(data + entryOffset + 36 + PitEntry::kPartitionNameMaxLength + PitEntry::kFlashFilenameMaxLength,
 			entries[i]->GetFotaFilename(), PitEntry::kFotaFilenameMaxLength);
 	}
@@ -255,7 +255,7 @@ PitEntry *PitData::FindEntry(const char *partitionName)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->IsFlashable() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -266,7 +266,7 @@ const PitEntry *PitData::FindEntry(const char *partitionName) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->IsFlashable() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
 			return (entries[i]);
 	}
 
@@ -277,7 +277,7 @@ PitEntry *PitData::FindEntry(unsigned int partitionIdentifier)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
+		if (entries[i]->IsFlashable() && entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 
@@ -288,7 +288,7 @@ const PitEntry *PitData::FindEntry(unsigned int partitionIdentifier) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->GetBlockCount() > 0 && entries[i]->GetIdentifier() == partitionIdentifier)
+		if (entries[i]->IsFlashable() && entries[i]->GetIdentifier() == partitionIdentifier)
 			return (entries[i]);
 	}
 

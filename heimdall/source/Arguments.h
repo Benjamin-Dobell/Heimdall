@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,10 @@
 // C/C++ Standard Library
 #include <map>
 #include <string>
+#include <vector>
 
 // Heimdall
 #include "Heimdall.h"
-
-using namespace std;
 
 namespace Heimdall
 {
@@ -37,20 +36,21 @@ namespace Heimdall
 		kArgumentTypeFlag = 0,
 		kArgumentTypeString,
 		kArgumentTypeUnsignedInteger
-		
 	} ArgumentType;
 
 	class Argument
 	{
 		private:
 
-			ArgumentType argumentType;
+			std::string name;
+			ArgumentType type;
 
 		protected:
 
-			Argument(ArgumentType argumentType)
+			Argument(const std::string& name, ArgumentType type)
 			{
-				this->argumentType = argumentType;
+				this->name = name;
+				this->type = type;
 			}
 
 		public:
@@ -59,9 +59,14 @@ namespace Heimdall
 			{
 			}
 
-			ArgumentType GetArgumentType(void) const
+			const std::string& GetName(void) const
 			{
-				return argumentType;
+				return name;
+			}
+
+			ArgumentType GetType(void) const
+			{
+				return type;
 			}
 	};
 
@@ -69,31 +74,31 @@ namespace Heimdall
 	{
 		private:
 		
-			FlagArgument() : Argument(kArgumentTypeFlag)
+			FlagArgument(const std::string& name) : Argument(name, kArgumentTypeFlag)
 			{
 			}
 
 		public:
 
-			static FlagArgument *ParseArgument(int argc, char **argv, int& argi);
+			static FlagArgument *ParseArgument(const std::string& name, int argc, char **argv, int& argi);
 	};
 
 	class StringArgument : public Argument
 	{
 		private:
 
-			string value;
+			std::string value;
 
-			StringArgument(const string& value) : Argument(kArgumentTypeString)
+			StringArgument(const std::string& name, const std::string& value) : Argument(name, kArgumentTypeString)
 			{
 				this->value = value;
 			}
 
 		public:
 
-			static StringArgument *ParseArgument(int argc, char **argv, int& argi);
+			static StringArgument *ParseArgument(const std::string& name, int argc, char **argv, int& argi);
 
-			const string& GetValue(void) const
+			const std::string& GetValue(void) const
 			{
 				return (value);
 			}
@@ -105,14 +110,14 @@ namespace Heimdall
 
 			unsigned int value;
 
-			UnsignedIntegerArgument(unsigned int value) : Argument(kArgumentTypeUnsignedInteger)
+			UnsignedIntegerArgument(const std::string& name, unsigned int value) : Argument(name, kArgumentTypeUnsignedInteger)
 			{
 				this->value = value;
 			}
 
 		public:
 
-			static UnsignedIntegerArgument *ParseArgument(int argc, char **argv, int& argi);
+			static UnsignedIntegerArgument *ParseArgument(const std::string& name, int argc, char **argv, int& argi);
 
 			unsigned int GetValue(void) const
 			{
@@ -124,36 +129,38 @@ namespace Heimdall
 	{
 		private:
 			
-			const map<string, ArgumentType> argumentTypes;
-			const map<string, string> shortArgumentAliases;
-			const map<string, string> argumentAliases;
+			const std::map<std::string, ArgumentType> argumentTypes;
+			const std::map<std::string, std::string> shortArgumentAliases;
+			const std::map<std::string, std::string> argumentAliases;
 
-			map<string, Argument *> arguments;
+			std::vector<const Argument *> argumentVector;
+			std::map<std::string, const Argument *> argumentMap;
 
 		public:
 
-			Arguments(const map<string, ArgumentType>& argumentTypes, const map<string, string>& shortArgumentAliases = (map<string, string>()),
-				const map<string, string>& argumentAliases = (map<string, string>()));
+			Arguments(const std::map<std::string, ArgumentType>& argumentTypes,
+				const std::map<std::string, std::string>& shortArgumentAliases = (std::map<std::string, std::string>()),
+				const std::map<std::string, std::string>& argumentAliases = (std::map<std::string, std::string>()));
 			
 			~Arguments();
 
 			// argi is the index of the first argument to parse.
 			bool ParseArguments(int argc, char **argv, int argi);
 
-			const Argument *GetArgument(string argumentName) const
+			const Argument *GetArgument(std::string argumentName) const
 			{
-				map<string, Argument *>::const_iterator it = arguments.find(argumentName);
-				return (it != arguments.end() ? it->second : nullptr);
+				std::map<std::string, const Argument *>::const_iterator it = argumentMap.find(argumentName);
+				return (it != argumentMap.end() ? it->second : nullptr);
 			}
 
-			const map<string, ArgumentType>& GetArgumentTypes(void) const
+			const std::map<std::string, ArgumentType>& GetArgumentTypes(void) const
 			{
 				return (argumentTypes);
 			}
 
-			const map<string, Argument *>& GetArguments(void) const
+			const std::vector<const Argument *>& GetArguments(void) const
 			{
-				return (arguments);
+				return (argumentVector);
 			}
 	};
 }

@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2011 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2013 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -19,7 +19,7 @@ Installing Heimdall and Heimdall Frontend Binaries:
     1. Run "Heimdall Suite.pkg" and follow the instructions.
 
     2. Reboot your system.
-		
+
     3. Done
 
 
@@ -105,7 +105,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
     1. Fully charge your device (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -187,10 +187,10 @@ Performing a Custom Flash with Heimdall Frontend:
 
 
 Flashing Firmware from Command Line:
-	
+
     1. Fully charge your phone (use the wall charger as it's faster).
 
-    2. Download a decrypted Samsung Galaxy S ROM or a Heimdall Firmware Package
+    2. Download a decrypted device ROM or a Heimdall Firmware Package
        and extract everything to the one directory.
 
     3. If the ROM is not a Heimdall Firmware Package it may instead be provided
@@ -209,15 +209,27 @@ Flashing Firmware from Command Line:
 
             heimdall help
 
-    7. Use the instructions to manually enter a command with all the files you
-       want to flash.
+    7. Before flashing, you must first know the names of the partitions you
+       wish to flash. These can be obtained by executing:
+
+            heimdall print-pit --no-reboot
+
+       The inclusion of --no-reboot ensures the phone will not reboot after PIT
+       file has been downloaded and displayed. After executing a command with
+       the --no-reboot argument, the next command should include the --resume
+       argument.
+
+       NOTE: You can still safely reboot your phone manually (with the power
+             button) after executing --no-reboot commands.
+
+    8. Use the help and print-pit output to construct a command with all the
+       file you want to flash.
 
        Here is an example that does a full flash and repartition on a GT-I9000:
-		
-            heimdall flash --repartition --pit s1_odin_20100512.pit --factoryfs factoryfs.rfs --cache cache.rfs --dbdata dbdata.rfs --primary-boot boot.bin --secondary-boot Sbl.bin --param param.lfs --kernel zImage --modem modem.bin
 
+            heimdall flash --repartition --resume --pit s1_odin_20100512.pit --FACTORYFS factoryfs.rfs --CACHE cache.rfs --DBDATA dbdata.rfs --IBL+PBL boot.bin --SBL Sbl.bin --PARAM param.lfs --KERNEL zImage --MODEM modem.bin
 
-    8. Heimdall will display the progress as it flashes so that you know things
+    9. Heimdall will display the progress as it flashes so that you know things
        are working as they should.
 
 
@@ -467,24 +479,40 @@ be included.
 
 Appendix B - Installing Heimdall from Source:
 
-    1. First make sure you have installed XCode and pkgconfig.
+    PREREQUISITES:
+    
+          Heimdall requires C++11 (aka C++0x) functionality in order to compile.
+          Unfortunately, XCode includes an old version of GCC which does not
+          include support for C++11. XCode does include clang, which does
+          support C++11. However, clang's C++11 can only target OS X 10.7 or
+          newer. There are also slight compatibility issues between clang and
+          Qt, which is required in order to compile Heimdall Frontend. As such
+          these instructions will utilise GCC 4.7 installed via Homebrew.
+              
+          Xcode can be downloaded through the App store or from Apple's
+          developer website:
+          
+              https://developer.apple.com/xcode/
+          
+          Homebrew install instructions are available at:
+          
+              http://mxcl.github.io/homebrew/
+          
+    1. First make sure you have installed XCode and Homebrew (see above). Then
+       open a terminal and install GCC 4.7, pkgconfig and libusbx via Homebrew:
+    
+            brew tap homebrew/versions
+            brew install gcc47 pkgconfig libusbx
+            
+        NOTE: Installing GCC 4.7 will take a long time.
 
-       NOTE: There are several different ways you can install pkgconfig, one
-             option is to use Macports (http://www.macports.org/).
+    2. In a terminal navigate to the directory you downloaded (or extracted)
+       Heimdall to.
 
-    2. Open a terminal and navigate to the directory you downloaded,
-       or extracted, Heimdall to.
-
-    3. Download, compile and install libusb-1.0:
-
-       http://www.libusb.org/
-
-       NOTE: Alternatively you may install Macport's libusb-devel package.
-
-    4. Enter the following commands to compile libpit.
+    3. Enter the following commands to compile libpit.
 
             cd libpit
-            ./configure
+            ./configure CC=gcc-4.7 CXX=g++-4.7
             make
             cd ..
 
@@ -493,12 +521,12 @@ Appendix B - Installing Heimdall from Source:
     4. Enter the following commands to compile and install Heimdall:
 
             cd heimdall
-            ./configure
+            ./configure CC=gcc-4.7 CXX=g++-4.7
             make
             sudo make install
             cd ..
 
-    5. If you haven't installed the driver before, enter the following:
+    5. If you haven't installed the driver before, do the following:
 
             cd OSX
             sudo ./install-kext.sh
@@ -511,23 +539,17 @@ Appendix C - Installing Heimdall Frontend from Source:
 
     1. Compile and install Heimdall, see Appendix B.
 
-    2. First make sure you have installed XCode from your OS X install DVD.
-       You'll also need Qt 4.7 or later, available from:
+    2. Heimdall Frontend requires Qt (4.7 or later, but prior to 5.0), available
+       from:
 
-          http://qt.nokia.com/downloads/
+          http://qt-project.org/downloads
 
     3. Open a terminal and navigate to the directory you extracted Heimdall to.
 
     4. Enter the following commands to compile and install Heimdall Frontend:
 
             cd heimdall-frontend
-            qmake heimdall-frontend.pro
+            qmake -spec macx-g++ QMAKE_CC=gcc-4.7 QMAKE_CXX=g++-4.7
+            make
 
-    5. Open Finder and navigate to the heimdall-frontend sub-directory. Open
-       the newly created XCode project.
-
-    6. From the menu bar select Build -> Build. This outputs heimdall-frontend
-       to /Applications
-
-    7. Done
-
+    5. Done

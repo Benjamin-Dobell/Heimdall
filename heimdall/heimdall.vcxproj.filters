@@ -130,9 +130,6 @@
     <ClInclude Include="source\Utility.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="source\DumpAction.h">
-      <Filter>Source\Interface</Filter>
-    </ClInclude>
     <ClInclude Include="source\DetectAction.h">
       <Filter>Source\Interface</Filter>
     </ClInclude>
@@ -173,9 +170,6 @@
     </ClCompile>
     <ClCompile Include="source\Utility.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\DumpAction.cpp">
-      <Filter>Source\Interface</Filter>
     </ClCompile>
     <ClCompile Include="source\DetectAction.cpp">
       <Filter>Source\Interface</Filter>

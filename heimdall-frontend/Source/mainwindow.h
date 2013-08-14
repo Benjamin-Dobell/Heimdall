@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -45,15 +45,14 @@ namespace HeimdallFrontend
 
 		private:
 
-			enum
+			enum class HeimdallState
 			{
-				kHeimdallStateStopped = 0,
-				kHeimdallStateFlashing,
-				kHeimdallStateDetectingDevice,
-				kHeimdallStateClosingPcScreen,
-				kHeimdallStatePrintingPit,
-				kHeimdallStateDownloadingPit,
-				kHeimdallStateCount
+				Stopped = 0,
+				Flashing,
+				DetectingDevice,
+				ClosingPcScreen,
+				PrintingPit,
+				DownloadingPit
 			};
 
 			enum
@@ -69,7 +68,7 @@ namespace HeimdallFrontend
 			int tabIndex;
 
 			bool heimdallFailed;
-			int heimdallState;
+			HeimdallState heimdallState;
 			QProcess heimdallProcess;
 
 			PackageData loadedPackageData;
@@ -81,6 +80,7 @@ namespace HeimdallFrontend
 			QList<unsigned int> unusedPartitionIds;
 
 			bool verboseOutput;
+			bool resume;
 
 
 			void StartHeimdall(const QStringList& arguments);
@@ -133,7 +133,10 @@ namespace HeimdallFrontend
 			void SelectPit(void);
 
 			void SetRepartition(int enabled);
+
 			void SetNoReboot(int enabled);
+			void SetResume(bool enabled);
+			void SetResume(int enabled);
 
 			void StartFlash(void);
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -301,7 +301,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 
 	// Note: We don't support base-256 encoding. Support could be added later.
 	sprintf(tarHeader.fields.size, "%011llo", file.size());
-	sprintf(tarHeader.fields.modifiedTime, "%011llo", qtFileInfo.lastModified().toTime_t());
+	sprintf(tarHeader.fields.modifiedTime, "%u", qtFileInfo.lastModified().toTime_t());
 		
 	// Regular File
 	tarHeader.fields.typeFlag = '0';

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -52,13 +52,19 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 		
 		QStringList paths;
 
-		// Ensure /usr/bin is in PATH
+		// Ensure /usr/local/bin and /usr/bin are in PATH.
 		for (int i = 0; i < environment.length(); i++)
 		{
 			if (environment[i].left(5) == "PATH=")
 			{
 				paths = environment[i].mid(5).split(':');
-				paths.prepend("/usr/bin");
+				
+				if (!paths.contains("/usr/local/bin"))
+          paths.prepend("/usr/local/bin");
+				
+				if (!paths.contains("/usr/bin"))
+          paths.prepend("/usr/bin");
+				
 				break;
 			}
 		}
@@ -71,6 +77,7 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 			
 			if (heimdallPath.length() > 0)
 			{
+        utilityOutputPlainTextEdit->clear();
 				heimdallFailed = false;
 				
 				if (heimdallPath[heimdallPath.length() - 1] != QDir::separator())
@@ -87,7 +94,7 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 		{
 			flashLabel->setText("Failed to start Heimdall!");
 			
-			heimdallState = MainWindow::kHeimdallStateStopped;
+			heimdallState = HeimdallState::Stopped;
 			UpdateInterfaceAvailability();
 		}
 	}
@@ -102,7 +109,7 @@ void MainWindow::UpdateUnusedPartitionIds(void)
 	{
 		const PitEntry *pitEntry = currentPitData.GetEntry(i);
 
-		if (pitEntry->GetBlockCount() > 0 && strcmp(pitEntry->GetPartitionName(), "PIT") != 0 && strcmp(pitEntry->GetPartitionName(), "PT") != 0)
+		if (pitEntry->IsFlashable() && strcmp(pitEntry->GetPartitionName(), "PIT") != 0 && strcmp(pitEntry->GetPartitionName(), "PT") != 0)
 			unusedPartitionIds.append(pitEntry->GetIdentifier());
 	}
 
@@ -236,13 +243,13 @@ void MainWindow::UpdateLoadPackageInterfaceAvailability(void)
 		else
 			developerDonateButton->setEnabled(false);
 
-		loadFirmwareButton->setEnabled(heimdallState == MainWindow::kHeimdallStateStopped);
+		loadFirmwareButton->setEnabled(heimdallState == HeimdallState::Stopped);
 	}
 }
 
 void MainWindow::UpdateFlashInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		partitionNameComboBox->setEnabled(partitionsListWidget->currentRow() >= 0);
 
@@ -262,7 +269,10 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 		
 		flashProgressBar->setEnabled(false);
 		optionsGroup->setEnabled(true);
+		sessionGroup->setEnabled(true);
 		startFlashButton->setEnabled(validFlashSettings);
+		noRebootCheckBox->setEnabled(validFlashSettings);
+		resumeCheckbox->setEnabled(validFlashSettings);
 	}
 	else
 	{
@@ -270,13 +280,13 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 
 		flashProgressBar->setEnabled(true);
 		optionsGroup->setEnabled(false);
-		startFlashButton->setEnabled(false);
+		sessionGroup->setEnabled(false);
 	}
 }
 
 void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
 
@@ -308,16 +318,13 @@ void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
 
 void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
 {
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{
 		detectDeviceButton->setEnabled(true);
 		closePcScreenButton->setEnabled(true);
 		pitSaveAsButton->setEnabled(true);
 
-		if (!pitDestinationLineEdit->text().isEmpty())
-			downloadPitButton->setEnabled(true);
-		else
-			downloadPitButton->setEnabled(false);
+		downloadPitButton->setEnabled(!pitDestinationLineEdit->text().isEmpty());
 		
 		if (printPitDeviceRadioBox->isChecked())
 		{
@@ -331,6 +338,7 @@ void MainWindow::UpdateUtilitiesInterfaceAvailability(void)
 			printLocalPitGroup->setEnabled(true);
 			printLocalPitLineEdit->setEnabled(true);
 			printLocalPitBrowseButton->setEnabled(true);
+
 			printPitButton->setEnabled(!printLocalPitLineEdit->text().isEmpty());
 		}
 	}
@@ -353,7 +361,7 @@ void MainWindow::UpdateInterfaceAvailability(void)
 	UpdateCreatePackageInterfaceAvailability();
 	UpdateUtilitiesInterfaceAvailability();
 
-	if (heimdallState == MainWindow::kHeimdallStateStopped)
+	if (heimdallState == HeimdallState::Stopped)
 	{		
 		// Enable/disable tabs
 
@@ -404,7 +412,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setupUi(this);
 
-	heimdallState = MainWindow::kHeimdallStateStopped;
+	heimdallState = HeimdallState::Stopped;
 
 	lastDirectory = QDir::toNativeSeparators(QApplication::applicationDirPath());
 
@@ -420,6 +428,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	// Menu
 	QObject::connect(actionDonate, SIGNAL(triggered()), this, SLOT(OpenDonationWebpage()));
 	QObject::connect(actionVerboseOutput, SIGNAL(toggled(bool)), this, SLOT(SetVerboseOutput(bool)));
+	QObject::connect(actionResumeConnection, SIGNAL(toggled(bool)), this, SLOT(SetResume(bool)));
 	QObject::connect(actionAboutHeimdall, SIGNAL(triggered()), this, SLOT(ShowAbout()));
 
 	// Load Package Tab
@@ -439,7 +448,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	QObject::connect(pitBrowseButton, SIGNAL(clicked()), this, SLOT(SelectPit()));
 
 	QObject::connect(repartitionCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetRepartition(int)));
+
 	QObject::connect(noRebootCheckBox, SIGNAL(stateChanged(int)), this, SLOT(SetNoReboot(int)));
+	QObject::connect(resumeCheckbox, SIGNAL(stateChanged(int)), this, SLOT(SetResume(int)));
 	
 	QObject::connect(startFlashButton, SIGNAL(clicked()), this, SLOT(StartFlash()));
 
@@ -882,20 +893,39 @@ void MainWindow::SelectPit(void)
 	}
 }
 
+
 void MainWindow::SetRepartition(int enabled)
 {
 	workingPackageData.GetFirmwareInfo().SetRepartition(enabled);
+
+	repartitionCheckBox->setChecked(enabled);
 }
+
 void MainWindow::SetNoReboot(int enabled)
 {
 	workingPackageData.GetFirmwareInfo().SetNoReboot(enabled);
+
+	noRebootCheckBox->setChecked(enabled);
+}
+
+void MainWindow::SetResume(bool enabled)
+{
+	resume = enabled;
+
+	actionResumeConnection->setChecked(enabled);
+	resumeCheckbox->setChecked(enabled);
+}
+
+void MainWindow::SetResume(int enabled)
+{
+	SetResume(enabled != 0);
 }
 
 void MainWindow::StartFlash(void)
 {
 	outputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateFlashing;
+	heimdallState = HeimdallState::Flashing;
 	heimdallFailed = false;
 
 	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
@@ -921,6 +951,9 @@ void MainWindow::StartFlash(void)
 
 	if (firmwareInfo.GetNoReboot())
 		arguments.append("--no-reboot");
+
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1072,7 +1105,7 @@ void MainWindow::DetectDevice(void)
 	deviceDetectedRadioButton->setChecked(false);
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallState = HeimdallState::DetectingDevice;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1090,11 +1123,14 @@ void MainWindow::ClosePcScreen(void)
 {
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateClosingPcScreen;
+	heimdallState = HeimdallState::ClosingPcScreen;
 	heimdallFailed = false;
 	
 	QStringList arguments;
 	arguments.append("close-pc-screen");
+	
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1124,7 +1160,7 @@ void MainWindow::DownloadPit(void)
 	deviceDetectedRadioButton->setChecked(false);
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStateDetectingDevice;
+	heimdallState = HeimdallState::DownloadingPit;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1134,6 +1170,9 @@ void MainWindow::DownloadPit(void)
 	arguments.append(pitDestinationLineEdit->text());
 
 	arguments.append("--no-reboot");
+
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1182,7 +1221,7 @@ void MainWindow::PrintPit(void)
 {
 	utilityOutputPlainTextEdit->clear();
 
-	heimdallState = MainWindow::kHeimdallStatePrintingPit;
+	heimdallState = HeimdallState::PrintingPit;
 	heimdallFailed = false;
 	
 	QStringList arguments;
@@ -1196,6 +1235,9 @@ void MainWindow::PrintPit(void)
 
 	arguments.append("--stdout-errors");
 	arguments.append("--no-reboot");
+	
+	if (resume)
+		arguments.append("--resume");
 
 	if (verboseOutput)
 		arguments.append("--verbose");
@@ -1223,7 +1265,7 @@ void MainWindow::HandleHeimdallStdout(void)
 	output.remove(QChar('\b'));
 	output.replace(QChar('%'), QString("%\n"));
 
-	if (heimdallState == MainWindow::kHeimdallStateFlashing)
+	if (heimdallState == HeimdallState::Flashing)
 	{
 		outputPlainTextEdit->insertPlainText(output);
 		outputPlainTextEdit->ensureCursorVisible();
@@ -1237,20 +1279,27 @@ void MainWindow::HandleHeimdallStdout(void)
 
 void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitStatus)
 {
+	HandleHeimdallStdout();
+
 	if (exitStatus == QProcess::NormalExit && exitCode == 0)
 	{
-		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+		bool executedNoReboot = (heimdallState == HeimdallState::Flashing && loadedPackageData.GetFirmwareInfo().GetNoReboot())
+			|| (heimdallState == HeimdallState::PrintingPit && printPitDeviceRadioBox->isChecked()) || heimdallState == HeimdallState::DownloadingPit;
+
+		SetResume(executedNoReboot);
+
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Flash completed successfully!");
 		}
-		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		else if (heimdallState == HeimdallState::DetectingDevice)
 		{
 			deviceDetectedRadioButton->setChecked(true);
 		}
 	}
 	else
 	{
-		if (heimdallState == MainWindow::kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			QString error = heimdallProcess.readAllStandardError();
 
@@ -1263,13 +1312,13 @@ void MainWindow::HandleHeimdallReturned(int exitCode, QProcess::ExitStatus exitS
 
 			flashLabel->setText(error);
 		}
-		else if (heimdallState == MainWindow::kHeimdallStateDetectingDevice)
+		else if (heimdallState == HeimdallState::DetectingDevice)
 		{
 			deviceDetectedRadioButton->setChecked(false);
 		}
 	}
 
-	heimdallState = MainWindow::kHeimdallStateStopped;
+	heimdallState = HeimdallState::Stopped;
 	flashProgressBar->setEnabled(false);
 	UpdateInterfaceAvailability();
 }
@@ -1278,7 +1327,7 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 {	
 	if (error == QProcess::FailedToStart || error == QProcess::Timedout)
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Failed to start Heimdall!");
 			flashProgressBar->setEnabled(false);
@@ -1289,12 +1338,12 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 		}
 
 		heimdallFailed = true;
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 	else if (error == QProcess::Crashed)
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Heimdall crashed!");
 			flashProgressBar->setEnabled(false);
@@ -1304,12 +1353,12 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall crashed!");
 		}
 		
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 	else
 	{
-		if (heimdallState == kHeimdallStateFlashing)
+		if (heimdallState == HeimdallState::Flashing)
 		{
 			flashLabel->setText("Heimdall reported an unknown error!");
 			flashProgressBar->setEnabled(false);
@@ -1319,7 +1368,7 @@ void MainWindow::HandleHeimdallError(QProcess::ProcessError error)
 			utilityOutputPlainTextEdit->appendPlainText("\nFRONTEND ERROR: Heimdall reported an unknown error!");
 		}
 		
-		heimdallState = MainWindow::kHeimdallStateStopped;
+		heimdallState = HeimdallState::Stopped;
 		UpdateInterfaceAvailability();
 	}
 }

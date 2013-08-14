@@ -5,19 +5,29 @@
 TEMPLATE = app
 TARGET = heimdall-frontend
 
+isEmpty(OUTPUTDIR) {
+	OUTPUTDIR = $$(OUTPUTDIR)
+}
+
 macx {
 	message("")
 
-	QT_FRAMEWORKS_DIR = $$(QT_FRAMEWORKS_DIR)
+	isEmpty(QT_FRAMEWORKS_DIR) {
+		QT_FRAMEWORKS_DIR = $$(QT_FRAMEWORKS_DIR)
+	}
+
 	isEmpty(QT_FRAMEWORKS_DIR) {
 		message("QT_FRAMEWORKS_DIR not specified, using default:")
-		QT_FRAMEWORKS_DIR = /System/Library/Frameworks
+		QT_FRAMEWORKS_DIR = /Library/Frameworks
 	}
 
 	message("QT_FRAMEWORKS_DIR = $$QT_FRAMEWORKS_DIR")
 	message("")
 
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = $$(QMAKE_MACOSX_DEPLOYMENT_TARGET)
+	isEmpty(QMAKE_MACOSX_DEPLOYMENT_TARGET) {
+		QMAKE_MACOSX_DEPLOYMENT_TARGET = $$(QMAKE_MACOSX_DEPLOYMENT_TARGET)
+	}
+
 	isEmpty(QMAKE_MACOSX_DEPLOYMENT_TARGET) {
 		message("QMAKE_MACOSX_DEPLOYMENT_TARGET not specified, using default:")
 		QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
@@ -26,30 +36,35 @@ macx {
 	message("QMAKE_MACOSX_DEPLOYMENT_TARGET = $$QMAKE_MACOSX_DEPLOYMENT_TARGET")
 	message("")
 
-	QMAKE_MAC_SDK = $$(QMAKE_MAC_SDK)
+	isEmpty(QMAKE_MAC_SDK) {
+		QMAKE_MAC_SDK = $$(QMAKE_MAC_SDK)
+	}
+
 	isEmpty(QMAKE_MAC_SDK) {
 		message("QMAKE_MAC_SDK not specified, using default:")
-		QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.4.sdk
+		QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.7.sdk
 	}
 
 	message("QMAKE_MAC_SDK = $$QMAKE_MAC_SDK")
 	message("")
 
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = $$MACOSX_DEPLOYMENT_TARGET
-	QMAKE_MAC_SDK = $$MAC_SDK
-
-	PRIVATE_FRAMEWORKS.files = $$(QTFRAMEWORKSDIR)/QtCore.framework \
-		$$(QTFRAMEWORKSDIR)//QtGui.framework $$(QTFRAMEWORKSDIR)/QtXml.framework
+	PRIVATE_FRAMEWORKS.files = $$QT_FRAMEWORKS_DIR/QtCore.framework \
+		$$QT_FRAMEWORKS_DIR//QtGui.framework $$QT_FRAMEWORKS_DIR/QtXml.framework
 	PRIVATE_FRAMEWORKS.path = Contents/Frameworks
 
 	QMAKE_BUNDLE_DATA += PRIVATE_FRAMEWORKS
+	LIBS += -L/usr/lib
 
 	config += x86 x86_64 ppc
+	
+	QMAKE_CFLAGS_X86_64 = -m64 -mmacosx-version-min=10.5
+	QMAKE_CXXFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
+	QMAKE_LFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
 
 	isEmpty(OUTPUTDIR) {
 		DESTDIR = /Applications
 	} else {
-		DESTDIR = $$(OUTPUTDIR)
+		DESTDIR = $$OUTPUTDIR
 	}
 
 } else {
@@ -57,7 +72,7 @@ macx {
 		DESTDIR = ../Win32
 
 		!isEmpty(OUTPUTDIR) {
-			target.path = $$(OUTPUTDIR)
+			target.path = $$OUTPUTDIR
 			INSTALLS += target
 		}
 	} else {
@@ -66,7 +81,7 @@ macx {
 		isEmpty(OUTPUTDIR) {
 			target.path = /usr/local/bin
 		} else {
-			target.path = $$(OUTPUTDIR)
+			target.path = $$OUTPUTDIR
 		}
 
 		INSTALLS += target
@@ -85,6 +100,7 @@ INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Release \
     ../libpit/Source \
     .
+unix:INCLUDEPATH += /usr/include
 DEPENDPATH += .
 MOC_DIR += ./GeneratedFiles/release
 OBJECTS_DIR += release

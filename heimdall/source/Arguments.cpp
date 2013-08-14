@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,21 @@
 #include "Interface.h"
 #include "Utility.h"
 
+using namespace std;
 using namespace Heimdall;
 
-FlagArgument *FlagArgument::ParseArgument(int argc, char **argv, int& argi)
+FlagArgument *FlagArgument::ParseArgument(const std::string& name, int argc, char **argv, int& argi)
 {
-	return new FlagArgument();
+	return new FlagArgument(name);
 }
 
 
 
-StringArgument *StringArgument::ParseArgument(int argc, char **argv, int& argi)
+StringArgument *StringArgument::ParseArgument(const std::string& name, int argc, char **argv, int& argi)
 {
 	if (++argi < argc)
 	{
-		return (new StringArgument(argv[argi]));
+		return (new StringArgument(name, argv[argi]));
 	}
 	else
 	{
@@ -48,7 +49,7 @@ StringArgument *StringArgument::ParseArgument(int argc, char **argv, int& argi)
 
 
 
-UnsignedIntegerArgument *UnsignedIntegerArgument::ParseArgument(int argc, char **argv, int& argi)
+UnsignedIntegerArgument *UnsignedIntegerArgument::ParseArgument(const std::string& name, int argc, char **argv, int& argi)
 {
 	UnsignedIntegerArgument *unsignedIntegerArgument = nullptr;
 
@@ -57,7 +58,7 @@ UnsignedIntegerArgument *UnsignedIntegerArgument::ParseArgument(int argc, char *
 		unsigned int value;
 		
 		if (Utility::ParseUnsignedInt(value, argv[argi]) == kNumberParsingStatusSuccess)
-			unsignedIntegerArgument = new UnsignedIntegerArgument(value);
+			unsignedIntegerArgument = new UnsignedIntegerArgument(name, value);
 		else
 			Interface::Print("%s must be a positive integer.", argv[argi - 1]);
 	}
@@ -81,8 +82,8 @@ Arguments::Arguments(const map<string, ArgumentType>& argumentTypes, const map<s
 
 Arguments::~Arguments()
 {
-	for (map<string, Argument *>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-		delete it->second;
+	for (vector<const Argument *>::const_iterator it = argumentVector.begin(); it != argumentVector.end(); it++)
+		delete *it;
 }
 
 bool Arguments::ParseArguments(int argc, char **argv, int argi)
@@ -158,6 +159,10 @@ bool Arguments::ParseArguments(int argc, char **argv, int argi)
 			}
 		}
 
+		// We don't want to insert wild-cards into our argument map.
+		if (argumentName == "%d" || argumentName == "%s")
+			argumentName = nonwildcardArgumentName;
+
 		Argument *argument = nullptr;
 		
 		if (argumentTypeIt != argumentTypes.end())
@@ -165,15 +170,15 @@ bool Arguments::ParseArguments(int argc, char **argv, int argi)
 			switch (argumentTypeIt->second)
 			{
 				case kArgumentTypeFlag:
-					argument = FlagArgument::ParseArgument(argc, argv, argi);
+					argument = FlagArgument::ParseArgument(argumentName, argc, argv, argi);
 					break;
 
 				case kArgumentTypeString:
-					argument = StringArgument::ParseArgument(argc, argv, argi);
+					argument = StringArgument::ParseArgument(argumentName, argc, argv, argi);
 					break;
 
 				case kArgumentTypeUnsignedInteger:
-					argument = UnsignedIntegerArgument::ParseArgument(argc, argv, argi);
+					argument = UnsignedIntegerArgument::ParseArgument(argumentName, argc, argv, argi);
 					break;
 
 				default:
@@ -186,21 +191,19 @@ bool Arguments::ParseArguments(int argc, char **argv, int argi)
 			Interface::Print("Unknown argument: %s\n\n", argv[argi]);
 		}
 
-		// We don't want to insert wild-cards into our argument map.
-		if (argumentName == "%d" || argumentName == "%s")
-			argumentName = nonwildcardArgumentName;
-
 		if (argument)
 		{
-			pair<map<string, Argument *>::iterator, bool> insertResult = arguments.insert(pair<string, Argument *>(argumentName, argument));
+			pair<map<string, const Argument *>::iterator, bool> insertResult = argumentMap.insert(pair<string, const Argument *>(argumentName, argument));
 
 			if (!insertResult.second)
 			{
-				Interface::Print("Duplicate argument: %s (%s)\n\n", argv[argi], insertResult.first->first.c_str());
+				Interface::Print("Duplicate argument: %s (%s)\n\n", argv[argi], argumentName.c_str());
 				delete argument;
 
 				return (false);
 			}
+
+			argumentVector.push_back(argument);
 		}
 		else
 		{

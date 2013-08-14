@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@
 #include "Heimdall.h"
 #include "Interface.h"
 
+using namespace std;
 using namespace Heimdall;
 
 const char *ClosePcScreenAction::usage = "Action: close-pc-screen\n\
 Arguments: [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
+           [--usb-log-level <none/error/warning/debug>]\n\
 Description: Attempts to get rid off the \"connect phone to PC\" screen.\n";
 
 int ClosePcScreenAction::Execute(int argc, char **argv)
@@ -37,9 +39,11 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 
 	map<string, ArgumentType> argumentTypes;
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
+	argumentTypes["resume"] = kArgumentTypeFlag;
 	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
+	argumentTypes["usb-log-level"] = kArgumentTypeString;
 
 	Arguments arguments(argumentTypes);
 
@@ -50,8 +54,44 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 	}
 
 	const UnsignedIntegerArgument *communicationDelayArgument = static_cast<const UnsignedIntegerArgument *>(arguments.GetArgument("delay"));
+	const StringArgument *usbLogLevelArgument = static_cast<const StringArgument *>(arguments.GetArgument("usb-log-level"));
+
+	BridgeManager::UsbLogLevel usbLogLevel = BridgeManager::UsbLogLevel::Default;
+
+	if (usbLogLevelArgument)
+	{
+		const string& usbLogLevelString = usbLogLevelArgument->GetValue();
+
+		if (usbLogLevelString.compare("none") == 0 || usbLogLevelString.compare("NONE") == 0)
+		{
+			usbLogLevel = BridgeManager::UsbLogLevel::None;
+		}
+		else if (usbLogLevelString.compare("error") == 0 || usbLogLevelString.compare("ERROR") == 0)
+		{
+			usbLogLevel = BridgeManager::UsbLogLevel::Error;
+		}
+		else if (usbLogLevelString.compare("warning") == 0 || usbLogLevelString.compare("WARNING") == 0)
+		{
+			usbLogLevel = BridgeManager::UsbLogLevel::Warning;
+		}
+		else if (usbLogLevelString.compare("info") == 0 || usbLogLevelString.compare("INFO") == 0)
+		{
+			usbLogLevel = BridgeManager::UsbLogLevel::Info;
+		}
+		else if (usbLogLevelString.compare("debug") == 0 || usbLogLevelString.compare("DEBUG") == 0)
+		{
+			usbLogLevel = BridgeManager::UsbLogLevel::Debug;
+		}
+		else
+		{
+			Interface::Print("Unknown USB log level: %s\n\n", usbLogLevelString.c_str());
+			Interface::Print(ClosePcScreenAction::usage);
+			return (0);
+		}
+	}
 
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
+	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
@@ -70,8 +110,9 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 		communicationDelay = communicationDelayArgument->GetValue();
 
 	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
-	if (bridgeManager->Initialise() != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())
+	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())
 	{
 		delete bridgeManager;
 		return (1);

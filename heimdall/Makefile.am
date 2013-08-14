@@ -9,7 +9,6 @@ heimdall_SOURCES = source/Arguments.cpp \
 	source/ClosePcScreenAction.cpp \
 	source/DetectAction.cpp \
 	source/DownloadPitAction.cpp \
-	source/DumpAction.cpp \
 	source/FlashAction.cpp \
 	source/HelpAction.cpp \
 	source/InfoAction.cpp \
@@ -24,14 +23,14 @@ heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 if LINUXTARGET
 
 udevrulesdir = /lib/udev/rules.d
-udevrules_DATA = 60-heimdall-galaxy-s.rules
+udevrules_DATA = 60-heimdall.rules
 
 install-data-hook:
 	@echo ""
 	@echo "IMPORTANT - You must reboot your machine or execute the following as root:"
 
 if UDEVADM
-	@echo "udevadm control --reload_rules"
+	@echo "udevadm control --reload-rules"
 else
 	@echo "service udev restart"
 endif

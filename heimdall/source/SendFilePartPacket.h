@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,11 @@ namespace Heimdall
 				
 				// bytesRead is discarded (it's just there to stop GCC warnings)
 				int bytesRead = fread(data, 1, bytesToRead, file);
+			}
+
+			SendFilePartPacket(unsigned char *buffer, int size) : OutboundPacket(size)
+			{
+				memcpy(data, buffer, size);
 			}
 
 			void Pack(void)

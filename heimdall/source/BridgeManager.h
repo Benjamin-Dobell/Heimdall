@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,9 @@
 
 #ifndef BRIDGEMANAGER_H
 #define BRIDGEMANAGER_H
+
+// libpit
+#include "libpit.h"
 
 // Heimdall
 #include "Heimdall.h"
@@ -53,7 +56,7 @@ namespace Heimdall
 
 			enum
 			{
-				kSupportedDeviceCount = 4
+				kSupportedDeviceCount = 3
 			};
 
 			enum
@@ -77,8 +80,18 @@ namespace Heimdall
 			{
 				kPidGalaxyS		    = 0x6601,
 				kPidGalaxyS2        = 0x685D,
-				kPidDroidCharge     = 0x68C3,
-				kPidGalaxyCamera    = 0x6860 // Is this necessary?
+				kPidDroidCharge     = 0x68C3
+			};
+
+			enum class UsbLogLevel
+			{
+				None = 0,
+				Error,
+				Warning,
+				Info,
+				Debug,
+
+				Default = Error
 			};
 
 		private:
@@ -109,13 +122,14 @@ namespace Heimdall
 			unsigned int fileTransferPacketSize;
 			unsigned int fileTransferSequenceTimeout;
 
+			UsbLogLevel usbLogLevel;
+
 			int FindDeviceInterface(void);
 			bool ClaimDeviceInterface(void);
 			bool SetupDeviceInterface(void);
 			void ReleaseDeviceInterface(void);
 
-			bool CheckProtocol(void) const;
-			bool InitialiseProtocol(void) const;
+			bool InitialiseProtocol(void);
 
 		public:
 
@@ -123,7 +137,7 @@ namespace Heimdall
 			~BridgeManager();
 
 			bool DetectDevice(void);
-			int Initialise(void);
+			int Initialise(bool resume);
 
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
@@ -133,12 +147,18 @@ namespace Heimdall
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 
-			bool SendPitFile(FILE *file) const;
+			bool SendPitData(const libpit::PitData *pitData) const;
 			int ReceivePitFile(unsigned char **pitBuffer) const;
 			int DownloadPitFile(unsigned char **pitBuffer) const; // Thin wrapper around ReceivePitFile() with additional logging.
 
 			bool SendFile(FILE *file, unsigned int destination, unsigned int deviceType, unsigned int fileIdentifier = 0xFFFFFFFF) const;
-			bool ReceiveDump(unsigned int chipType, unsigned int chipId, FILE *file) const;
+
+			void SetUsbLogLevel(UsbLogLevel usbLogLevel);
+
+			UsbLogLevel GetUsbLogLevel(void) const
+			{
+				return usbLogLevel;
+			}
 
 			bool IsVerbose(void) const
 			{

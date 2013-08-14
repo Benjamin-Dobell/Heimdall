@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -102,6 +102,11 @@ namespace libpit
 			~PitEntry();
 
 			bool Matches(const PitEntry *otherPitEntry) const;
+
+			bool IsFlashable(void) const
+			{
+				return strlen(partitionName) != 0;
+			}
 
 			unsigned int GetBinaryType(void) const
 			{
@@ -250,7 +255,8 @@ namespace libpit
 			enum
 			{
 				kFileIdentifier = 0x12349876,
-				kHeaderDataSize = 28
+				kHeaderDataSize = 28,
+				kPaddedSizeMultiplicand = 4096
 			};
 
 		private:
@@ -347,6 +353,22 @@ namespace libpit
 			unsigned int GetEntryCount(void) const
 			{
 				return entryCount;
+			}
+
+			unsigned int GetDataSize(void) const
+			{
+				return PitData::kHeaderDataSize + entryCount * PitEntry::kDataSize;
+			}
+
+			unsigned int GetPaddedSize(void) const
+			{
+				unsigned int dataSize = GetDataSize();
+				unsigned int paddedSize = (dataSize / kPaddedSizeMultiplicand) * kPaddedSizeMultiplicand;
+
+				if (dataSize % kPaddedSizeMultiplicand != 0)
+					paddedSize += kPaddedSizeMultiplicand;
+
+				return paddedSize;
 			}
 
 			unsigned int GetUnknown1(void) const
