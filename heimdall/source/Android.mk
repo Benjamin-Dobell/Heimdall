@@ -34,3 +34,5 @@ endif
 
 LOCAL_MODULE := heimdall
 include $(BUILD_HOST_EXECUTABLE)
+
+$(call dist-for-goals,dist_files sdk,$(LOCAL_BUILT_MODULE))

@@ -21,14 +21,14 @@
 #ifndef HEIMDALL_H
 #define HEIMDALL_H
 
+#include "../config.h"
+
 #ifdef OS_WINDOWS
 
 #include <Windows.h>
 #undef GetBinaryType
 
 #else
-
-#include "../config.h"
 
 #if defined(OS_DARWIN) || defined(OS_LINUX)
 #include <unistd.h>
