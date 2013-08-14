@@ -428,7 +428,7 @@ int FlashAction::Execute(int argc, char **argv)
 
 	const StringArgument *usbLogLevelArgument = static_cast<const StringArgument *>(arguments.GetArgument("usb-log-level"));
 
-	BridgeManager::UsbLogLevel usbLogLevel = BridgeManager::UsbLogLevel::Default;
+	BridgeManager::UsbLogLevel usbLogLevel = BridgeManager::Default;
 
 	if (usbLogLevelArgument)
 	{
@@ -436,23 +436,23 @@ int FlashAction::Execute(int argc, char **argv)
 
 		if (usbLogLevelString.compare("none") == 0 || usbLogLevelString.compare("NONE") == 0)
 		{
-			usbLogLevel = BridgeManager::UsbLogLevel::None;
+			usbLogLevel = BridgeManager::None;
 		}
 		else if (usbLogLevelString.compare("error") == 0 || usbLogLevelString.compare("ERROR") == 0)
 		{
-			usbLogLevel = BridgeManager::UsbLogLevel::Error;
+			usbLogLevel = BridgeManager::Error;
 		}
 		else if (usbLogLevelString.compare("warning") == 0 || usbLogLevelString.compare("WARNING") == 0)
 		{
-			usbLogLevel = BridgeManager::UsbLogLevel::Warning;
+			usbLogLevel = BridgeManager::Warning;
 		}
 		else if (usbLogLevelString.compare("info") == 0 || usbLogLevelString.compare("INFO") == 0)
 		{
-			usbLogLevel = BridgeManager::UsbLogLevel::Info;
+			usbLogLevel = BridgeManager::Info;
 		}
 		else if (usbLogLevelString.compare("debug") == 0 || usbLogLevelString.compare("DEBUG") == 0)
 		{
-			usbLogLevel = BridgeManager::UsbLogLevel::Debug;
+			usbLogLevel = BridgeManager::Debug;
 		}
 		else
 		{

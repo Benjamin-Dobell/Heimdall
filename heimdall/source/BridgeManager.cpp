@@ -467,7 +467,7 @@ BridgeManager::BridgeManager(bool verbose, int communicationDelay)
 	fileTransferPacketSize = kFileTransferPacketSizeDefault;
 	fileTransferSequenceTimeout = kFileTransferSequenceTimeoutDefault;
 
-	usbLogLevel = UsbLogLevel::Default;
+	usbLogLevel = Default;
 }
 
 BridgeManager::~BridgeManager()
@@ -499,23 +499,23 @@ bool BridgeManager::DetectDevice(void)
 	// Setup libusb log level.
 	switch (usbLogLevel)
 	{
-		case UsbLogLevel::None:
+		case None:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
 			break;
 
-		case UsbLogLevel::Error:
+		case Error:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
 			break;
 
-		case UsbLogLevel::Warning:
+		case Warning:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
 			break;
 
-		case UsbLogLevel::Info:
+		case Info:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
 			break;
 
-		case UsbLogLevel::Debug:
+		case Debug:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
 			break;
 	}
@@ -588,23 +588,23 @@ int BridgeManager::Initialise(bool resume)
 	// Setup libusb log level.
 	switch (usbLogLevel)
 	{
-		case UsbLogLevel::None:
+		case None:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
 			break;
 
-		case UsbLogLevel::Error:
+		case Error:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
 			break;
 
-		case UsbLogLevel::Warning:
+		case Warning:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
 			break;
 
-		case UsbLogLevel::Info:
+		case Info:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
 			break;
 
-		case UsbLogLevel::Debug:
+		case Debug:
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
 			break;
 	}
@@ -1366,7 +1366,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	return (true);
 }
 
-void BridgeManager::SetUsbLogLevel(UsbLogLevel usbLogLevel)
+void BridgeManager::SetUsbLogLevel(int usbLogLevel)
 {
 	this->usbLogLevel = usbLogLevel;
 
@@ -1374,23 +1374,23 @@ void BridgeManager::SetUsbLogLevel(UsbLogLevel usbLogLevel)
 	{
 		switch (usbLogLevel)
 		{
-			case UsbLogLevel::None:
+			case None:
 				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_NONE);
 				break;
 
-			case UsbLogLevel::Error:
+			case Error:
 				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_ERROR);
 				break;
 
-			case UsbLogLevel::Warning:
+			case Warning:
 				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_WARNING);
 				break;
 
-			case UsbLogLevel::Info:
+			case Info:
 				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_INFO);
 				break;
 
-			case UsbLogLevel::Debug:
+			case Debug:
 				libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
 				break;
 		}

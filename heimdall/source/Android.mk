@@ -12,7 +12,6 @@ LOCAL_SRC_FILES := \
   VersionAction.cpp \
   BridgeManager.cpp \
   DetectAction.cpp \
-  DumpAction.cpp \
   HelpAction.cpp \
   Interface.cpp \
   Utility.cpp \

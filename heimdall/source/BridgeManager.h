@@ -83,7 +83,7 @@ namespace Heimdall
 				kPidDroidCharge     = 0x68C3
 			};
 
-			enum class UsbLogLevel
+			enum UsbLogLevel
 			{
 				None = 0,
 				Error,
@@ -122,7 +122,7 @@ namespace Heimdall
 			unsigned int fileTransferPacketSize;
 			unsigned int fileTransferSequenceTimeout;
 
-			UsbLogLevel usbLogLevel;
+			int usbLogLevel;
 
 			int FindDeviceInterface(void);
 			bool ClaimDeviceInterface(void);
@@ -153,9 +153,9 @@ namespace Heimdall
 
 			bool SendFile(FILE *file, unsigned int destination, unsigned int deviceType, unsigned int fileIdentifier = 0xFFFFFFFF) const;
 
-			void SetUsbLogLevel(UsbLogLevel usbLogLevel);
+			void SetUsbLogLevel(int usbLogLevel);
 
-			UsbLogLevel GetUsbLogLevel(void) const
+			int GetUsbLogLevel(void) const
 			{
 				return usbLogLevel;
 			}
