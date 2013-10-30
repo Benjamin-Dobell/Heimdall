@@ -232,7 +232,7 @@ int BridgeManager::FindDeviceInterface(void)
 
 	libusb_free_config_descriptor(configDescriptor);
 
-	if (result != LIBUSB_SUCCESS)
+	if (interfaceIndex < 0)
 	{
 		Interface::PrintError("Failed to find correct interface configuration\n");
 		return (BridgeManager::kInitialiseFailed);
