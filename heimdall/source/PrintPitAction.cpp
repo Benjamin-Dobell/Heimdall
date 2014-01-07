@@ -35,6 +35,8 @@ using namespace Heimdall;
 const char *PrintPitAction::usage = "Action: print-pit\n\
 Arguments: [--file <filename>] [--verbose] [--no-reboot] [--stdout-errors]\n\
     [--delay <ms>] [--usb-log-level <none/error/warning/debug>]\n\
+    [--zero-packet-fix]\n\
+        Use end of packet command(zero length packet).\n\
 Description: Prints the contents of a PIT file in a human readable format. If\n\
     a filename is not provided then Heimdall retrieves the PIT file from the \n\
     connected device.\n";
@@ -51,6 +53,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
+	argumentTypes["zero-packet-fix"] = kArgumentTypeFlag;
 
 	Arguments arguments(argumentTypes);
 
@@ -66,6 +69,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
+	bool zeroPacketFix = arguments.GetArgument("zero-packet-fix") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
@@ -155,12 +159,16 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		// Print PIT from a device.
 
+		int flags = 0;
 		int communicationDelay = BridgeManager::kCommunicationDelayDefault;
 
 		if (communicationDelayArgument)
 			communicationDelay = communicationDelayArgument->GetValue();
 
-		BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+		if (zeroPacketFix)
+			flags = BridgeManager::bmZeroPacketFix;
+
+		BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay, flags);
 		bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 		if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

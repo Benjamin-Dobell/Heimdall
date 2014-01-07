@@ -54,6 +54,11 @@ namespace Heimdall
 	{
 		public:
 
+			enum  // Some devices requires extra hacks
+			{
+				bmZeroPacketFix = 1
+			};
+
 			enum
 			{
 				kSupportedDeviceCount = 3
@@ -100,6 +105,7 @@ namespace Heimdall
 
 			bool verbose;
 			int communicationDelay;
+			int bmflags;
 
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
@@ -133,7 +139,7 @@ namespace Heimdall
 
 		public:
 
-			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault);
+			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault, int bmflags = 0);
 			~BridgeManager();
 
 			bool DetectDevice(void);
