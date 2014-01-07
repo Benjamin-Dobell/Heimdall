@@ -48,6 +48,7 @@ Arguments:\n\
     [--pit <filename>]\n\
     [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
     [--usb-log-level <none/error/warning/debug>]\n\
+    [--resume]\n\
     [--zero-packet-fix]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
     (or identifiers) can be obtained by executing the print-pit action.\n\

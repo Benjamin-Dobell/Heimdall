@@ -35,6 +35,7 @@ using namespace Heimdall;
 const char *PrintPitAction::usage = "Action: print-pit\n\
 Arguments: [--file <filename>] [--verbose] [--no-reboot] [--stdout-errors]\n\
     [--delay <ms>] [--usb-log-level <none/error/warning/debug>]\n\
+    [--resume]\n\
     [--zero-packet-fix]\n\
         Use end of packet command(zero length packet).\n\
 Description: Prints the contents of a PIT file in a human readable format. If\n\

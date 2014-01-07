@@ -34,6 +34,7 @@ using namespace Heimdall;
 const char *DownloadPitAction::usage = "Action: download-pit\n\
 Arguments: --output <filename> [--verbose] [--no-reboot] [--stdout-errors]\n\
     [--delay <ms>] [--usb-log-level <none/error/warning/debug>]\n\
+    [--resume]\n\
     [--zero-packet-fix]\n\
 Description: Downloads the connected device's PIT file to the specified\n\
     output file.\n";

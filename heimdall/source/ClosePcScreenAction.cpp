@@ -31,6 +31,7 @@ using namespace Heimdall;
 const char *ClosePcScreenAction::usage = "Action: close-pc-screen\n\
 Arguments: [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
            [--usb-log-level <none/error/warning/debug>]\n\
+           [--resume]\n\
            [--zero-packet-fix]\n\
 Description: Attempts to get rid off the \"connect phone to PC\" screen.\n";
 
