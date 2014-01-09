@@ -30,7 +30,7 @@
 
 #include "../config.h"
 
-#if defined(OS_DARWIN) || defined(OS_LINUX)
+#if defined(OS_DARWIN) || defined(OS_LINUX) || defined(OS_FREEBSD)
 #include <unistd.h>
 #define Sleep(t) usleep(1000*t)
 #else
@@ -45,6 +45,17 @@
 #define nullptr 0
 #endif
 
+#endif
+
+#if defined(OS_FREEBSD)
+/* LibUSB-X fix. */
+enum libusb_log_level {
+        LIBUSB_LOG_LEVEL_NONE = 0,
+        LIBUSB_LOG_LEVEL_ERROR,
+        LIBUSB_LOG_LEVEL_WARNING,
+        LIBUSB_LOG_LEVEL_INFO,
+        LIBUSB_LOG_LEVEL_DEBUG,
+};
 #endif
 
 #endif
