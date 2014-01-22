@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Heimdall
+Comment=Flash firmware onto Samsung Galaxy S devices
+Comment[es]=Actualiza el firmware de dispositivos Samsung Galaxy S
+Exec=heimdall-frontend
+Icon=phone
+Terminal=false
+Type=Application
+Categories=Development;
