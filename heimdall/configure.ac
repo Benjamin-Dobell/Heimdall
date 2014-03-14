@@ -13,8 +13,8 @@ AM_MAINTAINER_MODE
 
 AC_MSG_CHECKING([operating system])
 case $target in
-*-linux*)
-	AC_DEFINE(OS_LINUX, [], [Linux backend])
+*bsd* | *-linux*)
+	AC_DEFINE(OS_LINUX, [], [Unix backend])
 	AC_MSG_RESULT([Linux])
 	AC_PROG_CXX
 	linuxtarget=true
