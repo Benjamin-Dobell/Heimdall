@@ -2,6 +2,7 @@
 ._*
 Debug/
 Release/
+Release (Static)/
 GeneratedFiles/
 autom4te.cache/
 *.vcxproj.user
