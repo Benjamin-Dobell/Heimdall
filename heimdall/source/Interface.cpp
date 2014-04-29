@@ -264,6 +264,9 @@ void Interface::PrintPit(const PitData *pitData)
 		if (entry->GetAttributes() & PitEntry::kAttributeSTL)
 			Interface::Print("STL ");
 
+		/*if (entry->GetAttributes() & PitEntry::kAttributeBML)
+			Interface::Print("BML ");*/
+
 		if (entry->GetAttributes() & PitEntry::kAttributeWrite)
 			Interface::Print("Read/Write");
 		else

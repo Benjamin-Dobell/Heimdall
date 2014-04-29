@@ -69,7 +69,8 @@ namespace libpit
 			enum
 			{
 				kAttributeWrite = 1,
-				kAttributeSTL = 1 << 1
+				kAttributeSTL = 1 << 1/*,
+				kAttributeBML = 1 << 2*/ // ???
 			};
 
 			enum

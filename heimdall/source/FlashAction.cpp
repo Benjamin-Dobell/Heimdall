@@ -251,7 +251,7 @@ static bool flashFile(BridgeManager *bridgeManager, const PartitionFlashInfo& pa
 		Interface::Print("Uploading %s\n", partitionFlashInfo.pitEntry->GetPartitionName());
 
 		if (bridgeManager->SendFile(partitionFlashInfo.file, EndModemFileTransferPacket::kDestinationModem,
-			partitionFlashInfo.pitEntry->GetDeviceType()))     // <-- Odin method
+			partitionFlashInfo.pitEntry->GetDeviceType()))
 		{
 			Interface::Print("%s upload successful\n\n", partitionFlashInfo.pitEntry->GetPartitionName());
 			return (true);

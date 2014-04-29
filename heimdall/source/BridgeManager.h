@@ -94,6 +94,14 @@ namespace Heimdall
 				Default = Error
 			};
 
+			typedef struct
+			{
+				unsigned int dteRate;
+				unsigned char charFormat;
+				unsigned char parityType;
+				unsigned char dataBits;
+			} LineCoding;
+
 		private:
 
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
@@ -130,6 +138,9 @@ namespace Heimdall
 			void ReleaseDeviceInterface(void);
 
 			bool InitialiseProtocol(void);
+
+			bool SetControlLineState(unsigned short controlSignalFlags);
+			bool SetControlLineCoding(LineCoding lineCoding);
 
 		public:
 

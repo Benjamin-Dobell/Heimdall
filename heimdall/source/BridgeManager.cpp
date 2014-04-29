@@ -307,51 +307,99 @@ void BridgeManager::ReleaseDeviceInterface(void)
 	Interface::Print("\n");
 }
 
+enum
+{
+	kControlRequestSetLineCoding = 0x20,
+	kControlRequestSetControlLineState = 0x22
+};
+
+
+enum
+{
+	kLineCodingCharFormatZeroToOneStopBit = 0,
+	kLineCodingCharFormatOneToOneAndAHalfStopBits = 1,
+	kLineCodingCharFormatTwoToTwoAndAHalfStopBits = 2
+};
+
+enum
+{
+	kParityTypeNone = 0,
+	kParityTypeOdd = 1,
+	kParityTypeEven = 2,
+	kParityTypeMark = 3,
+	kParityTypeSpace = 4
+};
+
+bool BridgeManager::SetControlLineState(unsigned short controlSignalFlags)
+{
+	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, kControlRequestSetControlLineState, controlSignalFlags, 0, nullptr, 0, 1000);
+
+	if (result != LIBUSB_SUCCESS)
+	{
+		if (verbose)
+			Interface::PrintWarning("Control line state (signal flags: 0x%x) transfer failed. Result: %d\n", controlSignalFlags, result);
+
+		return (false);
+	}
+	else
+	{
+		return (true);
+	}
+}
+
+bool BridgeManager::SetControlLineCoding(LineCoding lineCoding)
+{	
+	unsigned char dataBuffer[7];
+
+	dataBuffer[0] = lineCoding.dteRate & 0xFF;
+	dataBuffer[1] = (lineCoding.dteRate >> 8) & 0xFF;
+	dataBuffer[2] = (lineCoding.dteRate >> 16) & 0xFF;
+	dataBuffer[3] = (lineCoding.dteRate >> 24) & 0xFF;
+	dataBuffer[4] = lineCoding.charFormat;
+	dataBuffer[5] = lineCoding.parityType;
+	dataBuffer[6] = lineCoding.dataBits;
+
+	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, kControlRequestSetLineCoding, 0x0, 0, dataBuffer, 7, 1000);
+
+	if (result != LIBUSB_SUCCESS)
+	{
+		if (verbose)
+			Interface::PrintWarning("Setting control line coding failed. Result: %d\n", result);
+
+		return (false);
+	}
+	else
+	{
+		return (true);
+	}
+}
+
+enum
+{
+	kLineStateControlSignalDtePresent = 1,
+	kLineStateControlSignalCarrierControl = 1 << 1
+};
+
 bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
 
-	unsigned char dataBuffer[7];
+	LineCoding lineCoding;
 
-	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
+	lineCoding.dteRate = 115200;
+	lineCoding.charFormat = kLineCodingCharFormatZeroToOneStopBit;
+	lineCoding.parityType = kParityTypeNone;
+	lineCoding.dataBits = 7;
 
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #1 failed. Result: %d\n", result);
+	SetControlLineState(kLineStateControlSignalDtePresent | kLineStateControlSignalCarrierControl);
+	SetControlLineCoding(lineCoding);
+	SetControlLineState(kLineStateControlSignalDtePresent | kLineStateControlSignalCarrierControl);
+	SetControlLineState(kLineStateControlSignalCarrierControl);
+	
+	lineCoding.dataBits = 8;
+	SetControlLineCoding(lineCoding);
 
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x07;
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #2 failed. Result: %d\n", result);
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x3, 0, nullptr, 0, 1000);
-
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #3 failed. Result: %d\n", result);
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #4 failed. Result: %d\n", result);
-
-	memset(dataBuffer, 0, 7);
-	dataBuffer[1] = 0xC2;
-	dataBuffer[2] = 0x01;
-	dataBuffer[6] = 0x08;
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x20, 0x0, 0, dataBuffer, 7, 1000);
-
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #5 failed. Result: %d\n", result);
-
-	result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, 0x22, 0x2, 0, nullptr, 0, 1000);
-
-	if (result < 0 && verbose)
-		Interface::PrintWarning("Control transfer #6 failed. Result: %d\n", result);
+	SetControlLineState(kLineStateControlSignalCarrierControl);
 
 	unsigned int attempt = 0;
 
@@ -371,12 +419,13 @@ bool BridgeManager::InitialiseProtocol(void)
 
 		int dataTransferred = 0;
 
+		unsigned char dataBuffer[7];
+
 		// Send "ODIN"
 		memcpy(dataBuffer, "ODIN", 4);
 		memset(dataBuffer + 4, 0, 1);
 
-		result = libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000);
-		if (result < 0)
+		if (libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000) != LIBUSB_SUCCESS)
 		{
 			if (verbose)
 				Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
@@ -402,9 +451,7 @@ bool BridgeManager::InitialiseProtocol(void)
 		int retry = 0;
 		dataTransferred = 0;
 
-		result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
-
-		if (result < 0)
+		if (libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000) != LIBUSB_SUCCESS)
 		{
 			if (verbose)
 				Interface::PrintError("Failed to receive handshake response.");
@@ -651,46 +698,6 @@ bool BridgeManager::BeginSession(void)
 			return (false);
 		}
 	}
-
-	// -------------------- KIES DOESN'T DO THIS --------------------
-
-	/*DeviceTypePacket deviceTypePacket;
-
-	if (!SendPacket(&deviceTypePacket))
-	{
-		Interface::PrintError("Failed to request device type!\n");
-		return (false);
-	}
-
-	SessionSetupResponse deviceTypeResponse;
-
-	if (!ReceivePacket(&deviceTypeResponse))
-		return (false);
-
-	unsigned int deviceType = deviceTypeResponse.GetResult();
-
-	switch (deviceType)
-	{
-		// NOTE: If you add a new device type don't forget to update the error message below!
-
-		case 0: // Galaxy S etc.
-		case 3: // Galaxy Tab
-		case 30: // Galaxy S 2 Skyrocket
-		case 180: // Galaxy S etc.
-		case 190: // M110S Galaxy S
-
-			if (verbose)
-				Interface::Print("Session begun with device of type: %d.\n\n", deviceType);
-			else
-				Interface::Print("Session begun.\n\n");
-
-			return (true);
-
-		default:
-
-			Interface::PrintError("Unexpected device info response!\nExpected: 0, 3, 30, 180 or 190\nReceived:%d\n", deviceType);
-			return (false);
-	}*/
 
 	Interface::Print("Session begun.\n\n");
 	return (true);
