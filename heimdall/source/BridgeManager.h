@@ -142,6 +142,8 @@ namespace Heimdall
 			bool SetControlLineState(unsigned short controlSignalFlags);
 			bool SetControlLineCoding(LineCoding lineCoding);
 
+			bool SendBulkTransfer(unsigned char *data, int length, int timeout = 3000, bool retry = true) const;
+
 		public:
 
 			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault);

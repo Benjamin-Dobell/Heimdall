@@ -80,7 +80,6 @@ enum
 
 enum
 {
-	kHandshakeMaxAttempts = 5,
 	kReceivePacketMaxAttempts = 5
 };
 
@@ -384,7 +383,7 @@ bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
 
-	LineCoding lineCoding;
+	/*LineCoding lineCoding;
 
 	lineCoding.dteRate = 115200;
 	lineCoding.charFormat = kLineCodingCharFormatZeroToOneStopBit;
@@ -399,93 +398,53 @@ bool BridgeManager::InitialiseProtocol(void)
 	lineCoding.dataBits = 8;
 	SetControlLineCoding(lineCoding);
 
-	SetControlLineState(kLineStateControlSignalCarrierControl);
+	SetControlLineState(kLineStateControlSignalCarrierControl);*/
 
-	unsigned int attempt = 0;
+	int dataTransferred = 0;
 
-	// max(250, communicationDelay)
-	int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+	unsigned char dataBuffer[7];
 
-	for (; attempt < kHandshakeMaxAttempts; attempt++)
+	// Send "ODIN"
+	memcpy(dataBuffer, "ODIN", 4);
+	memset(dataBuffer + 4, 0, 1);
+
+	if (!SendBulkTransfer(dataBuffer, 4, 1000))
 	{
-		if (attempt > 0)
-		{
-			if (verbose)
-				Interface::PrintErrorSameLine(" Retrying...\n");
-			
-			// Wait longer each retry
-			Sleep(retryDelay * (attempt + 1));
-		}
-
-		int dataTransferred = 0;
-
-		unsigned char dataBuffer[7];
-
-		// Send "ODIN"
-		memcpy(dataBuffer, "ODIN", 4);
-		memset(dataBuffer + 4, 0, 1);
-
-		if (libusb_bulk_transfer(deviceHandle, outEndpoint, dataBuffer, 4, &dataTransferred, 1000) != LIBUSB_SUCCESS)
-		{
-			if (verbose)
-				Interface::PrintError("Failed to send data: \"%s\"\n", dataBuffer);
-			else
-				Interface::PrintError("Failed to send data!");
-
-			return (false);
-		}
-
-		if (dataTransferred != 4)
-		{
-			if (verbose)
-				Interface::PrintError("Failed to complete sending of data: \"%s\"\n", dataBuffer);
-			else
-				Interface::PrintError("Failed to complete sending of data!");
-
-			return (false);
-		}
-
-		// Expect "LOKE"
-		memset(dataBuffer, 0, 7);
-
-		int retry = 0;
-		dataTransferred = 0;
-
-		if (libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000) != LIBUSB_SUCCESS)
-		{
-			if (verbose)
-				Interface::PrintError("Failed to receive handshake response.");
-		}
-		else
-		{
-			if (dataTransferred == 4 && memcmp(dataBuffer, "LOKE", 4) == 0)
-			{
-				// Successfully received "LOKE"
-				break;
-			}
-			else
-			{
-				if (verbose)
-					Interface::PrintError("Expected: \"%s\"\nReceived: \"%s\"\n", "LOKE", dataBuffer);
-
-				Interface::PrintError("Unexpected handshake response!");
-			}
-		}
+		Interface::PrintError("Failed to send handshake!");
 	}
 
-	if (attempt == kHandshakeMaxAttempts)
+	// Expect "LOKE"
+	memset(dataBuffer, 0, 7);
+
+	int retry = 0;
+	dataTransferred = 0;
+
+	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
+
+	if (result != LIBUSB_SUCCESS)
 	{
 		if (verbose)
-			Interface::PrintErrorSameLine("\n");
-
-		Interface::PrintError("Protocol initialisation failed!\n\n");
-		return (false);
+			Interface::PrintError("Failed to receive handshake response. Result: %d\n", result);
 	}
 	else
 	{
-		Interface::Print("Protocol initialisation successful.\n\n");
-		return (true);
+		if (dataTransferred == 4 && memcmp(dataBuffer, "LOKE", 4) == 0)
+		{
+			// Successfully received "LOKE"
+			Interface::Print("Protocol initialisation successful.\n\n");
+			return (true);
+		}
+		else
+		{
+			if (verbose)
+				Interface::PrintError("Expected: \"LOKE\"\nReceived: \"%s\"\n", dataBuffer);
+
+			Interface::PrintError("Unexpected handshake response!\n");
+		}
 	}
+
+	Interface::PrintError("Protocol initialisation failed!\n\n");
+	return (false);
 }
 
 BridgeManager::BridgeManager(bool verbose, int communicationDelay)
@@ -759,21 +718,18 @@ bool BridgeManager::EndSession(bool reboot) const
 	return (true);
 }
 
-bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) const
+bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry) const
 {
-	packet->Pack();
-
 	int dataTransferred;
-	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, packet->GetData(), packet->GetSize(),
-		&dataTransferred, timeout);
+	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, data, length, &dataTransferred, timeout);
 
-	if (result < 0 && retry)
+	if (result != LIBUSB_SUCCESS && retry)
 	{
 		// max(250, communicationDelay)
 		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
 		if (verbose)
-			Interface::PrintError("libusb error %d whilst sending packet.", result);
+			Interface::PrintError("libusb error %d whilst sending bulk transfer.", result);
 
 		// Retry
 		for (int i = 0; i < 5; i++)
@@ -784,25 +740,35 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) 
 			// Wait longer each retry
 			Sleep(retryDelay * (i + 1));
 
-			result = libusb_bulk_transfer(deviceHandle, outEndpoint, packet->GetData(), packet->GetSize(),
-				&dataTransferred, timeout);
+			result = libusb_bulk_transfer(deviceHandle, outEndpoint, data, length, &dataTransferred, timeout);
 
-			if (result >= 0)
+			if (result == LIBUSB_SUCCESS)
 				break;
 
 			if (verbose)
-				Interface::PrintError("libusb error %d whilst sending packet.", result);
+				Interface::PrintError("libusb error %d whilst sending bulk transfer.", result);
 		}
 
 		if (verbose)
 			Interface::PrintErrorSameLine("\n");
 	}
 
+	return (result == LIBUSB_SUCCESS && dataTransferred == length);
+}
+
+bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) const
+{
+	packet->Pack();
+
+	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout, retry))
+		return (false);
+
+	// After each packet we send an empty bulk transfer... Hey! I'm just implementing the protocol, I didn't define it!
+	if (!SendBulkTransfer(nullptr, 0, timeout, retry))
+		return (false);
+
 	if (communicationDelay != 0)
 		Sleep(communicationDelay);
-
-	if (result < 0 || dataTransferred != packet->GetSize())
-		return (false);
 
 	return (true);
 }
