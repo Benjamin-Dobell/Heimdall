@@ -39,17 +39,19 @@ using namespace Heimdall;
 
 const char *FlashAction::usage = "Action: flash\n\
 Arguments:\n\
-    --repartition --pit <filename>\n\
-	--<partition name>|--<partition identifier> <filename> [...]\n\
-    [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
-    [--usb-log-level <none/error/warning/debug>]\n\
+	[--<partition name> <filename> ...]\n\
+	[--<partition identifier> <filename> ...]\n\
+	[--pit <filename>] [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
+	[--usb-log-level <none/error/warning/debug>]\n\
   or:\n\
-	--<partition name>|--<partition identifier> <filename> [...]\n\
-    [--pit <filename>]\n\
-    [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
-    [--usb-log-level <none/error/warning/debug>]\n\
+    --repartition --pit <filename> [--<partition name> <filename> ...]\n\
+	[--<partition identifier> <filename> ...] [--verbose] [--no-reboot]\n\
+	[--resume] [--stdout-errors] [--usb-log-level <none/error/warning/debug>]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
     (or identifiers) can be obtained by executing the print-pit action.\n\
+Note: --no-reboot causes the device to remain in download mode after the action\n\
+      is completed. If you wish to perform another action whilst remaining in\n\
+	  download mode, then the following action must specify the --resume flag.\n\
 WARNING: If you're repartitioning it's strongly recommended you specify\n\
         all files at your disposal.\n";
 
@@ -389,7 +391,6 @@ int FlashAction::Execute(int argc, char **argv)
 
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["resume"] = kArgumentTypeFlag;
-	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
@@ -416,8 +417,6 @@ int FlashAction::Execute(int argc, char **argv)
 		Interface::Print(FlashAction::usage);
 		return (0);
 	}
-
-	const UnsignedIntegerArgument *communicationDelayArgument = static_cast<const UnsignedIntegerArgument *>(arguments.GetArgument("delay"));
 
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
@@ -497,12 +496,7 @@ int FlashAction::Execute(int argc, char **argv)
 
 	// Perform flash
 
-	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
-
-	if (communicationDelayArgument)
-		communicationDelay = communicationDelayArgument->GetValue();
-
-	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	BridgeManager *bridgeManager = new BridgeManager(verbose);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

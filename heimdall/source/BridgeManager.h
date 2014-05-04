@@ -61,11 +61,6 @@ namespace Heimdall
 
 			enum
 			{
-				kCommunicationDelayDefault = 0
-			};
-
-			enum
-			{
 				kInitialiseSucceeded = 0,
 				kInitialiseFailed,
 				kInitialiseDeviceNotDetected
@@ -107,7 +102,6 @@ namespace Heimdall
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
 
 			bool verbose;
-			int communicationDelay;
 
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
@@ -146,7 +140,7 @@ namespace Heimdall
 
 		public:
 
-			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault);
+			BridgeManager(bool verbose);
 			~BridgeManager();
 
 			bool DetectDevice(void);

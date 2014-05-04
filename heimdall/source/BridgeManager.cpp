@@ -447,10 +447,9 @@ bool BridgeManager::InitialiseProtocol(void)
 	return (false);
 }
 
-BridgeManager::BridgeManager(bool verbose, int communicationDelay)
+BridgeManager::BridgeManager(bool verbose)
 {
 	this->verbose = verbose;
-	this->communicationDelay = communicationDelay;
 
 	libusbContext = nullptr;
 	deviceHandle = nullptr;
@@ -725,8 +724,7 @@ bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeou
 
 	if (result != LIBUSB_SUCCESS && retry)
 	{
-		// max(250, communicationDelay)
-		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+		static const int retryDelay = 250;
 
 		if (verbose)
 			Interface::PrintError("libusb error %d whilst sending bulk transfer.", result);
@@ -767,9 +765,6 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) 
 	if (!SendBulkTransfer(nullptr, 0, timeout, retry))
 		return (false);
 
-	if (communicationDelay != 0)
-		Sleep(communicationDelay);
-
 	return (true);
 }
 
@@ -789,8 +784,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 	unsigned int attempt = 0;
 	unsigned int maxAttempts = (retry) ? kReceivePacketMaxAttempts : 1;
 	
-	// max(250, communicationDelay)
-	int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+	static const int retryDelay = 250;
 
 	for (; attempt < maxAttempts; attempt++)
 	{
@@ -817,9 +811,6 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 
 	if (attempt == maxAttempts)
 		return (false);
-
-	if (communicationDelay != 0)
-		Sleep(communicationDelay);
 
 	if (dataTransferred != packet->GetSize() && !packet->IsSizeVariable())
 	{

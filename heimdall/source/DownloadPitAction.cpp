@@ -33,9 +33,12 @@ using namespace Heimdall;
 
 const char *DownloadPitAction::usage = "Action: download-pit\n\
 Arguments: --output <filename> [--verbose] [--no-reboot] [--stdout-errors]\n\
-    [--delay <ms>] [--usb-log-level <none/error/warning/debug>]\n\
+    [--usb-log-level <none/error/warning/debug>]\n\
 Description: Downloads the connected device's PIT file to the specified\n\
-    output file.\n";
+    output file.\n\
+Note: --no-reboot causes the device to remain in download mode after the action\n\
+      is completed. If you wish to perform another action whilst remaining in\n\
+	  download mode, then the following action must specify the --resume flag.";
 
 int DownloadPitAction::Execute(int argc, char **argv)
 {
@@ -45,7 +48,6 @@ int DownloadPitAction::Execute(int argc, char **argv)
 	argumentTypes["output"] = kArgumentTypeString;
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["resume"] = kArgumentTypeFlag;
-	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
@@ -66,8 +68,6 @@ int DownloadPitAction::Execute(int argc, char **argv)
 		Interface::Print(DownloadPitAction::usage);
 		return (0);
 	}
-
-	const UnsignedIntegerArgument *communicationDelayArgument = static_cast<const UnsignedIntegerArgument *>(arguments.GetArgument("delay"));
 
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
@@ -130,12 +130,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 
 	// Download PIT file from device.
 
-	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
-
-	if (communicationDelayArgument)
-		communicationDelay = communicationDelayArgument->GetValue();
-
-	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	BridgeManager *bridgeManager = new BridgeManager(verbose);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())
