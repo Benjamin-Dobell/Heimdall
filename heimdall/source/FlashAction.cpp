@@ -48,6 +48,8 @@ Arguments:\n\
     [--pit <filename>]\n\
     [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
     [--usb-log-level <none/error/warning/debug>]\n\
+    [--resume]\n\
+    [--zero-packet-fix]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
     (or identifiers) can be obtained by executing the print-pit action.\n\
 WARNING: If you're repartitioning it's strongly recommended you specify\n\
@@ -393,6 +395,7 @@ int FlashAction::Execute(int argc, char **argv)
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
+	argumentTypes["zero-packet-fix"] = kArgumentTypeFlag;
 
 	argumentTypes["pit"] = kArgumentTypeString;
 	shortArgumentAliases["pit"] = "pit";
@@ -422,6 +425,7 @@ int FlashAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
+	bool zeroPacketFix = arguments.GetArgument("zero-packet-fix") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
@@ -497,12 +501,16 @@ int FlashAction::Execute(int argc, char **argv)
 
 	// Perform flash
 
+	int flags = 0;
 	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
 
 	if (communicationDelayArgument)
 		communicationDelay = communicationDelayArgument->GetValue();
 
-	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	if (zeroPacketFix)
+		flags = BridgeManager::bmZeroPacketFix;
+
+	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay, flags);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

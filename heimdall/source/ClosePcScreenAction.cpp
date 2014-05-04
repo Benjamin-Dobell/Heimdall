@@ -31,6 +31,8 @@ using namespace Heimdall;
 const char *ClosePcScreenAction::usage = "Action: close-pc-screen\n\
 Arguments: [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
            [--usb-log-level <none/error/warning/debug>]\n\
+           [--resume]\n\
+           [--zero-packet-fix]\n\
 Description: Attempts to get rid off the \"connect phone to PC\" screen.\n";
 
 int ClosePcScreenAction::Execute(int argc, char **argv)
@@ -44,6 +46,7 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
+	argumentTypes["zero-packet-fix"] = kArgumentTypeFlag;
 
 	Arguments arguments(argumentTypes);
 
@@ -93,6 +96,7 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
+	bool zeroPacketFix = arguments.GetArgument("zero-packet-fix") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
@@ -104,12 +108,16 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 
 	// Download PIT file from device.
 
+	int flags = 0;
 	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
 
 	if (communicationDelayArgument)
 		communicationDelay = communicationDelayArgument->GetValue();
 
-	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	if (zeroPacketFix)
+		flags = BridgeManager::bmZeroPacketFix;
+
+	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay, flags);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

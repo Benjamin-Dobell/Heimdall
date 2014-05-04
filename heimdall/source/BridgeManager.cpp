@@ -441,10 +441,11 @@ bool BridgeManager::InitialiseProtocol(void)
 	}
 }
 
-BridgeManager::BridgeManager(bool verbose, int communicationDelay)
+BridgeManager::BridgeManager(bool verbose, int communicationDelay, int bmflags)
 {
 	this->verbose = verbose;
 	this->communicationDelay = communicationDelay;
+	this->bmflags = bmflags;
 
 	libusbContext = nullptr;
 	deviceHandle = nullptr;
@@ -757,38 +758,37 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) 
 	packet->Pack();
 
 	int dataTransferred;
-	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, packet->GetData(), packet->GetSize(),
-		&dataTransferred, timeout);
+	int maxAttempts = (retry) ? 5 : 1;
+	int result;
 
-	if (result < 0 && retry)
+	for (int i = 0; i < maxAttempts; i++)
 	{
-		// max(250, communicationDelay)
-		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+		result = libusb_bulk_transfer(deviceHandle, outEndpoint,
+				packet->GetData(), packet->GetSize(),
+				&dataTransferred, timeout);
+
+		/*  End of packet (zero length packet).
+		    This is required by some devices:
+		    Example Samsung Galaxy Tab 3 GT-P5220.  */
+		if (result >= 0 && (bmflags & bmZeroPacketFix))
+		{
+			int tmpdataTransferred;
+			unsigned char nodata;
+			result = libusb_bulk_transfer(deviceHandle, outEndpoint,
+					&nodata, 0,
+					&tmpdataTransferred, timeout);
+		}
+
+		if (result >= 0)
+			break;
 
 		if (verbose)
 			Interface::PrintError("libusb error %d whilst sending packet.", result);
 
-		// Retry
-		for (int i = 0; i < 5; i++)
-		{
-			if (verbose)
-				Interface::PrintErrorSameLine(" Retrying...\n");
+		// Wait longer each retry
+		int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
+		Sleep(retryDelay * (i + 1));
 
-			// Wait longer each retry
-			Sleep(retryDelay * (i + 1));
-
-			result = libusb_bulk_transfer(deviceHandle, outEndpoint, packet->GetData(), packet->GetSize(),
-				&dataTransferred, timeout);
-
-			if (result >= 0)
-				break;
-
-			if (verbose)
-				Interface::PrintError("libusb error %d whilst sending packet.", result);
-		}
-
-		if (verbose)
-			Interface::PrintErrorSameLine("\n");
 	}
 
 	if (communicationDelay != 0)
