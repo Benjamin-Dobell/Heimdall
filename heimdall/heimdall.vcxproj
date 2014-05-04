@@ -82,16 +82,16 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>..\libusbx-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libusb-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>libusb-1.0.lib;libpit.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
+      <Command>xcopy /y $(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,7 +107,7 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>..\libusbx-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libusb-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,10 +115,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>libusb-1.0.lib;libpit.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
+      <Command>xcopy /y $(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (Static)|Win32'">
@@ -129,12 +129,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;OS_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>..\libusbx-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libusb-1.0\include;..\libpit\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,10 +142,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>libusb-1.0.lib;libpit.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libusb-1.0\lib\$(Platform)\$(Configuration)\;$(SolutionDir)$(Platform)\$(Configuration)\lib\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(SolutionDir)libusbx-1.0\lib\$(Platform)\$(Configuration)\libusb-1.0.dll $(SolutionDir)$(Platform)\$(Configuration)\</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
