@@ -13,28 +13,25 @@ AC_SUBST([LIBPIT_API_VERSION], [1.4])
 AC_CONFIG_FILES([Makefile])
 
 AM_MAINTAINER_MODE
+AC_PROG_CXX
 
 AC_MSG_CHECKING([operating system])
 case $target in
-*-linux*)
-	AC_DEFINE(OS_LINUX, [], [Linux backend])
+*bsd* | *-linux*)
+	AC_DEFINE(OS_LINUX, [], [Unix backend])
 	AC_MSG_RESULT([Linux])
-	AC_PROG_CXX
 	;;
 *-darwin*)
 	AC_DEFINE(OS_DARWIN, [], [Darwin backend])
 	AC_MSG_RESULT([Darwin/MacOS X])
-	AC_PROG_CXX
 	;;
 *-mingw*)
 	AC_DEFINE(OS_WINDOWS, [], [Windows backend])
 	AC_MSG_RESULT([Windows])
-	AC_PROG_CXX
 	;;
 *-cygwin*)
 	AC_DEFINE(OS_WINDOWS, [], [Windows backend])
 	AC_MSG_RESULT([Windows])
-	AC_PROG_CXX
 	;;
 *)
 	AC_MSG_ERROR([unsupported operating system])
