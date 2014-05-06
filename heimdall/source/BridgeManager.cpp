@@ -306,101 +306,9 @@ void BridgeManager::ReleaseDeviceInterface(void)
 	Interface::Print("\n");
 }
 
-enum
-{
-	kControlRequestSetLineCoding = 0x20,
-	kControlRequestSetControlLineState = 0x22
-};
-
-
-enum
-{
-	kLineCodingCharFormatZeroToOneStopBit = 0,
-	kLineCodingCharFormatOneToOneAndAHalfStopBits = 1,
-	kLineCodingCharFormatTwoToTwoAndAHalfStopBits = 2
-};
-
-enum
-{
-	kParityTypeNone = 0,
-	kParityTypeOdd = 1,
-	kParityTypeEven = 2,
-	kParityTypeMark = 3,
-	kParityTypeSpace = 4
-};
-
-bool BridgeManager::SetControlLineState(unsigned short controlSignalFlags)
-{
-	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, kControlRequestSetControlLineState, controlSignalFlags, 0, nullptr, 0, 1000);
-
-	if (result != LIBUSB_SUCCESS)
-	{
-		if (verbose)
-			Interface::PrintWarning("Control line state (signal flags: 0x%x) transfer failed. Result: %d\n", controlSignalFlags, result);
-
-		return (false);
-	}
-	else
-	{
-		return (true);
-	}
-}
-
-bool BridgeManager::SetControlLineCoding(LineCoding lineCoding)
-{	
-	unsigned char dataBuffer[7];
-
-	dataBuffer[0] = lineCoding.dteRate & 0xFF;
-	dataBuffer[1] = (lineCoding.dteRate >> 8) & 0xFF;
-	dataBuffer[2] = (lineCoding.dteRate >> 16) & 0xFF;
-	dataBuffer[3] = (lineCoding.dteRate >> 24) & 0xFF;
-	dataBuffer[4] = lineCoding.charFormat;
-	dataBuffer[5] = lineCoding.parityType;
-	dataBuffer[6] = lineCoding.dataBits;
-
-	int result = libusb_control_transfer(deviceHandle, LIBUSB_REQUEST_TYPE_CLASS, kControlRequestSetLineCoding, 0x0, 0, dataBuffer, 7, 1000);
-
-	if (result != LIBUSB_SUCCESS)
-	{
-		if (verbose)
-			Interface::PrintWarning("Setting control line coding failed. Result: %d\n", result);
-
-		return (false);
-	}
-	else
-	{
-		return (true);
-	}
-}
-
-enum
-{
-	kLineStateControlSignalDtePresent = 1,
-	kLineStateControlSignalCarrierControl = 1 << 1
-};
-
 bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
-
-	/*LineCoding lineCoding;
-
-	lineCoding.dteRate = 115200;
-	lineCoding.charFormat = kLineCodingCharFormatZeroToOneStopBit;
-	lineCoding.parityType = kParityTypeNone;
-	lineCoding.dataBits = 7;
-
-	SetControlLineState(kLineStateControlSignalDtePresent | kLineStateControlSignalCarrierControl);
-	SetControlLineCoding(lineCoding);
-	SetControlLineState(kLineStateControlSignalDtePresent | kLineStateControlSignalCarrierControl);
-	SetControlLineState(kLineStateControlSignalCarrierControl);
-	
-	lineCoding.dataBits = 8;
-	SetControlLineCoding(lineCoding);
-
-	SetControlLineState(kLineStateControlSignalCarrierControl);*/
-
-	int dataTransferred = 0;
 
 	unsigned char dataBuffer[7];
 
@@ -417,7 +325,7 @@ bool BridgeManager::InitialiseProtocol(void)
 	memset(dataBuffer, 0, 7);
 
 	int retry = 0;
-	dataTransferred = 0;
+	int dataTransferred = 0;
 
 	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
 
