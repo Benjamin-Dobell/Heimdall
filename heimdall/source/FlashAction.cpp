@@ -100,7 +100,6 @@ static bool openFiles(Arguments& arguments, vector<PartitionFile>& partitionFile
 
 	for (vector<const Argument *>::const_iterator it = arguments.GetArguments().begin(); it != arguments.GetArguments().end(); it++)
 	{
-		bool isPartitionArgument = false;
 		const string& argumentName = (*it)->GetName();
 		
 		// The only way an argument could exist without being in the argument types map is if it's a wild-card.

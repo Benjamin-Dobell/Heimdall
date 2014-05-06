@@ -64,8 +64,6 @@ namespace Heimdall
 
 			virtual bool Unpack(void)
 			{
-				const unsigned char *data = GetData();
-
 				unsigned int receivedResponseType = UnpackInteger(0);
 				if (receivedResponseType != responseType)
 				{

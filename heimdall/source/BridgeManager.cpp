@@ -324,7 +324,6 @@ bool BridgeManager::InitialiseProtocol(void)
 	// Expect "LOKE"
 	memset(dataBuffer, 0, 7);
 
-	int retry = 0;
 	int dataTransferred = 0;
 
 	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, dataBuffer, 7, &dataTransferred, 1000);
