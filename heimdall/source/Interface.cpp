@@ -92,13 +92,13 @@ void Interface::Print(const char *format, ...)
 
 void Interface::PrintWarning(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
 		va_list stdoutArgs;
-		va_copy(stdoutArgs, args);
+		va_copy(stdoutArgs, stderrArgs);
 		fprintf(stdout, "WARNING: ");
 		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
@@ -106,41 +106,41 @@ void Interface::PrintWarning(const char *format, ...)
 	}
 
 	fprintf(stderr, "WARNING: ");
-	vfprintf(stderr, format, args);
+	vfprintf(stderr, format, stderrArgs);
 	fflush(stderr);
 
-	va_end(args);
+	va_end(stderrArgs);
 }
 
 void Interface::PrintWarningSameLine(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
 		va_list stdoutArgs;
-		va_copy(stdoutArgs, args);
+		va_copy(stdoutArgs, stderrArgs);
 		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
 		va_end(stdoutArgs);
 	}
 
-	vfprintf(stderr, format, args);
+	vfprintf(stderr, format, stderrArgs);
 	fflush(stderr);
 
-	va_end(args);
+	va_end(stderrArgs);
 }
 
 void Interface::PrintError(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
 		va_list stdoutArgs;
-		va_copy(stdoutArgs, args);
+		va_copy(stdoutArgs, stderrArgs);
 		fprintf(stdout, "ERROR: ");
 		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
@@ -148,30 +148,30 @@ void Interface::PrintError(const char *format, ...)
 	}
 
 	fprintf(stderr, "ERROR: ");
-	vfprintf(stderr, format, args);
+	vfprintf(stderr, format, stderrArgs);
 	fflush(stderr);
 
-	va_end(args);
+	va_end(stderrArgs);
 }
 
 void Interface::PrintErrorSameLine(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
 		va_list stdoutArgs;
-		va_copy(stdoutArgs, args);
+		va_copy(stdoutArgs, stderrArgs);
 		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
 		va_end(stdoutArgs);
 	}
 
-	vfprintf(stderr, format, args);
+	vfprintf(stderr, format, stderrArgs);
 	fflush(stderr);
 
-	va_end(args);
+	va_end(stderrArgs);
 }
 
 void Interface::PrintVersion(void)
