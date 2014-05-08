@@ -95,16 +95,19 @@ void Interface::PrintWarning(const char *format, ...)
 	va_list args;
 	va_start(args, format);
 
+	if (stdoutErrors)
+	{
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, args);
+		fprintf(stdout, "WARNING: ");
+		vfprintf(stdout, format, stdoutArgs);
+		fflush(stdout);
+		va_end(stdoutArgs);
+	}
+
 	fprintf(stderr, "WARNING: ");
 	vfprintf(stderr, format, args);
 	fflush(stderr);
-
-	if (stdoutErrors)
-	{
-		fprintf(stdout, "WARNING: ");
-		vfprintf(stdout, format, args);
-		fflush(stdout);
-	}
 
 	va_end(args);
 }
@@ -114,14 +117,17 @@ void Interface::PrintWarningSameLine(const char *format, ...)
 	va_list args;
 	va_start(args, format);
 
-	vfprintf(stderr, format, args);
-	fflush(stderr);
-
 	if (stdoutErrors)
 	{
-		vfprintf(stdout, format, args);
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, args);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
+
+	vfprintf(stderr, format, args);
+	fflush(stderr);
 
 	va_end(args);
 }
@@ -131,16 +137,19 @@ void Interface::PrintError(const char *format, ...)
 	va_list args;
 	va_start(args, format);
 
+	if (stdoutErrors)
+	{
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, args);
+		fprintf(stdout, "ERROR: ");
+		vfprintf(stdout, format, stdoutArgs);
+		fflush(stdout);
+		va_end(stdoutArgs);
+	}
+
 	fprintf(stderr, "ERROR: ");
 	vfprintf(stderr, format, args);
 	fflush(stderr);
-
-	if (stdoutErrors)
-	{
-		fprintf(stdout, "ERROR: ");
-		vfprintf(stdout, format, args);
-		fflush(stdout);
-	}
 
 	va_end(args);
 }
@@ -150,14 +159,17 @@ void Interface::PrintErrorSameLine(const char *format, ...)
 	va_list args;
 	va_start(args, format);
 
-	vfprintf(stderr, format, args);
-	fflush(stderr);
-
 	if (stdoutErrors)
 	{
-		vfprintf(stdout, format, args);
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, args);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
+
+	vfprintf(stderr, format, args);
+	fflush(stderr);
 
 	va_end(args);
 }
