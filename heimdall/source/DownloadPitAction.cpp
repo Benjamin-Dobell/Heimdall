@@ -38,7 +38,7 @@ Description: Downloads the connected device's PIT file to the specified\n\
     output file.\n\
 Note: --no-reboot causes the device to remain in download mode after the action\n\
       is completed. If you wish to perform another action whilst remaining in\n\
-	  download mode, then the following action must specify the --resume flag.";
+      download mode, then the following action must specify the --resume flag.";
 
 int DownloadPitAction::Execute(int argc, char **argv)
 {

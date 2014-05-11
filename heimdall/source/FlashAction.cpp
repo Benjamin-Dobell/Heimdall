@@ -39,19 +39,19 @@ using namespace Heimdall;
 
 const char *FlashAction::usage = "Action: flash\n\
 Arguments:\n\
-	[--<partition name> <filename> ...]\n\
-	[--<partition identifier> <filename> ...]\n\
-	[--pit <filename>] [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
-	[--usb-log-level <none/error/warning/debug>]\n\
+    [--<partition name> <filename> ...]\n\
+    [--<partition identifier> <filename> ...]\n\
+    [--pit <filename>] [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
+    [--usb-log-level <none/error/warning/debug>]\n\
   or:\n\
     --repartition --pit <filename> [--<partition name> <filename> ...]\n\
-	[--<partition identifier> <filename> ...] [--verbose] [--no-reboot]\n\
-	[--resume] [--stdout-errors] [--usb-log-level <none/error/warning/debug>]\n\
+    [--<partition identifier> <filename> ...] [--verbose] [--no-reboot]\n\
+    [--resume] [--stdout-errors] [--usb-log-level <none/error/warning/debug>]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
     (or identifiers) can be obtained by executing the print-pit action.\n\
 Note: --no-reboot causes the device to remain in download mode after the action\n\
       is completed. If you wish to perform another action whilst remaining in\n\
-	  download mode, then the following action must specify the --resume flag.\n\
+      download mode, then the following action must specify the --resume flag.\n\
 WARNING: If you're repartitioning it's strongly recommended you specify\n\
         all files at your disposal.\n";
 
