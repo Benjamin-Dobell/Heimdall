@@ -57,7 +57,7 @@ macx {
 
 	config += x86 x86_64 ppc
 	
-	QMAKE_CFLAGS_X86_64 = -m64 -mmacosx-version-min=10.5
+	QMAKE_CFLAGS_X86_64 = -m64 -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 	QMAKE_CXXFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
 	QMAKE_LFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
 
