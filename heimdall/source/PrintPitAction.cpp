@@ -40,7 +40,7 @@ Description: Prints the contents of a PIT file in a human readable format. If\n\
     connected device.\n\
 Note: --no-reboot causes the device to remain in download mode after the action\n\
       is completed. If you wish to perform another action whilst remaining in\n\
-      download mode, then the following action must specify the --resume flag.";
+      download mode, then the following action must specify the --resume flag.\n";
 
 int PrintPitAction::Execute(int argc, char **argv)
 {

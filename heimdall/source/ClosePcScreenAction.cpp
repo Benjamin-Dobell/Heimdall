@@ -34,7 +34,7 @@ Arguments: [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
 Description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
 Note: --no-reboot causes the device to remain in download mode after the action\n\
       is completed. If you wish to perform another action whilst remaining in\n\
-      download mode, then the following action must specify the --resume flag.";
+      download mode, then the following action must specify the --resume flag.\n";
 
 int ClosePcScreenAction::Execute(int argc, char **argv)
 {
