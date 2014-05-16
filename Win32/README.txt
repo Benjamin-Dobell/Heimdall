@@ -16,21 +16,6 @@ procedure should be essentially the same for all supported versions of
 Windows (XP onwards).
 
 
-Troubleshooting:
-
-    1. If when you try launch Heimdall or Heimdall Frontend you receive a
-       similar to:
-
-            The program can't start because MSVCP110.dll is missing from your
-            computer.
-
-       This means that you haven't installed the Microsoft Visual C++ 2012
-       runtimes. The runtimes can be downloaded from Microsoft's website:
-
-            http://www.microsoft.com/en-au/download/details.aspx?id=30679
-
-
-
 Driver Installation Instructions:
 
     1. Put your device into download mode and plug it in.
