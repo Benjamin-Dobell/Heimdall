@@ -26,6 +26,10 @@
 #include <Windows.h>
 #undef GetBinaryType
 
+#ifndef va_copy
+#define va_copy(d, s) ((d) = (s))
+#endif
+
 #else
 
 #include "../config.h"
