@@ -125,7 +125,7 @@ namespace Heimdall
 
 			bool InitialiseProtocol(void);
 
-			bool SendBulkTransfer(unsigned char *data, int length, int timeout = 3000, bool retry = true) const;
+			bool SendBulkTransfer(unsigned char *data, int length, int timeout = 3000) const;
 
 		public:
 
@@ -138,8 +138,8 @@ namespace Heimdall
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true, unsigned char *buffer = nullptr, unsigned int bufferSize = -1) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = 3000) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = 3000) const;
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 

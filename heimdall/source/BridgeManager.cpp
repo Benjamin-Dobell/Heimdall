@@ -624,12 +624,12 @@ bool BridgeManager::EndSession(bool reboot) const
 	return (true);
 }
 
-bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry) const
+bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeout) const
 {
 	int dataTransferred;
 	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, data, length, &dataTransferred, timeout);
 
-	if (result != LIBUSB_SUCCESS && retry)
+	if (result != LIBUSB_SUCCESS)
 	{
 		static const int retryDelay = 250;
 
@@ -661,39 +661,33 @@ bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeou
 	return (result == LIBUSB_SUCCESS && dataTransferred == length);
 }
 
-bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry) const
+bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
 {
 	packet->Pack();
 
-	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout, retry))
+	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout))
 		return (false);
 
 	// After each packet we send an empty bulk transfer... Hey! I'm just implementing the protocol, I didn't define it!
-	if (!SendBulkTransfer(nullptr, 0, timeout, retry))
+	if (!SendBulkTransfer(nullptr, 0, timeout))
 		return (false);
 
 	return (true);
 }
 
-bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry, unsigned char *buffer, unsigned int bufferSize) const
+bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
 {
-	bool bufferProvided = buffer != nullptr && bufferSize >= packet->GetSize();
-
-	if (!bufferProvided)
-	{
-		buffer = packet->GetData();
-		bufferSize = packet->GetSize();
-	}
+	unsigned char *buffer = packet->GetData();
+	unsigned int bufferSize = packet->GetSize();
 
 	int dataTransferred;
 	int result;
 
 	unsigned int attempt = 0;
-	unsigned int maxAttempts = (retry) ? kReceivePacketMaxAttempts : 1;
-	
+
 	static const int retryDelay = 250;
 
-	for (; attempt < maxAttempts; attempt++)
+	for (; attempt < kReceivePacketMaxAttempts; attempt++)
 	{
 		if (attempt > 0)
 		{
@@ -716,7 +710,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 	if (verbose && attempt > 0)
 		Interface::PrintErrorSameLine("\n");
 
-	if (attempt == maxAttempts)
+	if (attempt == kReceivePacketMaxAttempts)
 		return (false);
 
 	if (dataTransferred != packet->GetSize() && !packet->IsSizeVariable())
@@ -726,9 +720,6 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 
 		return (false);
 	}
-
-	if (bufferProvided)
-		memcpy(packet->GetData(), buffer, dataTransferred);
 
 	packet->SetReceivedSize(dataTransferred);
 
@@ -1170,7 +1161,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
-			success = SendPacket(endPhoneFileTransferPacket, 3000);
+			success = SendPacket(endPhoneFileTransferPacket);
 			delete endPhoneFileTransferPacket;
 
 			if (!success)
@@ -1184,7 +1175,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, deviceType, isLastSequence);
 
-			success = SendPacket(endModemFileTransferPacket, 3000);
+			success = SendPacket(endModemFileTransferPacket);
 			delete endModemFileTransferPacket;
 
 			if (!success)
