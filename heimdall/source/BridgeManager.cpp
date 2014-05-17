@@ -661,16 +661,24 @@ bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeou
 	return (result == LIBUSB_SUCCESS && dataTransferred == length);
 }
 
-bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout) const
+bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmptyTransferFlags) const
 {
 	packet->Pack();
+
+	if (sendEmptyTransferFlags & kSendEmptyTransferBefore)
+	{
+		if (!SendBulkTransfer(nullptr, 0, timeout))
+			return (false);
+	}
 
 	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout))
 		return (false);
 
-	// After each packet we send an empty bulk transfer... Hey! I'm just implementing the protocol, I didn't define it!
-	if (!SendBulkTransfer(nullptr, 0, timeout))
-		return (false);
+	if (sendEmptyTransferFlags & kSendEmptyTransferAfter)
+	{
+		if (!SendBulkTransfer(nullptr, 0, timeout))
+			return (false);
+	}
 
 	return (true);
 }
@@ -1057,14 +1065,14 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			return (false);
 		}
 
-		SendFilePartPacket *sendFilePartPacket;
-		SendFilePartResponse *sendFilePartResponse;
-
 		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
+			// NOTE: This empty transfer thing is entirely ridiculous, but sadly it seems to be required.
+			int sendEmptyTransferFlags = (filePartIndex == 0) ? kSendEmptyTransferNone : kSendEmptyTransferBefore;
+
 			// Send
-			sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
-			success = SendPacket(sendFilePartPacket);
+			SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
+			success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
 			delete sendFilePartPacket;
 
 			if (!success)
@@ -1075,7 +1083,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			}
 
 			// Response
-			sendFilePartResponse = new SendFilePartResponse();
+			SendFilePartResponse *sendFilePartResponse = new SendFilePartResponse();
 			success = ReceivePacket(sendFilePartResponse);
 			int receivedPartIndex = sendFilePartResponse->GetPartIndex();
 
@@ -1093,7 +1101,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 					// Send
 					sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
-					success = SendPacket(sendFilePartPacket);
+					success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
 					delete sendFilePartPacket;
 
 					if (!success)
@@ -1161,7 +1169,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
-			success = SendPacket(endPhoneFileTransferPacket);
+			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
 			delete endPhoneFileTransferPacket;
 
 			if (!success)
@@ -1175,7 +1183,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, deviceType, isLastSequence);
 
-			success = SendPacket(endModemFileTransferPacket);
+			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
 			delete endModemFileTransferPacket;
 
 			if (!success)

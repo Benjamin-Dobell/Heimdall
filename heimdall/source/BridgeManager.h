@@ -73,9 +73,15 @@ namespace Heimdall
 
 			enum
 			{
-				kPidGalaxyS		    = 0x6601,
-				kPidGalaxyS2        = 0x685D,
-				kPidDroidCharge     = 0x68C3
+				kPidGalaxyS = 0x6601,
+				kPidGalaxyS2 = 0x685D,
+				kPidDroidCharge = 0x68C3
+			};
+
+			enum
+			{
+				kDefaultTimeoutSend = 3000,
+				kDefaultTimeoutReceive = 3000
 			};
 
 			enum class UsbLogLevel
@@ -87,6 +93,14 @@ namespace Heimdall
 				Debug,
 
 				Default = Error
+			};
+
+			enum
+			{
+				kSendEmptyTransferNone = 0,
+				kSendEmptyTransferBefore = 1,
+				kSendEmptyTransferAfter = 1 << 1,
+				kSendEmptyTransferBeforeAndAfter = kSendEmptyTransferBefore | kSendEmptyTransferAfter
 			};
 
 		private:
@@ -125,7 +139,7 @@ namespace Heimdall
 
 			bool InitialiseProtocol(void);
 
-			bool SendBulkTransfer(unsigned char *data, int length, int timeout = 3000) const;
+			bool SendBulkTransfer(unsigned char *data, int length, int timeout) const;
 
 		public:
 
@@ -138,8 +152,8 @@ namespace Heimdall
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = 3000) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int sendEmptyTransferFlags = kSendEmptyTransferAfter) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = kDefaultTimeoutReceive) const;
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 
