@@ -419,6 +419,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	populatingPartitionNames = false;
 
 	verboseOutput = false;
+	resume = false;
 
 	tabIndex = functionTabWidget->currentIndex();
 	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), false);
