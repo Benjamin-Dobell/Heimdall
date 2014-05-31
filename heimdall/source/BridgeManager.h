@@ -81,7 +81,8 @@ namespace Heimdall
 			enum
 			{
 				kDefaultTimeoutSend = 3000,
-				kDefaultTimeoutReceive = 3000
+				kDefaultTimeoutReceive = 3000,
+				kDefaultTimeoutSendEmptyTransfer = 100
 			};
 
 			enum class UsbLogLevel
@@ -139,7 +140,7 @@ namespace Heimdall
 
 			bool InitialiseProtocol(void);
 
-			bool SendBulkTransfer(unsigned char *data, int length, int timeout) const;
+			bool SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry = true) const;
 
 		public:
 

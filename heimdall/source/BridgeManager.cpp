@@ -624,12 +624,12 @@ bool BridgeManager::EndSession(bool reboot) const
 	return (true);
 }
 
-bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeout) const
+bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry) const
 {
 	int dataTransferred;
 	int result = libusb_bulk_transfer(deviceHandle, outEndpoint, data, length, &dataTransferred, timeout);
 
-	if (result != LIBUSB_SUCCESS)
+	if (result != LIBUSB_SUCCESS && retry)
 	{
 		static const int retryDelay = 250;
 
@@ -667,8 +667,10 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmpt
 
 	if (sendEmptyTransferFlags & kSendEmptyTransferBefore)
 	{
-		if (!SendBulkTransfer(nullptr, 0, timeout))
-			return (false);
+		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutSendEmptyTransfer, false) && verbose)
+		{
+			Interface::PrintWarning("Empty bulk transfer before sending packet failed. Continuing anyway...\n");
+		}
 	}
 
 	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout))
@@ -676,8 +678,10 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmpt
 
 	if (sendEmptyTransferFlags & kSendEmptyTransferAfter)
 	{
-		if (!SendBulkTransfer(nullptr, 0, timeout))
-			return (false);
+		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutSendEmptyTransfer, false) && verbose)
+		{
+			Interface::PrintWarning("Empty bulk transfer after sending packet failed. Continuing anyway...\n");
+		}
 	}
 
 	return (true);
