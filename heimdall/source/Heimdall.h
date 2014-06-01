@@ -30,6 +30,12 @@
 #define va_copy(d, s) ((d) = (s))
 #endif
 
+#define FileOpen(FILE, MODE) fopen(FILE, MODE)
+#define FileClose(FILE) fclose(FILE)
+#define FileSeek(FILE, OFFSET, ORIGIN) _fseeki64(FILE, OFFSET, ORIGIN)
+#define FileTell(FILE) _ftelli64(FILE)
+#define FileRewind(FILE) rewind(FILE)
+
 #else
 
 #include "../config.h"
@@ -37,6 +43,13 @@
 #if defined(OS_DARWIN) || defined(OS_LINUX)
 #include <unistd.h>
 #define Sleep(t) usleep(1000*t)
+
+#define FileOpen(FILE, MODE) fopen(FILE, MODE)
+#define FileClose(FILE) fclose(FILE)
+#define FileSeek(FILE, OFFSET, ORIGIN) fseeko(FILE, OFFSET, ORIGIN)
+#define FileTell(FILE) ftello(FILE)
+#define FileRewind(FILE) rewind(FILE)
+
 #else
 #error operating system not supported
 #endif

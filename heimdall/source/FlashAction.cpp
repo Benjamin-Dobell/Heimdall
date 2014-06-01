@@ -87,7 +87,7 @@ static bool openFiles(Arguments& arguments, vector<PartitionFile>& partitionFile
 
 	if (pitArgument)
 	{
-		pitFile = fopen(pitArgument->GetValue().c_str(), "rb");
+		pitFile = FileOpen(pitArgument->GetValue().c_str(), "rb");
 
 		if (!pitFile)
 		{
@@ -109,7 +109,7 @@ static bool openFiles(Arguments& arguments, vector<PartitionFile>& partitionFile
 		if (arguments.GetArgumentTypes().find(argumentName) == arguments.GetArgumentTypes().end())
 		{
 			const StringArgument *stringArgument = static_cast<const StringArgument *>(*it);
-			FILE *file = fopen(stringArgument->GetValue().c_str(), "rb");
+			FILE *file = FileOpen(stringArgument->GetValue().c_str(), "rb");
 
 			if (!file)
 			{
@@ -130,34 +130,34 @@ static void closeFiles(vector<PartitionFile>& partitionFiles, FILE *& pitFile)
 
 	if (pitFile)
 	{
-		fclose(pitFile);
+		FileClose(pitFile);
 		pitFile = nullptr;
 	}
 
 	// Close partition files
 
 	for (vector<PartitionFile>::const_iterator it = partitionFiles.begin(); it != partitionFiles.end(); it++)
-		fclose(it->file);
+		FileClose(it->file);
 
 	partitionFiles.clear();
 }
 
 static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<PartitionFile>& partitionFiles, FILE *pitFile, bool repartition)
 {
-	int totalBytes = 0;
+	unsigned int totalBytes = 0;
 
 	for (vector<PartitionFile>::const_iterator it = partitionFiles.begin(); it != partitionFiles.end(); it++)
 	{
-		fseek(it->file, 0, SEEK_END);
-		totalBytes += ftell(it->file);
-		rewind(it->file);
+		FileSeek(it->file, 0, SEEK_END);
+		totalBytes += (unsigned int)FileTell(it->file);
+		FileRewind(it->file);
 	}
 
 	if (repartition)
 	{
-		fseek(pitFile, 0, SEEK_END);
-		totalBytes += ftell(pitFile);
-		rewind(pitFile);
+		FileSeek(pitFile, 0, SEEK_END);
+		totalBytes += (unsigned int)FileTell(pitFile);
+		FileRewind(pitFile);
 	}
 
 	bool success;
@@ -168,7 +168,7 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to send total bytes device info packet!\n");
+		Interface::PrintError("Failed to send total bytes packet!\n");
 		return (false);
 	}
 
@@ -179,13 +179,13 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to receive device info response!\n");
+		Interface::PrintError("Failed to receive session total bytes response!\n");
 		return (false);
 	}
 
 	if (totalBytesResult != 0)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 0\nReceived:%d\n", totalBytesResponse);
+		Interface::PrintError("Unexpected session total bytes response!\nExpected: 0\nReceived:%d\n", totalBytesResponse);
 		return (false);
 	}
 
@@ -316,9 +316,9 @@ static PitData *getPitData(BridgeManager *bridgeManager, FILE *pitFile, bool rep
 	{
 		// Load the local pit file into memory.
 
-		fseek(pitFile, 0, SEEK_END);
-		long localPitFileSize = ftell(pitFile);
-		rewind(pitFile);
+		FileSeek(pitFile, 0, SEEK_END);
+		unsigned int localPitFileSize = (unsigned int)FileTell(pitFile);
+		FileRewind(pitFile);
 
 		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
 		memset(pitFileBuffer, 0, localPitFileSize);
@@ -327,7 +327,7 @@ static PitData *getPitData(BridgeManager *bridgeManager, FILE *pitFile, bool rep
 
 		if (dataRead > 0)
 		{
-			rewind(pitFile);
+			FileRewind(pitFile);
 
 			localPitData = new PitData();
 			localPitData->Unpack(pitFileBuffer);

@@ -120,7 +120,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 	// Open output file
 
 	const char *outputFilename = outputArgument->GetValue().c_str();
-	FILE *outputPitFile = fopen(outputFilename, "wb");
+	FILE *outputPitFile = FileOpen(outputFilename, "wb");
 
 	if (!outputPitFile)
 	{
@@ -135,7 +135,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())
 	{
-		fclose(outputPitFile);
+		FileClose(outputPitFile);
 		delete bridgeManager;
 
 		return (1);
@@ -164,7 +164,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 
 	delete bridgeManager;
 	
-	fclose(outputPitFile);
+	FileClose(outputPitFile);
 	delete [] pitBuffer;
 
 	return (success ? 0 : 1);

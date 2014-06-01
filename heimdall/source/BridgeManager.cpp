@@ -1002,9 +1002,9 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		return (false);
 	}
 
-	fseek(file, 0, SEEK_END);
-	long fileSize = ftell(file);
-	rewind(file);
+	FileSeek(file, 0, SEEK_END);
+	unsigned int fileSize = (unsigned int)FileTell(file);
+	FileRewind(file);
 
 	ResponsePacket *fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
 	success = ReceivePacket(fileTransferResponse);
@@ -1031,7 +1031,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			lastSequenceSize++;
 	}
 
-	long bytesTransferred = 0;
+	unsigned int bytesTransferred = 0;
 	unsigned int currentPercent;
 	unsigned int previousPercent = 0;
 	Interface::Print("0%%");
@@ -1144,7 +1144,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			if (bytesTransferred > fileSize)
 				bytesTransferred = fileSize;
 
-			currentPercent = (int)(100.0f * ((float)bytesTransferred / (float)fileSize));
+			currentPercent = (unsigned int)(100.0 * ((double)bytesTransferred / (double)fileSize));
 
 			if (currentPercent != previousPercent)
 			{

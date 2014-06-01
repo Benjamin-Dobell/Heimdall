@@ -38,11 +38,11 @@ namespace Heimdall
 			{
 				memset(data, 0, size);
 
-				long position = ftell(file);
+				unsigned int position = (unsigned int)FileTell(file);
 
-				fseek(file, 0, SEEK_END);
-				long fileSize = ftell(file);
-				fseek(file, position, SEEK_SET);
+				FileSeek(file, 0, SEEK_END);
+				unsigned int fileSize = (unsigned int)FileTell(file);
+				FileSeek(file, position, SEEK_SET);
 
 				// min(fileSize, size)
 				unsigned int bytesToRead = (fileSize < size) ? fileSize - position : size;

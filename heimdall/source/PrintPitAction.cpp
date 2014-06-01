@@ -115,7 +115,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		const char *filename = fileArgument->GetValue().c_str();
 
-		localPitFile = fopen(filename, "rb");
+		localPitFile = FileOpen(filename, "rb");
 
 		if (!localPitFile)
 		{
@@ -133,14 +133,14 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		// Print PIT from file; there's no need for a BridgeManager.
 
-		fseek(localPitFile, 0, SEEK_END);
-		long localPitFileSize = ftell(localPitFile);
-		rewind(localPitFile);
+		FileSeek(localPitFile, 0, SEEK_END);
+		unsigned int localPitFileSize = (unsigned int)FileTell(localPitFile);
+		FileRewind(localPitFile);
 
 		// Load the local pit file into memory.
 		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
 		size_t dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile); // dataRead is discarded, it's here to remove warnings.
-		fclose(localPitFile);
+		FileClose(localPitFile);
 
 		PitData *pitData = new PitData();
 		pitData->Unpack(pitFileBuffer);
