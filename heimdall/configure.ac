@@ -9,6 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_PROG_AR
 m4_pattern_allow([AM_PROG_PR], [AM_PROG_AR])
 AC_CONFIG_FILES([Makefile])
+AC_SYS_LARGEFILE
 AM_MAINTAINER_MODE
 
 AC_MSG_CHECKING([operating system])
