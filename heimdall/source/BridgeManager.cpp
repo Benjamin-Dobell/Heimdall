@@ -1040,14 +1040,9 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	{
 		bool isLastSequence = (sequenceIndex == sequenceCount - 1);
 		unsigned int sequenceSize = (isLastSequence) ? lastSequenceSize : fileTransferSequenceMaxLength;
-		unsigned int sequenceByteCount;
+		unsigned int sequenceTotalByteCount = sequenceSize * fileTransferPacketSize;
 
-		if (isLastSequence)
-			sequenceByteCount = ((partialPacketByteCount) ? lastSequenceSize - 1 : lastSequenceSize) * fileTransferPacketSize + partialPacketByteCount;
-		else
-			sequenceByteCount = fileTransferSequenceMaxLength * fileTransferPacketSize;
-
-		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(sequenceByteCount);
+		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(sequenceTotalByteCount);
 		success = SendPacket(beginFileTransferPacket);
 		delete beginFileTransferPacket;
 
@@ -1169,9 +1164,12 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			previousPercent = currentPercent;
 		}
 
+		unsigned int sequenceEffectiveByteCount = (isLastSequence && partialPacketByteCount != 0) ?
+			fileTransferPacketSize * (lastSequenceSize - 1) + partialPacketByteCount : sequenceTotalByteCount;
+
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
-			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceByteCount, 0, deviceType, fileIdentifier, isLastSequence);
+			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
 			delete endPhoneFileTransferPacket;
@@ -1185,7 +1183,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		}
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
-			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceByteCount, 0, deviceType, isLastSequence);
+			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, isLastSequence);
 
 			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
 			delete endModemFileTransferPacket;

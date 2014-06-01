@@ -34,7 +34,7 @@ namespace Heimdall
 	{
 		public:
 
-			SendFilePartPacket(FILE *file, int size) : OutboundPacket(size)
+			SendFilePartPacket(FILE *file, unsigned int size) : OutboundPacket(size)
 			{
 				memset(data, 0, size);
 
@@ -45,13 +45,13 @@ namespace Heimdall
 				fseek(file, position, SEEK_SET);
 
 				// min(fileSize, size)
-				int bytesToRead = (fileSize < size) ? fileSize - position : size;
+				unsigned int bytesToRead = (fileSize < size) ? fileSize - position : size;
 				
 				// bytesRead is discarded (it's just there to stop GCC warnings)
-				int bytesRead = fread(data, 1, bytesToRead, file);
+				unsigned int bytesRead = fread(data, 1, bytesToRead, file);
 			}
 
-			SendFilePartPacket(unsigned char *buffer, int size) : OutboundPacket(size)
+			SendFilePartPacket(unsigned char *buffer, unsigned int size) : OutboundPacket(size)
 			{
 				memcpy(data, buffer, size);
 			}
