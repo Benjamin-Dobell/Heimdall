@@ -82,7 +82,7 @@ namespace Heimdall
 			{
 				kDefaultTimeoutSend = 3000,
 				kDefaultTimeoutReceive = 3000,
-				kDefaultTimeoutSendEmptyTransfer = 100
+				kDefaultTimeoutEmptyTransfer = 100
 			};
 
 			enum class UsbLogLevel
@@ -98,10 +98,10 @@ namespace Heimdall
 
 			enum
 			{
-				kSendEmptyTransferNone = 0,
-				kSendEmptyTransferBefore = 1,
-				kSendEmptyTransferAfter = 1 << 1,
-				kSendEmptyTransferBeforeAndAfter = kSendEmptyTransferBefore | kSendEmptyTransferAfter
+				kEmptyTransferNone = 0,
+				kEmptyTransferBefore = 1,
+				kEmptyTransferAfter = 1 << 1,
+				kEmptyTransferBeforeAndAfter = kEmptyTransferBefore | kEmptyTransferAfter
 			};
 
 		private:
@@ -141,6 +141,7 @@ namespace Heimdall
 			bool InitialiseProtocol(void);
 
 			bool SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry = true) const;
+			int ReceiveBulkTransfer(unsigned char *data, int length, int timeout, bool retry = true) const;
 
 		public:
 
@@ -153,8 +154,8 @@ namespace Heimdall
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int sendEmptyTransferFlags = kSendEmptyTransferAfter) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = kDefaultTimeoutReceive) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int emptyTransferFlags = kEmptyTransferAfter) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = kDefaultTimeoutReceive, int emptyTransferFlags = kEmptyTransferNone) const;
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 

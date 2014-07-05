@@ -68,24 +68,9 @@ const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupported
 
 enum
 {
-	kDumpBufferSize = 4096,
-};
-
-enum
-{
 	kFileTransferSequenceMaxLengthDefault = 800,
 	kFileTransferPacketSizeDefault = 131072,
 	kFileTransferSequenceTimeoutDefault = 30000 // 30 seconds
-};
-
-enum
-{
-	kReceivePacketMaxAttempts = 5
-};
-
-enum
-{
-	kPitSizeMultiplicand = 4096
 };
 
 int BridgeManager::FindDeviceInterface(void)
@@ -661,13 +646,53 @@ bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeou
 	return (result == LIBUSB_SUCCESS && dataTransferred == length);
 }
 
-bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmptyTransferFlags) const
+int BridgeManager::ReceiveBulkTransfer(unsigned char *data, int length, int timeout, bool retry) const
+{
+	int dataTransferred;
+	int result = libusb_bulk_transfer(deviceHandle, inEndpoint, data, length, &dataTransferred, timeout);
+
+	if (result != LIBUSB_SUCCESS && retry)
+	{
+		static const int retryDelay = 250;
+
+		if (verbose)
+			Interface::PrintError("libusb error %d whilst receiving bulk transfer.", result);
+
+		// Retry
+		for (int i = 0; i < 5; i++)
+		{
+			if (verbose)
+				Interface::PrintErrorSameLine(" Retrying...\n");
+
+			// Wait longer each retry
+			Sleep(retryDelay * (i + 1));
+
+			result = libusb_bulk_transfer(deviceHandle, inEndpoint, data, length, &dataTransferred, timeout);
+
+			if (result == LIBUSB_SUCCESS)
+				break;
+
+			if (verbose)
+				Interface::PrintError("libusb error %d whilst receiving bulk transfer.", result);
+		}
+
+		if (verbose)
+			Interface::PrintErrorSameLine("\n");
+	}
+
+	if (result != LIBUSB_SUCCESS)
+		return (result);
+
+	return (dataTransferred);
+}
+
+bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int emptyTransferFlags) const
 {
 	packet->Pack();
 
-	if (sendEmptyTransferFlags & kSendEmptyTransferBefore)
+	if (emptyTransferFlags & kEmptyTransferBefore)
 	{
-		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutSendEmptyTransfer, false) && verbose)
+		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) && verbose)
 		{
 			Interface::PrintWarning("Empty bulk transfer before sending packet failed. Continuing anyway...\n");
 		}
@@ -676,9 +701,9 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmpt
 	if (!SendBulkTransfer(packet->GetData(), packet->GetSize(), timeout))
 		return (false);
 
-	if (sendEmptyTransferFlags & kSendEmptyTransferAfter)
+	if (emptyTransferFlags & kEmptyTransferAfter)
 	{
-		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutSendEmptyTransfer, false) && verbose)
+		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) && verbose)
 		{
 			Interface::PrintWarning("Empty bulk transfer after sending packet failed. Continuing anyway...\n");
 		}
@@ -687,58 +712,43 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int sendEmpt
 	return (true);
 }
 
-bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout) const
+bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, int emptyTransferFlags) const
 {
-	unsigned char *buffer = packet->GetData();
-	unsigned int bufferSize = packet->GetSize();
-
-	int dataTransferred;
-	int result;
-
-	unsigned int attempt = 0;
-
-	static const int retryDelay = 250;
-
-	for (; attempt < kReceivePacketMaxAttempts; attempt++)
+	if (emptyTransferFlags & kEmptyTransferBefore)
 	{
-		if (attempt > 0)
+		if (ReceiveBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) < 0 && verbose)
 		{
-			if (verbose)
-				Interface::PrintErrorSameLine(" Retrying...\n");
-			
-			// Wait longer each retry
-			Sleep(retryDelay * (attempt + 1));
+			Interface::PrintWarning("Empty bulk transfer before receiving packet failed. Continuing anyway...\n");
 		}
-
-		result = libusb_bulk_transfer(deviceHandle, inEndpoint, buffer, bufferSize, &dataTransferred, timeout);
-
-		if (result >= 0)
-			break;
-
-		if (verbose)
-			Interface::PrintError("libusb error %d whilst receiving packet.", result);
 	}
 
-	if (verbose && attempt > 0)
-		Interface::PrintErrorSameLine("\n");
+	int receivedSize = ReceiveBulkTransfer(packet->GetData(), packet->GetSize(), timeout);
 
-	if (attempt == kReceivePacketMaxAttempts)
+	if (receivedSize < 0)
 		return (false);
 
-	if (dataTransferred != packet->GetSize() && !packet->IsSizeVariable())
+	if (receivedSize != packet->GetSize() && !packet->IsSizeVariable())
 	{
 		if (verbose)
-			Interface::PrintError("Incorrect packet size received - expected size = %d, received size = %d.\n", packet->GetSize(), dataTransferred);
+			Interface::PrintError("Incorrect packet size received - expected size = %d, received size = %d.\n", packet->GetSize(), receivedSize);
 
 		return (false);
 	}
 
-	packet->SetReceivedSize(dataTransferred);
+	packet->SetReceivedSize(receivedSize);
 
 	bool unpacked = packet->Unpack();
 
 	if (!unpacked && verbose)
 		Interface::PrintError("Failed to unpack received packet.\n");
+
+	if (emptyTransferFlags & kEmptyTransferAfter)
+	{
+		if (ReceiveBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) < 0 && verbose)
+		{
+			Interface::PrintWarning("Empty bulk transfer after receiving packet failed. Continuing anyway...\n");
+		}
+	}
 
 	return (unpacked);
 }
@@ -903,7 +913,6 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	unsigned char *buffer = new unsigned char[fileSize];
 	int offset = 0;
 
-	// NOTE: The PIT file appears to always be padded out to exactly 4 kilobytes.
 	for (unsigned int i = 0; i < transferCount; i++)
 	{
 		DumpPartPitFilePacket *requestPacket = new DumpPartPitFilePacket(i);
@@ -916,9 +925,11 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 			delete [] buffer;
 			return (0);
 		}
+
+		int receiveEmptyTransferFlags = (i == transferCount - 1) ? kEmptyTransferAfter : kEmptyTransferNone;
 		
 		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
-		success = ReceivePacket(receiveFilePartPacket);
+		success = ReceivePacket(receiveFilePartPacket, receiveEmptyTransferFlags);
 		
 		if (!success)
 		{
@@ -1067,7 +1078,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
 			// NOTE: This empty transfer thing is entirely ridiculous, but sadly it seems to be required.
-			int sendEmptyTransferFlags = (filePartIndex == 0) ? kSendEmptyTransferNone : kSendEmptyTransferBefore;
+			int sendEmptyTransferFlags = (filePartIndex == 0) ? kEmptyTransferNone : kEmptyTransferBefore;
 
 			// Send
 			SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
@@ -1171,7 +1182,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
-			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
+			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
 			delete endPhoneFileTransferPacket;
 
 			if (!success)
@@ -1185,7 +1196,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		{
 			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, isLastSequence);
 
-			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kSendEmptyTransferBeforeAndAfter);
+			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
 			delete endModemFileTransferPacket;
 
 			if (!success)
