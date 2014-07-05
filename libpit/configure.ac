@@ -36,6 +36,11 @@ case $target in
 	AC_MSG_RESULT([Windows])
 	AC_PROG_CXX
 	;;
+*-freebsd*)
+	AC_DEFINE(OS_FREEBSD, [], [FreeBSD backend])
+	AC_MSG_RESULT([FreeBSD])
+	AC_PROG_CXX
+	;;
 *)
 	AC_MSG_ERROR([unsupported operating system])
 esac
