@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,13 @@ using namespace Heimdall;
 
 const char *PrintPitAction::usage = "Action: print-pit\n\
 Arguments: [--file <filename>] [--verbose] [--no-reboot] [--stdout-errors]\n\
-    [--delay <ms>] [--usb-log-level <none/error/warning/debug>]\n\
+    [--usb-log-level <none/error/warning/debug>]\n\
 Description: Prints the contents of a PIT file in a human readable format. If\n\
     a filename is not provided then Heimdall retrieves the PIT file from the \n\
-    connected device.\n";
+    connected device.\n\
+Note: --no-reboot causes the device to remain in download mode after the action\n\
+      is completed. If you wish to perform another action whilst remaining in\n\
+      download mode, then the following action must specify the --resume flag.\n";
 
 int PrintPitAction::Execute(int argc, char **argv)
 {
@@ -47,7 +50,6 @@ int PrintPitAction::Execute(int argc, char **argv)
 	argumentTypes["file"] = kArgumentTypeString;
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["resume"] = kArgumentTypeFlag;
-	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
@@ -61,7 +63,6 @@ int PrintPitAction::Execute(int argc, char **argv)
 	}
 
 	const StringArgument *fileArgument = static_cast<const StringArgument *>(arguments.GetArgument("file"));
-	const UnsignedIntegerArgument *communicationDelayArgument = static_cast<const UnsignedIntegerArgument *>(arguments.GetArgument("delay"));
 
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
@@ -114,7 +115,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		const char *filename = fileArgument->GetValue().c_str();
 
-		localPitFile = fopen(filename, "rb");
+		localPitFile = FileOpen(filename, "rb");
 
 		if (!localPitFile)
 		{
@@ -132,14 +133,14 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		// Print PIT from file; there's no need for a BridgeManager.
 
-		fseek(localPitFile, 0, SEEK_END);
-		long localPitFileSize = ftell(localPitFile);
-		rewind(localPitFile);
+		FileSeek(localPitFile, 0, SEEK_END);
+		unsigned int localPitFileSize = (unsigned int)FileTell(localPitFile);
+		FileRewind(localPitFile);
 
 		// Load the local pit file into memory.
 		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
 		size_t dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile); // dataRead is discarded, it's here to remove warnings.
-		fclose(localPitFile);
+		FileClose(localPitFile);
 
 		PitData *pitData = new PitData();
 		pitData->Unpack(pitFileBuffer);
@@ -155,12 +156,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 	{
 		// Print PIT from a device.
 
-		int communicationDelay = BridgeManager::kCommunicationDelayDefault;
-
-		if (communicationDelayArgument)
-			communicationDelay = communicationDelayArgument->GetValue();
-
-		BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+		BridgeManager *bridgeManager = new BridgeManager(verbose);
 		bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 		if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

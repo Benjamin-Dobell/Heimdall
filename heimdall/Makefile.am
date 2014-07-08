@@ -2,7 +2,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = $(DEPS_CFLAGS) -std=c++0x -I../libpit/Source
 STATIC_LIBS = ../libpit/libpit-1.4.a
-
 bin_PROGRAMS = heimdall
 heimdall_SOURCES = source/Arguments.cpp \
 	source/BridgeManager.cpp \
@@ -22,7 +21,7 @@ heimdall_LDADD = $(DEPS_LIBS) $(STATIC_LIBS)
 
 if LINUXTARGET
 
-udevrulesdir = /lib/udev/rules.d
+udevrulesdir = @libdir@/udev/rules.d
 udevrules_DATA = 60-heimdall.rules
 
 install-data-hook:

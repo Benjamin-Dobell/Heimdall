@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -419,6 +419,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	populatingPartitionNames = false;
 
 	verboseOutput = false;
+	resume = false;
 
 	tabIndex = functionTabWidget->currentIndex();
 	functionTabWidget->setTabEnabled(functionTabWidget->indexOf(createPackageTab), false);

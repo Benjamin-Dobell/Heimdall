@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2013 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2014 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -12,23 +12,8 @@ DISCLAIMER:
 
 
 These instructions were written for Windows 7 / Vista / Server 2008 however the
-producedure should be essentially the same for all supported versions of
+procedure should be essentially the same for all supported versions of
 Windows (XP onwards).
-
-
-Troubleshooting:
-
-    1. If when you try launch Heimdall or Heimdall Frontend you receive a
-       similar to:
-
-            The program can't start because MSVCP110.dll is missing from your
-            computer.
-
-       This means that you haven't installed the Microsoft Visual C++ 2012
-       runtimes. The runtimes can be downloaded from Microsoft's website:
-
-            http://www.microsoft.com/en-au/download/details.aspx?id=30679
-
 
 
 Driver Installation Instructions:
@@ -198,7 +183,7 @@ Performing a Custom Flash with Heimdall Frontend:
        clicking the "Remove" button. Removing a partition from the list doesn't
        remove it from your device, it simply means it will not be flashed.
 
-   10. Repeat steps 7-9 as often as needed to specify all the partions/files
+   10. Repeat steps 7-9 as often as needed to specify all the partitions/files
        that you wish to flash.
 
    11. Now you can chose whether you would like to repartition your device as

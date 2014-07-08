@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,24 +34,24 @@ namespace Heimdall
 	{
 		public:
 
-			SendFilePartPacket(FILE *file, int size) : OutboundPacket(size)
+			SendFilePartPacket(FILE *file, unsigned int size) : OutboundPacket(size)
 			{
 				memset(data, 0, size);
 
-				long position = ftell(file);
+				unsigned int position = (unsigned int)FileTell(file);
 
-				fseek(file, 0, SEEK_END);
-				long fileSize = ftell(file);
-				fseek(file, position, SEEK_SET);
+				FileSeek(file, 0, SEEK_END);
+				unsigned int fileSize = (unsigned int)FileTell(file);
+				FileSeek(file, position, SEEK_SET);
 
 				// min(fileSize, size)
-				int bytesToRead = (fileSize < size) ? fileSize - position : size;
+				unsigned int bytesToRead = (fileSize < size) ? fileSize - position : size;
 				
 				// bytesRead is discarded (it's just there to stop GCC warnings)
-				int bytesRead = fread(data, 1, bytesToRead, file);
+				unsigned int bytesRead = fread(data, 1, bytesToRead, file);
 			}
 
-			SendFilePartPacket(unsigned char *buffer, int size) : OutboundPacket(size)
+			SendFilePartPacket(unsigned char *buffer, unsigned int size) : OutboundPacket(size)
 			{
 				memcpy(data, buffer, size);
 			}

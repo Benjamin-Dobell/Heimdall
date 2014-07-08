@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ namespace Heimdall
 			{
 				kDestinationPhone	= 0x00,
 				kDestinationModem	= 0x01
-			};			
+			};
 
 		protected:
 
@@ -47,18 +47,18 @@ namespace Heimdall
 
 			unsigned int destination;			// PDA / Modem
 			unsigned int sequenceByteCount;
-			unsigned int unknown1;
-			unsigned int chipIdentifier;
+			unsigned int unknown1; // EFS?
+			unsigned int deviceType;
 
 		protected:
 
-			EndFileTransferPacket(unsigned int destination, unsigned int sequenceByteCount, unsigned int unknown1, unsigned int chipIdentifier)
+			EndFileTransferPacket(unsigned int destination, unsigned int sequenceByteCount, unsigned int unknown1, unsigned int deviceType)
 				: FileTransferPacket(FileTransferPacket::kRequestEnd)
 			{
 				this->destination = destination;
 				this->sequenceByteCount = sequenceByteCount;
 				this->unknown1 = unknown1;
-				this->chipIdentifier = chipIdentifier;
+				this->deviceType = deviceType;
 			}
 
 		public:
@@ -78,9 +78,9 @@ namespace Heimdall
 				return (unknown1);
 			}
 
-			unsigned int GetChipIdentifier(void) const
+			unsigned int GetDeviceType(void) const
 			{
-				return (chipIdentifier);
+				return (deviceType);
 			}
 
 			virtual void Pack(void)
@@ -90,7 +90,7 @@ namespace Heimdall
 				PackInteger(FileTransferPacket::kDataSize, destination);
 				PackInteger(FileTransferPacket::kDataSize + 4, sequenceByteCount);
 				PackInteger(FileTransferPacket::kDataSize + 8, unknown1);
-				PackInteger(FileTransferPacket::kDataSize + 12, chipIdentifier);
+				PackInteger(FileTransferPacket::kDataSize + 12, deviceType);
 			}
 	};
 }

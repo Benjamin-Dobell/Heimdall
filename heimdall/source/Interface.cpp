@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,11 +42,11 @@ using namespace Heimdall;
 map<string, Interface::ActionInfo> actionMap;
 bool stdoutErrors = false;
 		
-const char *version = "v1.4.0";
+const char *version = "v1.4.1";
 const char *actionUsage = "Usage: heimdall <action> <action arguments>\n";
 
 const char *releaseInfo = "Heimdall %s\n\n\
-Copyright (c) 2010-2013, Benjamin Dobell, Glass Echidna\n\
+Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna\n\
 http://www.glassechidna.com.au/\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
@@ -92,74 +92,86 @@ void Interface::Print(const char *format, ...)
 
 void Interface::PrintWarning(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
-
-	fprintf(stderr, "WARNING: ");
-	vfprintf(stderr, format, args);
-	fflush(stderr);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, stderrArgs);
 		fprintf(stdout, "WARNING: ");
-		vfprintf(stdout, format, args);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
 
-	va_end(args);
+	fprintf(stderr, "WARNING: ");
+	vfprintf(stderr, format, stderrArgs);
+	fflush(stderr);
+
+	va_end(stderrArgs);
 }
 
 void Interface::PrintWarningSameLine(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
-
-	vfprintf(stderr, format, args);
-	fflush(stderr);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
-		vfprintf(stdout, format, args);
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, stderrArgs);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
 
-	va_end(args);
+	vfprintf(stderr, format, stderrArgs);
+	fflush(stderr);
+
+	va_end(stderrArgs);
 }
 
 void Interface::PrintError(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
-
-	fprintf(stderr, "ERROR: ");
-	vfprintf(stderr, format, args);
-	fflush(stderr);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, stderrArgs);
 		fprintf(stdout, "ERROR: ");
-		vfprintf(stdout, format, args);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
 
-	va_end(args);
+	fprintf(stderr, "ERROR: ");
+	vfprintf(stderr, format, stderrArgs);
+	fflush(stderr);
+
+	va_end(stderrArgs);
 }
 
 void Interface::PrintErrorSameLine(const char *format, ...)
 {
-	va_list args;
-	va_start(args, format);
-
-	vfprintf(stderr, format, args);
-	fflush(stderr);
+	va_list stderrArgs;
+	va_start(stderrArgs, format);
 
 	if (stdoutErrors)
 	{
-		vfprintf(stdout, format, args);
+		va_list stdoutArgs;
+		va_copy(stdoutArgs, stderrArgs);
+		vfprintf(stdout, format, stdoutArgs);
 		fflush(stdout);
+		va_end(stdoutArgs);
 	}
 
-	va_end(args);
+	vfprintf(stderr, format, stderrArgs);
+	fflush(stderr);
+
+	va_end(stderrArgs);
 }
 
 void Interface::PrintVersion(void)
@@ -263,6 +275,9 @@ void Interface::PrintPit(const PitData *pitData)
 
 		if (entry->GetAttributes() & PitEntry::kAttributeSTL)
 			Interface::Print("STL ");
+
+		/*if (entry->GetAttributes() & PitEntry::kAttributeBML)
+			Interface::Print("BML ");*/
 
 		if (entry->GetAttributes() & PitEntry::kAttributeWrite)
 			Interface::Print("Read/Write");

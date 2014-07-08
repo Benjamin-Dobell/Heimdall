@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,12 @@ using namespace std;
 using namespace Heimdall;
 
 const char *ClosePcScreenAction::usage = "Action: close-pc-screen\n\
-Arguments: [--verbose] [--no-reboot] [--stdout-errors] [--delay <ms>]\n\
+Arguments: [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
            [--usb-log-level <none/error/warning/debug>]\n\
-Description: Attempts to get rid off the \"connect phone to PC\" screen.\n";
+Description: Attempts to get rid off the \"connect phone to PC\" screen.\n\
+Note: --no-reboot causes the device to remain in download mode after the action\n\
+      is completed. If you wish to perform another action whilst remaining in\n\
+      download mode, then the following action must specify the --resume flag.\n";
 
 int ClosePcScreenAction::Execute(int argc, char **argv)
 {
@@ -40,7 +43,6 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 	map<string, ArgumentType> argumentTypes;
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["resume"] = kArgumentTypeFlag;
-	argumentTypes["delay"] = kArgumentTypeUnsignedInteger;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
@@ -53,9 +55,7 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 		return (0);
 	}
 
-	const UnsignedIntegerArgument *communicationDelayArgument = static_cast<const UnsignedIntegerArgument *>(arguments.GetArgument("delay"));
 	const StringArgument *usbLogLevelArgument = static_cast<const StringArgument *>(arguments.GetArgument("usb-log-level"));
-
 	BridgeManager::UsbLogLevel usbLogLevel = BridgeManager::UsbLogLevel::Default;
 
 	if (usbLogLevelArgument)
@@ -104,12 +104,7 @@ int ClosePcScreenAction::Execute(int argc, char **argv)
 
 	// Download PIT file from device.
 
-	int communicationDelay = BridgeManager::kCommunicationDelayDefault;
-
-	if (communicationDelayArgument)
-		communicationDelay = communicationDelayArgument->GetValue();
-
-	BridgeManager *bridgeManager = new BridgeManager(verbose, communicationDelay);
+	BridgeManager *bridgeManager = new BridgeManager(verbose);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

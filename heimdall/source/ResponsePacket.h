@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -64,8 +64,6 @@ namespace Heimdall
 
 			virtual bool Unpack(void)
 			{
-				const unsigned char *data = GetData();
-
 				unsigned int receivedResponseType = UnpackInteger(0);
 				if (receivedResponseType != responseType)
 				{

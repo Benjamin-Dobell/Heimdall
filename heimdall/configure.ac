@@ -1,4 +1,4 @@
-AC_INIT([Heimdall], [1.4.0], [bug-report@glassechidna.com.au], [heimdall], [http://www.glassechidna.com.au/])
+AC_INIT([Heimdall], [1.4.1], [bug-report@glassechidna.com.au], [heimdall], [http://www.glassechidna.com.au/])
 AC_PREREQ([2.59])
 PKG_CHECK_MODULES([DEPS], [libusb-1.0 >= 1.0.8])
 AC_CHECK_PROG(udevadminstalled, udevadm, "yes")
@@ -9,6 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_PROG_AR
 m4_pattern_allow([AM_PROG_PR], [AM_PROG_AR])
 AC_CONFIG_FILES([Makefile])
+AC_SYS_LARGEFILE
 AM_MAINTAINER_MODE
 
 AC_MSG_CHECKING([operating system])

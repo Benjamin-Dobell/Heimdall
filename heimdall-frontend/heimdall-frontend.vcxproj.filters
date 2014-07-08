@@ -67,6 +67,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_aboutform.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release (Static)\moc_aboutform.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release (Static)\moc_mainwindow.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">

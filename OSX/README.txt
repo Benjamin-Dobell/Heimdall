@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2013 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2014 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
@@ -151,7 +151,7 @@ Performing a Custom Flash with Heimdall Frontend:
        clicking the "Remove" button. Removing a partition from the list doesn't
        remove it from your device, it simply means it will not be flashed.
 
-   10. Repeat steps 7-9 as often as needed to specify all the partions/files
+   10. Repeat steps 7-9 as often as needed to specify all the partitions/files
        that you wish to flash.
 
    11. Now you can chose whether you would like to repartition your device as

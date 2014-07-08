@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -61,11 +61,6 @@ namespace Heimdall
 
 			enum
 			{
-				kCommunicationDelayDefault = 0
-			};
-
-			enum
-			{
 				kInitialiseSucceeded = 0,
 				kInitialiseFailed,
 				kInitialiseDeviceNotDetected
@@ -78,9 +73,16 @@ namespace Heimdall
 
 			enum
 			{
-				kPidGalaxyS		    = 0x6601,
-				kPidGalaxyS2        = 0x685D,
-				kPidDroidCharge     = 0x68C3
+				kPidGalaxyS = 0x6601,
+				kPidGalaxyS2 = 0x685D,
+				kPidDroidCharge = 0x68C3
+			};
+
+			enum
+			{
+				kDefaultTimeoutSend = 3000,
+				kDefaultTimeoutReceive = 3000,
+				kDefaultTimeoutEmptyTransfer = 100
 			};
 
 			enum class UsbLogLevel
@@ -94,12 +96,19 @@ namespace Heimdall
 				Default = Error
 			};
 
+			enum
+			{
+				kEmptyTransferNone = 0,
+				kEmptyTransferBefore = 1,
+				kEmptyTransferAfter = 1 << 1,
+				kEmptyTransferBeforeAndAfter = kEmptyTransferBefore | kEmptyTransferAfter
+			};
+
 		private:
 
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
 
 			bool verbose;
-			int communicationDelay;
 
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
@@ -131,9 +140,12 @@ namespace Heimdall
 
 			bool InitialiseProtocol(void);
 
+			bool SendBulkTransfer(unsigned char *data, int length, int timeout, bool retry = true) const;
+			int ReceiveBulkTransfer(unsigned char *data, int length, int timeout, bool retry = true) const;
+
 		public:
 
-			BridgeManager(bool verbose, int communicationDelay = BridgeManager::kCommunicationDelayDefault);
+			BridgeManager(bool verbose);
 			~BridgeManager();
 
 			bool DetectDevice(void);
@@ -142,8 +154,8 @@ namespace Heimdall
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true, unsigned char *buffer = nullptr, unsigned int bufferSize = -1) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int emptyTransferFlags = kEmptyTransferAfter) const;
+			bool ReceivePacket(InboundPacket *packet, int timeout = kDefaultTimeoutReceive, int emptyTransferFlags = kEmptyTransferNone) const;
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
 
