@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <application>
  <id type="desktop">heimdall.desktop</id>
- <licence>MIT</licence>
+ <metadata_license>CC0-1.0</metadata_license>
+ <project_license>MIT</project_license>
  <name>Heimdall</name>
  <summary>Flash firmware onto Samsung mobile devices</summary>
  <description>
