@@ -558,7 +558,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	Interface::Print("Ending session...\n");
 
 	EndSessionPacket *endSessionPacket = new EndSessionPacket(EndSessionPacket::kRequestEndSession);
-	bool success = SendPacket(endSessionPacket);
+	bool success = SendPacket(endSessionPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
 	delete endSessionPacket;
 
 	if (!success)
@@ -569,7 +569,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	}
 
 	ResponsePacket *endSessionResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
-	success = ReceivePacket(endSessionResponse);
+	success = ReceivePacket(endSessionResponse, kDefaultTimeoutSend, kEmptyTransferNone);
 	delete endSessionResponse;
 
 	if (!success)
