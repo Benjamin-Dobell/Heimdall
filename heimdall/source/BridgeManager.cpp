@@ -886,7 +886,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 
 	// Start file transfer
 	PitFilePacket *pitFilePacket = new PitFilePacket(PitFilePacket::kRequestDump);
-	success = SendPacket(pitFilePacket);
+	success = SendPacket(pitFilePacket, kDefaultTimeoutSend, kEmptyTransferBefore);
 	delete pitFilePacket;
 
 	if (!success)
@@ -896,7 +896,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	}
 
 	PitFileResponse *pitFileResponse = new PitFileResponse();
-	success = ReceivePacket(pitFileResponse);
+	success = ReceivePacket(pitFileResponse, kDefaultTimeoutSend, kEmptyTransferNone);
 	unsigned int fileSize = pitFileResponse->GetFileSize();
 	delete pitFileResponse;
 
