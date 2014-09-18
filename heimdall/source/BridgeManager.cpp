@@ -531,7 +531,7 @@ bool BridgeManager::BeginSession(void)
 
 		FilePartSizePacket filePartSizePacket(fileTransferPacketSize);
 
-		if (!SendPacket(&filePartSizePacket))
+		if (!SendPacket(&filePartSizePacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter))
 		{
 			Interface::PrintError("Failed to send file part size packet!\n");
 			return (false);
@@ -539,7 +539,7 @@ bool BridgeManager::BeginSession(void)
 
 		SessionSetupResponse filePartSizeResponse;
 
-		if (!ReceivePacket(&filePartSizeResponse))
+		if (!ReceivePacket(&filePartSizeResponse, kDefaultTimeoutSend, kEmptyTransferNone))
 			return (false);
 
 		if (filePartSizeResponse.GetResult() != 0)
