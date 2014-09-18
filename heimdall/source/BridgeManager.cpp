@@ -584,7 +584,7 @@ bool BridgeManager::EndSession(bool reboot) const
 		Interface::Print("Rebooting device...\n");
 
 		EndSessionPacket *rebootDevicePacket = new EndSessionPacket(EndSessionPacket::kRequestRebootDevice);
-		bool success = SendPacket(rebootDevicePacket);
+		bool success = SendPacket(rebootDevicePacket,kDefaultTimeoutSend, kEmptyTransferBefore);
 		delete rebootDevicePacket;
 
 		if (!success)
@@ -595,7 +595,7 @@ bool BridgeManager::EndSession(bool reboot) const
 		}
 
 		ResponsePacket *rebootDeviceResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
-		success = ReceivePacket(rebootDeviceResponse);
+		success = ReceivePacket(rebootDeviceResponse, kDefaultTimeoutSend, kEmptyTransferNone);
 		delete rebootDeviceResponse;
 
 		if (!success)
