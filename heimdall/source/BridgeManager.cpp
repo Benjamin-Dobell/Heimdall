@@ -539,7 +539,7 @@ bool BridgeManager::BeginSession(void)
 
 		SessionSetupResponse filePartSizeResponse;
 
-		if (!ReceivePacket(&filePartSizeResponse, kDefaultTimeoutSend, kEmptyTransferNone))
+		if (!ReceivePacket(&filePartSizeResponse, kDefaultTimeoutReceive, kEmptyTransferNone))
 			return (false);
 
 		if (filePartSizeResponse.GetResult() != 0)
@@ -569,7 +569,7 @@ bool BridgeManager::EndSession(bool reboot) const
 	}
 
 	ResponsePacket *endSessionResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
-	success = ReceivePacket(endSessionResponse, kDefaultTimeoutSend, kEmptyTransferNone);
+	success = ReceivePacket(endSessionResponse, kDefaultTimeoutReceive, kEmptyTransferNone);
 	delete endSessionResponse;
 
 	if (!success)
@@ -595,7 +595,7 @@ bool BridgeManager::EndSession(bool reboot) const
 		}
 
 		ResponsePacket *rebootDeviceResponse = new ResponsePacket(ResponsePacket::kResponseTypeEndSession);
-		success = ReceivePacket(rebootDeviceResponse, kDefaultTimeoutSend, kEmptyTransferNone);
+		success = ReceivePacket(rebootDeviceResponse, kDefaultTimeoutReceive, kEmptyTransferNone);
 		delete rebootDeviceResponse;
 
 		if (!success)
@@ -896,7 +896,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	}
 
 	PitFileResponse *pitFileResponse = new PitFileResponse();
-	success = ReceivePacket(pitFileResponse, kDefaultTimeoutSend, kEmptyTransferNone);
+	success = ReceivePacket(pitFileResponse, kDefaultTimeoutReceive, kEmptyTransferNone);
 	unsigned int fileSize = pitFileResponse->GetFileSize();
 	delete pitFileResponse;
 
