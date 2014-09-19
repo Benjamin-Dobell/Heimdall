@@ -163,7 +163,9 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 	bool success;
 	
 	TotalBytesPacket *totalBytesPacket = new TotalBytesPacket(totalBytes);
-	success = bridgeManager->SendPacket(totalBytesPacket);
+	success = bridgeManager->SendPacket(totalBytesPacket,
+			BridgeManager::kDefaultTimeoutSend,
+			BridgeManager::kEmptyTransferBefore);
 	delete totalBytesPacket;
 
 	if (!success)
@@ -173,7 +175,9 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 	}
 
 	SessionSetupResponse *totalBytesResponse = new SessionSetupResponse();
-	success = bridgeManager->ReceivePacket(totalBytesResponse);
+	success = bridgeManager->ReceivePacket(totalBytesResponse,
+			BridgeManager::kDefaultTimeoutReceive,
+			BridgeManager::kEmptyTransferNone);
 	int totalBytesResult = totalBytesResponse->GetResult();
 	delete totalBytesResponse;
 
