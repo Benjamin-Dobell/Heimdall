@@ -163,7 +163,10 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 	bool success;
 	
 	TotalBytesPacket *totalBytesPacket = new TotalBytesPacket(totalBytes);
-	success = bridgeManager->SendPacket(totalBytesPacket);
+	//***** SEND TOTAL BYTES *****
+	success = bridgeManager->SendPacket(totalBytesPacket, 
+		BridgeManager::kDefaultTimeoutSend, 
+		BridgeManager::kEmptyTransferSetSetting);
 	delete totalBytesPacket;
 
 	if (!success)

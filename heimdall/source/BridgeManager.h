@@ -56,7 +56,7 @@ namespace Heimdall
 
 			enum
 			{
-				kSupportedDeviceCount = 3
+				kSupportedDeviceCount = 4
 			};
 
 			enum
@@ -73,19 +73,20 @@ namespace Heimdall
 
 			enum
 			{
-				kPidGalaxyS = 0x6601,
-				kPidGalaxyS2 = 0x685D,
-				kPidDroidCharge = 0x68C3
+				kPidGalaxyS		    = 0x6601,
+				kPidGalaxyS2        = 0x685D,
+				kPidI879            = 0x6868,
+				kPidDroidCharge     = 0x68C3,
 			};
 
 			enum
 			{
+				kDefaultTimeoutEmptyTransfer = 100,
 				kDefaultTimeoutSend = 3000,
-				kDefaultTimeoutReceive = 3000,
-				kDefaultTimeoutEmptyTransfer = 100
+				kDefaultTimeoutReceive = kDefaultTimeoutSend, //3000,
 			};
 
-			enum class UsbLogLevel
+			enum /*class*/ UsbLogLevel
 			{
 				None = 0,
 				Error,
@@ -101,7 +102,13 @@ namespace Heimdall
 				kEmptyTransferNone = 0,
 				kEmptyTransferBefore = 1,
 				kEmptyTransferAfter = 1 << 1,
-				kEmptyTransferBeforeAndAfter = kEmptyTransferBefore | kEmptyTransferAfter
+				kEmptyTransferBeforeAndAfter = kEmptyTransferBefore | kEmptyTransferAfter,
+				//use default setting every call				
+				kEmptyTransferBySetting = 0x100,
+				//call kEmptyTransferBeforeAndAfter in SEND_TOTAL_BYTES of flow, 
+				//if fail at after, it's only support kEmptyTransferBefore
+				//else only support kEmptyTransferAfter
+				kEmptyTransferSetSetting = kEmptyTransferBeforeAndAfter | kEmptyTransferBySetting,
 			};
 
 		private:
@@ -154,7 +161,8 @@ namespace Heimdall
 			bool BeginSession(void);
 			bool EndSession(bool reboot) const;
 
-			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int emptyTransferFlags = kEmptyTransferAfter) const;
+			//bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int emptyTransferFlags = kEmptyTransferAfter) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = kDefaultTimeoutSend, int emptyTransferFlags = kEmptyTransferBySetting) const;//SH-G7108
 			bool ReceivePacket(InboundPacket *packet, int timeout = kDefaultTimeoutReceive, int emptyTransferFlags = kEmptyTransferNone) const;
 
 			bool RequestDeviceType(unsigned int request, int *result) const;
