@@ -1099,9 +1099,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 			// Send
 			SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
-			//***** SEND FILE BLOCK *****
-			//success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
-			success = SendPacket(sendFilePartPacket);//SH-G7108
+			success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
 			delete sendFilePartPacket;
 
 			if (!success)
@@ -1115,7 +1113,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			SendFilePartResponse *sendFilePartResponse = new SendFilePartResponse();
 			success = ReceivePacket(sendFilePartResponse);
 			int receivedPartIndex = sendFilePartResponse->GetPartIndex();
-
 			delete sendFilePartResponse;
 
 			if (!success)
