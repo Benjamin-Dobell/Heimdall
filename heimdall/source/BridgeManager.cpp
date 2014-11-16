@@ -19,7 +19,7 @@
  THE SOFTWARE.*/
 
 // C Standard Library
-#include <stdio.h>
+#include <cstdio>
 
 // libusb
 #include <libusb.h>
@@ -53,7 +53,9 @@
 #include "SessionSetupResponse.h"
 
 // Future versions of libusb will use usb_interface instead of interface.
+#ifndef usb_interface
 #define usb_interface interface
+#endif
 
 #define USB_CLASS_CDC_DATA 0x0A
 
@@ -1035,7 +1037,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	{
 		sequenceCount++;
 
-		int lastSequenceBytes = fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize);
+		unsigned int lastSequenceBytes = fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize);
 		lastSequenceSize = lastSequenceBytes / fileTransferPacketSize;
 
 		if (partialPacketByteCount != 0)

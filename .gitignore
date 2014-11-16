@@ -1,5 +1,6 @@
 .DS_Store
 ._*
+.idea/
 Debug/
 Release/
 Release (Static)/

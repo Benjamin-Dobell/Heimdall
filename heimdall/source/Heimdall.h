@@ -21,7 +21,7 @@
 #ifndef HEIMDALL_H
 #define HEIMDALL_H
 
-#ifdef OS_WINDOWS
+#ifdef _MSC_VER // Microsoft Visual C Standard Library
 
 #include <Windows.h>
 #undef GetBinaryType
@@ -36,23 +36,17 @@
 #define FileTell(FILE) _ftelli64(FILE)
 #define FileRewind(FILE) rewind(FILE)
 
-#else
+#else // POSIX Standard Library
 
-#include "../config.h"
-
-#if defined(OS_DARWIN) || defined(OS_LINUX)
 #include <unistd.h>
+
 #define Sleep(t) usleep(1000*t)
 
 #define FileOpen(FILE, MODE) fopen(FILE, MODE)
 #define FileClose(FILE) fclose(FILE)
-#define FileSeek(FILE, OFFSET, ORIGIN) fseeko(FILE, OFFSET, ORIGIN)
-#define FileTell(FILE) ftello(FILE)
+#define FileSeek(FILE, OFFSET, ORIGIN) fseeko64(FILE, OFFSET, ORIGIN)
+#define FileTell(FILE) ftello64(FILE)
 #define FileRewind(FILE) rewind(FILE)
-
-#else
-#error operating system not supported
-#endif
 
 #endif
 
