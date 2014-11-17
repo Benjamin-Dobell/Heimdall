@@ -38,6 +38,10 @@
 
 #else // POSIX Standard Library
 
+#ifdef AUTOCONF
+#include "../config.h"
+#endif
+
 #include <unistd.h>
 
 #define Sleep(t) usleep(1000*t)

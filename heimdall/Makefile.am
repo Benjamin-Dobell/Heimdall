@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = $(DEPS_CFLAGS) -std=c++0x -I../libpit/Source
+AM_CPPFLAGS = $(DEPS_CFLAGS) -std=c++0x -I../libpit/Source -DAUTOCONF
 STATIC_LIBS = ../libpit/libpit-1.4.a
 bin_PROGRAMS = heimdall
 heimdall_SOURCES = source/Arguments.cpp \
