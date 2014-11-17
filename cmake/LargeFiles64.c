@@ -10,7 +10,7 @@
 int main(int argc, const char **argv)
 {
 	int a[(LARGE_OFF_T % 2147483629 == 721 && LARGE_OFF_T % 2147483647 == 1) ? VALID_ARRAY_LENGTH : INVALID_ARRAY_LENGTH];
-	off_t offset = ftello64(NULL);
+	off64_t offset = ftello64(NULL);
 	fseeko64(NULL, offset, SEEK_SET);
 	return 0;
 }
