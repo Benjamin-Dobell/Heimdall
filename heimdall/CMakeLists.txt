@@ -76,8 +76,6 @@ set(HEIMDALL_SOURCE_FILES
     source/VersionAction.cpp
     source/VersionAction.h)
 
-include(LargeFiles)
-use_large_files(heimdall YES)
 add_executable(heimdall ${HEIMDALL_SOURCE_FILES})
 
 target_link_libraries(heimdall PRIVATE pit)
