@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH
     ${CMAKE_SOURCE_DIR}/cmake
     ${CMAKE_MODULE_PATH})
 
+include(DefineCMakeDefaults)
 include(DefineCompilerFlags)
 
 add_subdirectory(libpit)
