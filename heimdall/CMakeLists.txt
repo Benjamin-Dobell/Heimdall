@@ -86,3 +86,9 @@ if(WIN32)
 else(WIN32)
     target_link_libraries(heimdall PRIVATE usb-1.0)
 endif(WIN32)
+
+install(
+    TARGETS
+        heimdall
+    RUNTIME DESTINATION
+        ${BIN_INSTALL_DIR})

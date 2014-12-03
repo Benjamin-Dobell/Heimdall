@@ -8,6 +8,7 @@ set(CMAKE_MODULE_PATH
 
 include(DefineCMakeDefaults)
 include(DefineCompilerFlags)
+include(DefineInstallationPaths)
 
 add_subdirectory(libpit)
 add_subdirectory(heimdall)
