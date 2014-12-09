@@ -48,8 +48,8 @@
 
 #define FileOpen(FILE, MODE) fopen(FILE, MODE)
 #define FileClose(FILE) fclose(FILE)
-#define FileSeek(FILE, OFFSET, ORIGIN) fseeko64(FILE, OFFSET, ORIGIN)
-#define FileTell(FILE) ftello64(FILE)
+#define FileSeek(FILE, OFFSET, ORIGIN) fseeko(FILE, OFFSET, ORIGIN)
+#define FileTell(FILE) ftello(FILE)
 #define FileRewind(FILE) rewind(FILE)
 
 #endif

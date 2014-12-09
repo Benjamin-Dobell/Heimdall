@@ -77,7 +77,7 @@ set(HEIMDALL_SOURCE_FILES
     source/VersionAction.h)
 
 include(LargeFiles)
-use_large_files(heimdall YES)
+use_large_files(heimdall false)
 add_executable(heimdall ${HEIMDALL_SOURCE_FILES})
 
 target_link_libraries(heimdall PRIVATE pit)
@@ -86,5 +86,5 @@ LINK_DIRECTORIES(../libusb-1.0/lib/mingw)
 if(WIN32)
     target_link_libraries(heimdall PRIVATE ${CMAKE_SOURCE_DIR}/libusb-1.0/lib/mingw/libusb-1.0.a)
 else(WIN32)
-    target_link_libraries(heimdalll PRIVATE usb-1.0)
+    target_link_libraries(heimdall PRIVATE usb-1.0)
 endif(WIN32)
