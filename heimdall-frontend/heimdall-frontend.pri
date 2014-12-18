@@ -14,3 +14,5 @@ SOURCES += ./Source/aboutform.cpp \
 FORMS += ./mainwindow.ui \
     ./aboutform.ui
 RESOURCES += mainwindow.qrc
+OTHER_FILES += heimdall.desktop \
+    heimdall.appdata.xml

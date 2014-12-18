@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+ <id type="desktop">heimdall.desktop</id>
+ <metadata_license>CC0-1.0</metadata_license>
+ <project_license>MIT</project_license>
+ <name>Heimdall</name>
+ <summary>Flash firmware onto Samsung mobile devices</summary>
+ <description>
+  <p>
+   Heimdall is a cross-platform open-source tool suite used to flash
+   firmware (aka ROMs) onto Samsung mobile devices.
+  </p>
+ </description>
+ <screenshots>
+  <screenshot type="default" width="1275" height="718">http://jorti.fedorapeople.org/appdata/heimdall.png</screenshot>
+ </screenshots>
+ <url type="homepage">http://glassechidna.com.au/heimdall/</url>
+ <updatecontact>jorti@fedoraproject.org</updatecontact>
+</application>
