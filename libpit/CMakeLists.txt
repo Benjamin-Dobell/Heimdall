@@ -4,7 +4,6 @@ project(libpit)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 set(LIBPIT_SOURCE_FILES
-    Source/libpit.cpp
-    Source/libpit.h)
+    Source/libpit.cpp)
 
 add_library(pit STATIC ${LIBPIT_SOURCE_FILES})

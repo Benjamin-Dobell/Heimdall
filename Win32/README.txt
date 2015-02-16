@@ -517,31 +517,32 @@ be included.
 
 Appendix B - Installing Heimdall Suite from Source
 
-    1. Ensure that you have both a version of Visual Studio 2012 with C++
-       support and Qt Developer Framework (4.7 or later, but prior to 5.0)
-       installed on your system.
+    Heimdall and Heimdall Frontend both utilise the CMake for managing the build
+    process. CMake can generate files for various build systems including GNU
+    Make and Visual Studio. However, official packages are compiled with GNU
+    Make and MinGW-W64 Clang.
 
-       A free version (Visual C++ 2012 Express) can be downloaded from
-       Microsoft's website:
+    NOTE: Official builds use MinGW-W64 simply because on-going cross-platform
+          development is simpler when using just the one IDE (Jetbrain's CLion)
+          and compiler (Clang) on all platforms.
 
-          http://www.microsoft.com/visualstudio/eng/products/visual-studio-express-products
+    1. Setup a MinGW-W64 build environment by utilising MSYS2:
 
-       Qt can also be downloaded freely from:
+        http://msys2.github.io/
 
-          http://qt-project.org/downloads
+    2. After installing MSYS2 a command prompt will launch, enter:
 
-    2. Open msvc2012.sln
+        Pacman -Syu
+        Pacman -S mingw-w64-x86_64 mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-make
 
-    3. From the Solutions Configuration drop-down change from "Debug" to
-       "Release".
+    3. Add the MinGW-W64 binaries to your PATH environment variable:
 
-    4. In the Solution Explorer right-click on the heimdall-frontend project
-       and chose "Build".
+        export PATH="/mingw64/bin:$PATH"
 
-    5. Depending on how you've installed Qt on your system you may need to copy
-       "QtCore4.dll, "QtGui4.dll" and "QtXml4.dll" from your Qt bin/
-       sub-directory to Heimdall's Win32/Release sub-directory.
+    4. Build Heimdall & Heimdall Frontend
 
-    6. Heimdall Frontend can then be run from Win32/Release or command line can
-       be used to run Heimdall (command line) from the same directory.
-
+        mkdir build
+        cd build
+        export cxx=clang++
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+        make
