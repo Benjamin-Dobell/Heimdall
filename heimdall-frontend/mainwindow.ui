@@ -53,17 +53,6 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="font">
-    <font>
-     <family>MS Shell Dlg 2</family>
-    </font>
-   </property>
    <widget class="QTabWidget" name="functionTabWidget">
     <property name="enabled">
      <bool>true</bool>

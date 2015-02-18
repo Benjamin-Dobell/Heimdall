@@ -836,7 +836,7 @@ void MainWindow::SelectPit(void)
 
 			for (int i = 0; i < partitionNamesCount; i++)
 			{
-				const PitEntry *pitEntry = currentPitData.FindEntry(partitionNames[i].toAscii().constData());
+				const PitEntry *pitEntry = currentPitData.FindEntry(partitionNames[i].toLatin1().constData());
 				
 				if (pitEntry)
 				{

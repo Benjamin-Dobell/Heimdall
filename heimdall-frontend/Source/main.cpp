@@ -19,17 +19,20 @@
  THE SOFTWARE.*/
 
 // Qt
-#include <QtGui/QApplication>
+#include <QApplication>
+#include <QtPlugin>
 
 // Heimdall Frontend
 #include "mainwindow.h"
+
+Q_IMPORT_PLUGIN (QWindowsIntegrationPlugin);
 
 using namespace HeimdallFrontend;
 
 int main(int argc, char *argv[])
 {
 	QApplication application(argc, argv);
-	
+
 	MainWindow window;
 	window.show();
 

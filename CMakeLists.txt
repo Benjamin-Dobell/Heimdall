@@ -8,3 +8,4 @@ project(Heimdall)
 
 add_subdirectory(libpit)
 add_subdirectory(heimdall)
+add_subdirectory(heimdall-frontend)

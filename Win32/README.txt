@@ -520,11 +520,11 @@ Appendix B - Installing Heimdall Suite from Source
     Heimdall and Heimdall Frontend both utilise the CMake for managing the build
     process. CMake can generate files for various build systems including GNU
     Make and Visual Studio. However, official packages are compiled with GNU
-    Make and MinGW-W64 Clang.
+    Make and MinGW-W64 GCC/G++.
 
     NOTE: Official builds use MinGW-W64 simply because on-going cross-platform
           development is simpler when using just the one IDE (Jetbrain's CLion)
-          and compiler (Clang) on all platforms.
+          and similar toolchains.
 
     1. Setup a MinGW-W64 build environment by utilising MSYS2:
 
@@ -533,7 +533,7 @@ Appendix B - Installing Heimdall Suite from Source
     2. After installing MSYS2 a command prompt will launch, enter:
 
         Pacman -Syu
-        Pacman -S mingw-w64-x86_64 mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-make
+        Pacman -S mingw-w64-x86_64 mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-qt5-static
 
     3. Add the MinGW-W64 binaries to your PATH environment variable:
 
@@ -543,6 +543,5 @@ Appendix B - Installing Heimdall Suite from Source
 
         mkdir build
         cd build
-        export cxx=clang++
-        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/c/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
         make

@@ -25,6 +25,8 @@
 // Heimdall Frontend
 #include "aboutform.h"
 
+#include <QStringList>
+
 #define UNUSED(x) (void)(x)
 
 using namespace HeimdallFrontend;

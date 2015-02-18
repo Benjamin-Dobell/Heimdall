@@ -18,6 +18,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
+#ifndef ABOUTFORM_H
+#define ABOUTFORM_H
+
 // Qt
 #include <QProcess>
 #include <QWidget>
@@ -50,3 +53,6 @@ namespace HeimdallFrontend
 			void HandleHeimdallError(QProcess::ProcessError error);
 	};
 }
+
+#endif
+
