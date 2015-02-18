@@ -25,7 +25,9 @@
 // Heimdall Frontend
 #include "mainwindow.h"
 
+#if defined(QT_STATIC)
 Q_IMPORT_PLUGIN (QWindowsIntegrationPlugin);
+#endif
 
 using namespace HeimdallFrontend;
 

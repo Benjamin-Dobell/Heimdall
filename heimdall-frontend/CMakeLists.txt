@@ -12,7 +12,10 @@ find_package(Qt5Widgets REQUIRED)
 find_package(ZLIB REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+
+if(MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+endif(MINGW)
 
 include_directories(${LIBPIT_INCLUDE_DIRS})
 
@@ -33,6 +36,7 @@ qt5_add_resources(HEIMDALL_FRONTEND_RESOURCES
     mainwindow.qrc)
 
 add_executable(heimdall-frontend WIN32
+    MACOSX_BUNDLE
     ${HEIMDALL_FRONTEND_SOURCE_FILES}
     ${HEIMDALL_FRONTEND_FORMS}
     ${HEIMDALL_FRONTEND_RESOURCES})

@@ -477,79 +477,15 @@ be included.
 
 
 
-Appendix B - Installing Heimdall from Source:
+Appendix B - Installing Heimdall Suite from Source
 
-    PREREQUISITES:
-    
-          Heimdall requires C++11 (aka C++0x) functionality in order to compile.
-          Unfortunately, XCode includes an old version of GCC which does not
-          include support for C++11. XCode does include clang, which does
-          support C++11. However, clang's C++11 can only target OS X 10.7 or
-          newer. There are also slight compatibility issues between clang and
-          Qt, which is required in order to compile Heimdall Frontend. As such
-          these instructions will utilise GCC 4.7 installed via Homebrew.
-              
-          Xcode can be downloaded through the App store or from Apple's
-          developer website:
-          
-              https://developer.apple.com/xcode/
-          
-          Homebrew install instructions are available at:
-          
-              http://mxcl.github.io/homebrew/
-          
-    1. First make sure you have installed XCode and Homebrew (see above). Then
-       open a terminal and install GCC 4.7, pkgconfig and libusbx via Homebrew:
-    
-            brew tap homebrew/versions
-            brew install gcc47 pkgconfig libusbx
-            
-        NOTE: Installing GCC 4.7 will take a long time.
+    1. Open Terminal and install dependencies using Homebrew (http://brew.sh)
 
-    2. In a terminal navigate to the directory you downloaded (or extracted)
-       Heimdall to.
+        brew install libusb qt5 cmake
 
-    3. Enter the following commands to compile libpit.
+    2. Build Heimdall & Heimdall Frontend
 
-            cd libpit
-            ./configure CC=gcc-4.7 CXX=g++-4.7
-            make
-            cd ..
-
-       NOTE: There is no need to run "sudo make install".
-
-    4. Enter the following commands to compile and install Heimdall:
-
-            cd heimdall
-            ./configure CC=gcc-4.7 CXX=g++-4.7
-            make
-            sudo make install
-            cd ..
-
-    5. If you haven't installed the driver before, do the following:
-
-            cd OSX
-            sudo ./install-kext.sh
-
-    6. Done
-
-
-
-Appendix C - Installing Heimdall Frontend from Source:
-
-    1. Compile and install Heimdall, see Appendix B.
-
-    2. Heimdall Frontend requires Qt (4.7 or later, but prior to 5.0), available
-       from:
-
-          http://qt-project.org/downloads
-
-    3. Open a terminal and navigate to the directory you extracted Heimdall to.
-
-    4. Enter the following commands to compile and install Heimdall Frontend:
-
-            cd heimdall-frontend
-            qmake -spec macx-g++ QMAKE_CC=gcc-4.7 QMAKE_CXX=g++-4.7
-            make
-
-    5. Done
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/usr/local/opt/qt5/lib/cmake/Qt5Widgets ..
+        make
