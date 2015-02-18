@@ -6,7 +6,7 @@ set(libusb_USE_STATIC_LIBS YES)
 find_package(libusb REQUIRED)
 
 set(LIBPIT_INCLUDE_DIRS
-    ../libpit/Source)
+    ../libpit/source)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.4)
 project(heimdall-frontend)
 
 set(LIBPIT_INCLUDE_DIRS
-    ../libpit/Source)
+    ../libpit/source)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # moc files are generated in build (current) directory
@@ -17,13 +17,13 @@ set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 include_directories(${LIBPIT_INCLUDE_DIRS})
 
 set(HEIMDALL_FRONTEND_SOURCE_FILES
-    Source/aboutform.cpp
-    Source/Alerts.cpp
-    Source/FirmwareInfo.cpp
-    Source/main.cpp
-    Source/mainwindow.cpp
-    Source/PackageData.cpp
-    Source/Packaging.cpp)
+    source/aboutform.cpp
+    source/Alerts.cpp
+    source/FirmwareInfo.cpp
+    source/main.cpp
+    source/mainwindow.cpp
+    source/PackageData.cpp
+    source/Packaging.cpp)
 
 qt5_wrap_ui(HEIMDALL_FRONTEND_FORMS
     mainwindow.ui
