@@ -27,7 +27,7 @@ find_library(LIBUSB_LIBRARY
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LIBUSB REQUIRED_VARS LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+find_package_handle_standard_args(libusb REQUIRED_VARS LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
 
 if (LIBUSB_FOUND)
     set(LIBUSB_INCLUDE_DIRS ${LIBUSB_INCLUDE_DIR})
