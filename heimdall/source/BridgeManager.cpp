@@ -65,7 +65,8 @@ using namespace Heimdall;
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
 	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS),
 	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS2),
-	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidDroidCharge)
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidDroidCharge),
+	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidI879),
 };
 
 enum
@@ -509,8 +510,8 @@ bool BridgeManager::BeginSession(void)
 	Interface::Print("Beginning session...\n");
 
 	BeginSessionPacket beginSessionPacket;
-
-	if (!SendPacket(&beginSessionPacket))
+	//***** BEGIN SESSION *****
+	if (!SendPacket(&beginSessionPacket, kDefaultTimeoutSend, kEmptyTransferNone))
 	{
 		Interface::PrintError("Failed to begin session!\n");
 		return (false);
@@ -532,8 +533,8 @@ bool BridgeManager::BeginSession(void)
 		fileTransferSequenceMaxLength = 30; // Therefore, fileTransferPacketSize * fileTransferSequenceMaxLength == 30 MiB per sequence.
 
 		FilePartSizePacket filePartSizePacket(fileTransferPacketSize);
-
-		if (!SendPacket(&filePartSizePacket))
+		//***** CHANGE FILE PACK SIZE *****
+		if (!SendPacket(&filePartSizePacket, kDefaultTimeoutSend, kEmptyTransferBefore))
 		{
 			Interface::PrintError("Failed to send file part size packet!\n");
 			return (false);
@@ -690,6 +691,13 @@ int BridgeManager::ReceiveBulkTransfer(unsigned char *data, int length, int time
 
 bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int emptyTransferFlags) const
 {
+	static int g_defaultEmptyTransferFlags = kEmptyTransferBefore;
+
+	if (kEmptyTransferBySetting == emptyTransferFlags)
+	{
+		emptyTransferFlags = g_defaultEmptyTransferFlags;
+	}
+	
 	packet->Pack();
 
 	if (emptyTransferFlags & kEmptyTransferBefore)
@@ -705,9 +713,15 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, int emptyTra
 
 	if (emptyTransferFlags & kEmptyTransferAfter)
 	{
-		if (!SendBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) && verbose)
+		const bool bRET = SendBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false);
+		if (!bRET && verbose)
 		{
 			Interface::PrintWarning("Empty bulk transfer after sending packet failed. Continuing anyway...\n");
+		}
+		if (kEmptyTransferSetSetting == emptyTransferFlags)
+		{
+			g_defaultEmptyTransferFlags = (bRET ? kEmptyTransferAfter : kEmptyTransferBefore);
+			Interface::PrintWarning("Setting protocol to %d\n", g_defaultEmptyTransferFlags);			
 		}
 	}
 
@@ -746,7 +760,9 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, int emptyT
 
 	if (emptyTransferFlags & kEmptyTransferAfter)
 	{
-		if (ReceiveBulkTransfer(nullptr, 0, kDefaultTimeoutEmptyTransfer, false) < 0 && verbose)
+		//***** FIX BUG *****
+		unsigned char szTempBuffer[16];
+		if (ReceiveBulkTransfer(szTempBuffer, sizeof(szTempBuffer), kDefaultTimeoutEmptyTransfer, false) < 0 && verbose)
 		{
 			Interface::PrintWarning("Empty bulk transfer after receiving packet failed. Continuing anyway...\n");
 		}
@@ -931,7 +947,8 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 		int receiveEmptyTransferFlags = (i == transferCount - 1) ? kEmptyTransferAfter : kEmptyTransferNone;
 		
 		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
-		success = ReceivePacket(receiveFilePartPacket, receiveEmptyTransferFlags);
+		//***** FIX BUG *****
+		success = ReceivePacket(receiveFilePartPacket, kDefaultTimeoutEmptyTransfer, receiveEmptyTransferFlags);
 		
 		if (!success)
 		{
@@ -1098,7 +1115,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			SendFilePartResponse *sendFilePartResponse = new SendFilePartResponse();
 			success = ReceivePacket(sendFilePartResponse);
 			int receivedPartIndex = sendFilePartResponse->GetPartIndex();
-
 			delete sendFilePartResponse;
 
 			if (!success)
@@ -1183,8 +1199,9 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
 			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, fileIdentifier, isLastSequence);
-
-			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
+			//***** SEND FILE END *****
+			//success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
+			success = SendPacket(endPhoneFileTransferPacket);//SH-G7108
 			delete endPhoneFileTransferPacket;
 
 			if (!success)
