@@ -472,57 +472,21 @@ be included.
 
 
 
-Appendix B - Installing Heimdall from Source:
+Appendix B - Installing Heimdall Suite from Source:
 
-    1. First make sure you have installed build-tools, pkgconfig, zlib-dev and
-       libusbx.
+    1. First make sure you have installed build-essential, cmake, zlib1g-dev,
+       qt5-default, libusb-1.0-0-dev and OpenGL (e.g libgl1-mesa-glx and
+       libgl1-mesa-dev).
 
        NOTE: Package names may not be absolutely identical to those above.
 
     2. Open a terminal and navigate to the directory you downloaded,
        or extracted, Heimdall to.
 
-    3. Enter the following commands to compile libpit:
+    3. Enter the following commands to compile Heimdall Suite:
 
-            cd libpit
-            ./configure
+            mkdir build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Release ..
             make
-            cd ..
-
-       NOTE: There is no need to run "sudo make install".
-
-    4. Enter the following commands to compile and install Heimdall:
-
-            cd heimdall
-            ./configure
-            make
-            sudo make install
-            cd ..
-
-    5. Done
-
-
-
-Appendix C - Installing Heimdall Frontend from Source:
-
-    1. Compile and install Heimdall, see Appendix B.
-
-    2. First make sure you have installed Qt (4.7 or later, but prior to 5.0).
-       You can typically install Qt through your platforms package manager, or
-       alternatively download it from:
-
-          http://qt-project.org/downloads
-
-    3. Open a terminal and navigate to the directory you extracted Heimdall to.
-
-    4. Enter the following commands to compile and install Heimdall Frontend:
-
-            cd heimdall-frontend
-            qmake-qt4
-            make
-            sudo make install
-            
-       NOTE: If qmake-qt4 does not exist on your platform, try qmake instead.
-
-    5. Done
 
