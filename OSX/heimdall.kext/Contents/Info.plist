@@ -3,38 +3,44 @@
 <plist version="1.0">
 	<dict>
 		<key>CFBundleDevelopmentRegion</key> <string>English</string>
-		<key>CFBundleGetInfoString</key> <string>Galaxy S Download Mode (Heimdall)</string>
-		<key>CFBundleIdentifier</key> <string>au.com.glassechidna.heimdall_usb_shield</string>
+		<key>CFBundleGetInfoString</key> <string>Heimdall Download Mode</string>
+		<key>CFBundleIdentifier</key> <string>au.com.glassechidna.heimdall.usb_shield</string>
 		<key>CFBundleInfoDictionaryVersion</key> <string>6.0</string>
-		<key>CFBundleName</key> <string>Galaxy S Download Mode (Heimdall)</string>
+		<key>CFBundleName</key> <string>Heimdall Download Mode</string>
 		<key>CFBundlePackageType</key> <string>KEXT</string>
 		<key>CFBundleSignature</key> <string>????</string>
 		<key>CFBundleVersion</key> <string>6.0</string>
 		<key>IOKitPersonalities</key>
 		<dict>
-			<key>GalaxyS</key>
+			<key>0x6001</key>
 			<dict>
 				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
 				<key>IOClass</key> <string>AppleUSBComposite</string>
+				<key>IOProbeScore</key> <integer>300000</integer>
 				<key>IOProviderClass</key> <string>IOUSBDevice</string>
 				<key>idVendor</key> <integer>1256</integer>
 				<key>idProduct</key> <integer>26113</integer>
+				<key>bcdDevice</key> <integer>256</integer>
 			</dict>
-			<key>GalaxyS2</key>
+			<key>0x685D</key>
 			<dict>
 				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
 				<key>IOClass</key> <string>AppleUSBComposite</string>
+				<key>IOProbeScore</key> <integer>300000</integer>
 				<key>IOProviderClass</key> <string>IOUSBDevice</string>
 				<key>idVendor</key> <integer>1256</integer>
 				<key>idProduct</key> <integer>26717</integer>
+				<key>bcdDevice</key> <integer>256</integer>
 			</dict>
-			<key>DroidCharge</key>
+			<key>0x68C3</key>
 			<dict>
 				<key>CFBundleIdentifier</key> <string>com.apple.driver.AppleUSBComposite</string>
 				<key>IOClass</key> <string>AppleUSBComposite</string>
+				<key>IOProbeScore</key> <integer>300000</integer>
 				<key>IOProviderClass</key> <string>IOUSBDevice</string>
 				<key>idVendor</key> <integer>1256</integer>
 				<key>idProduct</key> <integer>26819</integer>
+				<key>bcdDevice</key> <integer>256</integer>
 			</dict>
 		</dict>
 		<key>OSBundleCompatibleVersion</key> <string>1.8</string>
