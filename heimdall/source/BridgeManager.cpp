@@ -918,7 +918,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 	for (unsigned int i = 0; i < transferCount; i++)
 	{
 		DumpPartPitFilePacket *requestPacket = new DumpPartPitFilePacket(i);
-		success = SendPacket(requestPacket);
+		success = SendPacket(requestPacket, kDefaultTimeoutSend, kEmptyTransferNone);
 		delete requestPacket;
 
 		if (!success)
@@ -931,7 +931,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 		int receiveEmptyTransferFlags = (i == transferCount - 1) ? kEmptyTransferAfter : kEmptyTransferNone;
 		
 		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
-		success = ReceivePacket(receiveFilePartPacket, receiveEmptyTransferFlags);
+		success = ReceivePacket(receiveFilePartPacket, kDefaultTimeoutReceive, receiveEmptyTransferFlags);
 		
 		if (!success)
 		{
