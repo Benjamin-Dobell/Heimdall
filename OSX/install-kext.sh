@@ -1,6 +1,7 @@
 #!/bin/bash
+BASEDIR=$(dirname $0)
 echo 'Installing Driver...'
-sudo cp -R heimdall.kext /System/Library/Extensions
+sudo cp -R "$BASEDIR/heimdall.kext" /System/Library/Extensions
 sudo chmod -R 755 /System/Library/Extensions/heimdall.kext
 sudo chown -R root:wheel /System/Library/Extensions/heimdall.kext
 sudo kextload /System/Library/Extensions/heimdall.kext
