@@ -39,21 +39,44 @@ using namespace libpit;
 
 namespace HeimdallFrontend
 {
+	enum class HeimdallState : int
+	{
+		Stopped = 1,
+		Flashing = (int)Stopped << 1,
+		DetectingDevice = (int)Flashing << 1,
+		ClosingPcScreen = (int)DetectingDevice << 1,
+		PrintingPit = (int)ClosingPcScreen << 1,
+		DownloadingPit = (int)PrintingPit << 1,
+		NoReboot = (int)DownloadingPit << 1
+	};
+
+	inline HeimdallState operator|(HeimdallState lhs, HeimdallState rhs)
+	{
+		return (HeimdallState)((int)lhs | (int)rhs);
+	}
+
+	inline HeimdallState& operator|=(HeimdallState& lhs, HeimdallState rhs)
+	{
+		lhs = lhs | rhs;
+		return lhs;
+	}
+
+	inline HeimdallState operator&(HeimdallState lhs, HeimdallState rhs)
+	{
+		lhs = (HeimdallState)((int)lhs & (int)rhs);
+		return lhs;
+	}
+
+	inline bool operator!(HeimdallState state)
+	{
+		return (int)state == 0;
+	}
+
 	class MainWindow : public QMainWindow, public Ui::MainWindow
 	{
 		Q_OBJECT
 
 		private:
-
-			enum class HeimdallState
-			{
-				Stopped = 0,
-				Flashing,
-				DetectingDevice,
-				ClosingPcScreen,
-				PrintingPit,
-				DownloadingPit
-			};
 
 			enum
 			{
