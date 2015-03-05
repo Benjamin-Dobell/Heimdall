@@ -14,9 +14,9 @@ if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 endif(MINGW)
 
-if(LINUX)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DOS_LINUX)
-endif(LINUX)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 include_directories(SYSTEM ${LIBUSB_INCLUDE_DIRS})
 
