@@ -20,12 +20,13 @@
 
 // Qt
 #include <QApplication>
-#include <QtPlugin>
+#include <QQmlApplicationEngine>
 
 // Heimdall Frontend
 #include "mainwindow.h"
 
 #if defined(QT_STATIC)
+#include <QtPlugin>
 Q_IMPORT_PLUGIN (QWindowsIntegrationPlugin);
 #endif
 
@@ -35,8 +36,8 @@ int main(int argc, char *argv[])
 {
 	QApplication application(argc, argv);
 
-	MainWindow window;
-	window.show();
+	QQmlApplicationEngine engine;
+	engine.load(QUrl(QString("qrc:/main.qml")));
 
 	return (application.exec());
 }

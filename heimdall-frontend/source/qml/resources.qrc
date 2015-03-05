@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>drop_zone.svg</file>
+    </qresource>
+</RCC>

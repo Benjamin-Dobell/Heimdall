@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Root.qml</file>
+        <file>RootForm.ui.qml</file>
+        <file>DropFiles.qml</file>
+        <file>DropFilesForm.ui.qml</file>
+    </qresource>
+</RCC>

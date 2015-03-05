@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 2.8.11)
+
+set(Qt5Quick_DIR "/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Quick" CACHE FILEPATH "Qt5Quick path" FORCE)
 
 set(CMAKE_MODULE_PATH
     ${CMAKE_SOURCE_DIR}/cmake
