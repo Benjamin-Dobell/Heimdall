@@ -505,7 +505,7 @@ void MainWindow::SelectFirmwarePackage(void)
 	loadedPackageData.Clear();
 	UpdatePackageUserInterface();
 
-	QString path = PromptFileSelection("Select Package", "*.tar.gz");
+	QString path = PromptFileSelection("Select Package", "Firmware Package (*.gz)");
 	firmwarePackageLineEdit->setText(path);
 
 	if (firmwarePackageLineEdit->text() != "")
@@ -1059,7 +1059,7 @@ void MainWindow::RemoveDevice(void)
 			
 void MainWindow::BuildPackage(void)
 {
-	QString packagePath = PromptFileCreation("Save Package", "*.tar.gz");
+	QString packagePath = PromptFileCreation("Save Package", "Firmware Package (*.gz)");
 
 	if (!packagePath.isEmpty())
 	{
