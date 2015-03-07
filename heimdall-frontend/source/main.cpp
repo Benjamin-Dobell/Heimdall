@@ -30,6 +30,11 @@
 Q_IMPORT_PLUGIN (QWindowsIntegrationPlugin);
 #endif
 
+#if defined(ENABLE_QML_DEBUGGING)
+#include <QQmlDebuggingEnabler>
+QQmlDebuggingEnabler enabler;
+#endif
+
 using namespace HeimdallFrontend;
 
 int main(int argc, char *argv[])

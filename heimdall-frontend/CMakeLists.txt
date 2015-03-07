@@ -19,6 +19,10 @@ if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 endif(MINGW)
 
+if(ENABLE_QML_DEBUGGING)
+    add_definitions(-DENABLE_QML_DEBUGGING)
+endif(ENABLE_QML_DEBUGGING)
+
 include_directories(${LIBPIT_INCLUDE_DIRS})
 
 set(HEIMDALL_FRONTEND_SOURCE_FILES
