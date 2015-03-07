@@ -37,9 +37,9 @@ set(HEIMDALL_FRONTEND_SOURCE_FILES
 set(HEIMDALL_FRONTEND_QML_FILES
     source/qml/main.qml
     source/qml/Root.qml
-    source/qml/RootForm.ui.qml
+    source/qml/RootForm.qml
     source/qml/DropFiles.qml
-    source/qml/DropFilesForm.ui.qml)
+    source/qml/DropFilesForm.qml)
 
 qt5_wrap_ui(HEIMDALL_FRONTEND_FORMS
     mainwindow.ui

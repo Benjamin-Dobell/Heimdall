@@ -2,8 +2,8 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>Root.qml</file>
-        <file>RootForm.ui.qml</file>
+        <file>RootForm.qml</file>
         <file>DropFiles.qml</file>
-        <file>DropFilesForm.ui.qml</file>
+        <file>DropFilesForm.qml</file>
     </qresource>
 </RCC>
