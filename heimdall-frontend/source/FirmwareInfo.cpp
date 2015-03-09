@@ -720,10 +720,10 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 
 	xml.writeStartElement("developers");
 
-	for (int i = 0; i < developers.length(); i++)
+	for (const QString& developer : developers)
 	{
 		xml.writeStartElement("name");
-		xml.writeCharacters(developers[i]);
+		xml.writeCharacters(developer);
 		xml.writeEndElement();
 	}
 
@@ -745,8 +745,10 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 
 	xml.writeStartElement("devices");
 
-	for (int i = 0; i < deviceInfos.length(); i++)
-		deviceInfos[i].WriteXml(xml);
+	for (const DeviceInfo& deviceInfo : deviceInfos)
+	{
+		deviceInfo.WriteXml(xml);
+	}
 
 	xml.writeEndElement();
 

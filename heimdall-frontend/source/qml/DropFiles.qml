@@ -2,12 +2,11 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
+import "FileUtils.js" as FileUtils
 
 DropFilesForm {
 	id: background
-
 	property var fileUrls: []
-
 	signal nextPressed(var files)
 
 	ListModel {
@@ -30,15 +29,17 @@ DropFilesForm {
 		var count = urls.length;
 		if (count > 0) {
 			for (var i = 0; i < count; i++) {
-				var url = urls[i].toString();
-				var filename = url.slice(url.lastIndexOf('/') + 1, url.length);
+				if (FileUtils.isFile(urls[i])) {
+					var filename = FileUtils.filenameFromUrl(urls[i]);
 
-				fileModel.append({
-					icon: "drop_zone.svg",
-					text: filename
-				});
+					fileModel.append({ icon: "drop_zone.svg", text: filename });
 
-				fileUrls.push(urls[i]);
+					if (FileUtils.isArchive(filename)) {
+						fileUrls.push(FileUtils.extractArchive(urls[i]));
+					} else {
+						fileUrls.push(urls[i]);
+					}
+				}
 			}
 
 			setFileGridVisible(true);
@@ -90,12 +91,12 @@ DropFilesForm {
 	}
 
 	FileDialog {
-        id: browseDialog
+		id: browseDialog
 		title: "Select firmware file(s)"
 		selectMultiple: true
 		selectFolder: false
-        onAccepted: {
+		onAccepted: {
 			addFiles(browseDialog.fileUrls);
-        }
-    }
+		}
+	}
 }

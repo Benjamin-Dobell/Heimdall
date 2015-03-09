@@ -29,17 +29,19 @@ set(HEIMDALL_FRONTEND_SOURCE_FILES
     source/aboutform.cpp
     source/Alerts.cpp
     source/FirmwareInfo.cpp
+    source/GZipFile.cpp
     source/main.cpp
     source/mainwindow.cpp
     source/PackageData.cpp
     source/Packaging.cpp)
 
 set(HEIMDALL_FRONTEND_QML_FILES
+    source/qml/DropFiles.qml
+    source/qml/DropFilesForm.qml
+    source/qml/FileUtils.js
     source/qml/main.qml
     source/qml/Root.qml
-    source/qml/RootForm.qml
-    source/qml/DropFiles.qml
-    source/qml/DropFilesForm.qml)
+    source/qml/RootForm.qml)
 
 qt5_wrap_ui(HEIMDALL_FRONTEND_FORMS
     mainwindow.ui

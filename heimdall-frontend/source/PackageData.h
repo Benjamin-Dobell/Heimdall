@@ -22,7 +22,7 @@
 #define PACKAGEDATA_H
 
 // Qt
-#include <QTemporaryFile>
+#include <QDir>
 
 // Heimdall Frontend
 #include "FirmwareInfo.h"
@@ -34,15 +34,16 @@ namespace HeimdallFrontend
 		private:
 
 			FirmwareInfo firmwareInfo;
-			QList<QTemporaryFile *> files;
+			QList<QString> filePaths;
+			QDir packageDirectory;
 
 		public:
 
 			PackageData();
 			~PackageData();
 
-			void Clear(void);
-			bool ReadFirmwareInfo(QFile *file);
+			void Clear(bool deletePackageDirectory = true);
+			bool ReadFirmwareInfo(const QString& path);
 
 			bool IsCleared(void) const;
 
@@ -56,20 +57,24 @@ namespace HeimdallFrontend
 				return (firmwareInfo);
 			}
 
-			const QList<QTemporaryFile *>& GetFiles(void) const
+			const QList<QString>& GetFilePaths(void) const
 			{
-				return (files);
+				return (filePaths);
 			}
 
-			QList<QTemporaryFile *>& GetFiles(void)
+			QList<QString>& GetFilePaths(void)
 			{
-				return (files);
+				return (filePaths);
 			}
 
-			// Simply clears the files list, it does delete/close any files.
-			void RemoveAllFiles(void)
+			void SetPackagePath(const QString& path)
 			{
-				files.clear();
+				packageDirectory.setPath(path);
+			}
+
+			QString GetPackagePath() const
+			{
+				return packageDirectory.path();
 			}
 	};
 }

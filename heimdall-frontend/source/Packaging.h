@@ -22,9 +22,7 @@
 #define PACKAGING_H
 
 // Qt
-#include <QList>
-#include <QString>
-#include <QTemporaryFile>
+#include <QDir>
 
 // Heimdall Frontend
 #include "PackageData.h"
@@ -99,18 +97,20 @@ namespace HeimdallFrontend
 				kExtractBufferLength = 262144,
 				kCompressBufferLength = 262144
 			};
-			
-			// TODO: Add support for sparse files to both methods?
-			static bool ExtractTar(QTemporaryFile& tarFile, PackageData *packageData);
 
-			static bool WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, const QString& entryFilename);
-			static bool CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarFile); // Uses original TAR format.
+			static bool DecompressGZippedFile(const QString &path, const QString &outputPath);
+
+			// TODO: Add support for sparse files to both methods?
+			static bool ExtractTar(QFile& tarFile, const QDir& outputDirectory, QList<QString>& outputFilePaths);
+
+			static bool WriteTarEntry(const QString& entryFilename, const QString& filePath, QFile& outputTarFile);
+			static bool CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile); // Uses original TAR format.
 
 		public:
 
 			static const char *ustarMagic;
 
-			static bool ExtractPackage(const QString& packagePath, PackageData *packageData);
+			static bool ExtractPackage(const QString& packagePath, PackageData& packageData);
 			static bool BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo);
 
 			static QString ClashlessFilename(const QList<FileInfo>& fileInfos, int fileInfoIndex);

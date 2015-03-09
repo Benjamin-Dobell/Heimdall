@@ -109,7 +109,7 @@ namespace HeimdallFrontend
 			void StartHeimdall(const QStringList& arguments);
 
 			void UpdateUnusedPartitionIds(void);
-			bool ReadPit(QFile *file);
+			bool ReadPit(const QString& path);
 
 			void UpdatePackageUserInterface(void);
 

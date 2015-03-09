@@ -30,31 +30,85 @@
 
 // Qt
 #include <QDateTime>
-#include <QDir>
 #include <QProgressDialog>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
 
 // Heimdall Frontend
 #include "Alerts.h"
 #include "Packaging.h"
+#include "GZipFile.h"
 
 using namespace HeimdallFrontend;
 
-const qint64 Packaging::kMaxFileSize = 8589934592ll;
+const qint64 Packaging::kMaxFileSize = 4294967295ll;
 const char *Packaging::ustarMagic = "ustar";
 
-bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
+bool Packaging::DecompressGZippedFile(const QString &path, const QString &outputPath)
+{
+	GZipFile gzipFile(path);
+
+	if (!gzipFile.Open(GZipFile::ReadOnly))
+	{
+		Alerts::DisplayError(QString("Failed to open file:\n%1").arg(path));
+		return (false);
+	}
+
+	qint64 compressedFileSize = gzipFile.Size();
+
+	QFile outputFile(outputPath);
+
+	if (!outputFile.open(QIODevice::WriteOnly))
+	{
+		Alerts::DisplayError(QString("Failed to open decompression output file:\n%1").arg(outputFile.fileName()));
+		return (false);
+	}
+
+	QProgressDialog progressDialog("Decompressing...", "Cancel", 0, 1000);
+	progressDialog.setWindowModality(Qt::ApplicationModal);
+	progressDialog.setWindowTitle("Heimdall Frontend");
+
+	char buffer[kExtractBufferLength];
+	int bytesRead;
+
+	do
+	{
+		bytesRead = gzipFile.Read(buffer, kExtractBufferLength);
+
+		if (bytesRead == -1)
+		{
+			progressDialog.close();
+			Alerts::DisplayError("Error decompressing archive.");
+			return (false);
+		}
+
+		outputFile.write(buffer, bytesRead);
+		progressDialog.setValue((1000ll * gzipFile.Offset()) / compressedFileSize);
+
+		if (progressDialog.wasCanceled())
+		{
+			return (false);
+		}
+	} while (bytesRead > 0);
+
+	progressDialog.close();
+	return (true);
+}
+
+bool Packaging::ExtractTar(QFile& tarFile, const QDir& outputDirectory, QList<QString>& outputFilePaths)
 {
 	TarHeader tarHeader;
 
-	if (!tarFile.open())
+	if (!tarFile.open(QFile::ReadOnly))
 	{
-		Alerts::DisplayError(QString("Error opening temporary TAR archive:\n%1").arg(tarFile.fileName()));
+		Alerts::DisplayError(QString("Error opening archive:\n%1").arg(tarFile.fileName()));
 		return (false);
 	}
 
 	bool previousEmpty = false;
 
-	QProgressDialog progressDialog("Extracting files...", "Cancel", 0, tarFile.size());
+	qint64 tarFileSize = tarFile.size();
+	QProgressDialog progressDialog("Extracting archive...", "Cancel", 0, 1000);
 	progressDialog.setWindowModality(Qt::ApplicationModal);
 	progressDialog.setWindowTitle("Heimdall Frontend");
 
@@ -82,7 +136,6 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 			return (false);
 		}
 
-		//bool ustarFormat = strcmp(tarHeader.fields.magic, ustarMagic) == 0;
 		bool empty = true;
 
 		for (int i = 0; i < TarHeader::kBlockLength; i++)
@@ -104,21 +157,6 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 		}
 		else
 		{
-			int checksum = 0;
-
-			for (char *bufferIndex = tarHeader.buffer; bufferIndex < tarHeader.fields.checksum; bufferIndex++)
-				checksum += static_cast<unsigned char>(*bufferIndex);
-
-			checksum += 8 * ' ';
-			checksum += static_cast<unsigned char>(tarHeader.fields.typeFlag);
-
-			// Both the TAR and USTAR formats have terrible documentation, it's not clear if the following code is required.
-			/*if (ustarFormat)
-			{
-				for (char *bufferIndex = tarHeader.fields.linkName; bufferIndex < tarHeader.fields.prefix + 155; bufferIndex++)
-					checksum += static_cast<unsigned char>(*bufferIndex);
-			}*/
-
 			bool parsed = false;
 		
 			// The size field is not always null terminated, so we must create a copy and null terminate it for parsing.
@@ -143,18 +181,20 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 				// We're working with a file.
 				QString filename = QString::fromUtf8(tarHeader.fields.name);
 
-				QTemporaryFile *outputFile = new QTemporaryFile("XXXXXX-" + filename);
-				packageData->GetFiles().append(outputFile);
+				QString filePath = outputDirectory.path() + "/" + filename;
+				QFile outputFile(filePath);
 
-				if (!outputFile->open())
+				if (!outputFile.open(QFile::WriteOnly))
 				{
 					progressDialog.close();
-					Alerts::DisplayError(QString("Failed to open output file: \n%1").arg(outputFile->fileName()));
+					Alerts::DisplayError(QString("Failed to open output file: \n%1").arg(outputFile.fileName()));
 
 					tarFile.close();
 
 					return (false);
 				}
+
+				outputFilePaths.append(filePath);
 
 				qulonglong dataRemaining = fileSize;
 				char readBuffer[TarHeader::kBlockReadCount * TarHeader::kBlockLength];
@@ -173,25 +213,23 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 						Alerts::DisplayError("Unexpected read error whilst extracting package files.");
 
 						tarFile.close();
-						outputFile->close();
-
-						remove(outputFile->fileName().toStdString().c_str());
+						outputFile.close();
+						outputFile.remove();
 
 						return (false);
 					}
 
-					outputFile->write(readBuffer, fileDataToRead);
+					outputFile.write(readBuffer, fileDataToRead);
 
 					dataRemaining -= fileDataToRead;
 
-					progressDialog.setValue(tarFile.pos());
+					progressDialog.setValue((1000ll * tarFile.pos()) / tarFileSize);
 
 					if (progressDialog.wasCanceled())
 					{
 						tarFile.close();
-						outputFile->close();
-
-						remove(outputFile->fileName().toStdString().c_str());
+						outputFile.close();
+						outputFile.remove();
 
 						progressDialog.close();
 
@@ -199,7 +237,7 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 					}
 				}
 
-				outputFile->close();
+				outputFile.close();
 			}
 			else
 			{
@@ -221,7 +259,7 @@ bool Packaging::ExtractTar(QTemporaryFile& tarFile, PackageData *packageData)
 	return (true);
 }
 
-bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, const QString& entryFilename)
+bool Packaging::WriteTarEntry(const QString& entryFilename, const QString& filePath, QFile& outputTarFile)
 {
 	TarHeader tarHeader;
 	memset(tarHeader.buffer, 0, TarHeader::kBlockLength);
@@ -316,7 +354,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 	sprintf(tarHeader.fields.checksum, "%07o", checksum);
 
 	// Write the header to the TAR file.
-	tarFile->write(tarHeader.buffer, TarHeader::kBlockLength);
+	outputTarFile.write(tarHeader.buffer, TarHeader::kBlockLength);
 
 	char buffer[TarHeader::kBlockWriteCount * TarHeader::kBlockLength];
 	qint64 offset = 0;
@@ -325,7 +363,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 	{
 		qint64 dataRead = file.read(buffer, TarHeader::kBlockWriteCount * TarHeader::kBlockLength);
 
-		if (tarFile->write(buffer, dataRead) != dataRead)
+		if (outputTarFile.write(buffer, dataRead) != dataRead)
 		{
 			Alerts::DisplayError("Failed to write data to the temporary TAR file.");
 			return (false);
@@ -336,7 +374,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 			int remainingBlockLength = TarHeader::kBlockLength - dataRead % TarHeader::kBlockLength;
 			memset(buffer, 0, remainingBlockLength);
 
-			if (tarFile->write(buffer, remainingBlockLength) != remainingBlockLength)
+			if (outputTarFile.write(buffer, remainingBlockLength) != remainingBlockLength)
 			{
 				Alerts::DisplayError("Failed to write data to the temporary TAR file.");
 				return (false);
@@ -349,7 +387,7 @@ bool Packaging::WriteTarEntry(const QString& filePath, QTemporaryFile *tarFile, 
 	return (true);
 }
 
-bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarFile)
+bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile)
 {
 	const QList<FileInfo>& fileInfos = firmwareInfo.GetFileInfos();
 
@@ -371,10 +409,10 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 	firmwareInfo.WriteXml(xml);
 	firmwareXmlFile.close();
 
-	if (!tarFile->open())
+	if (!outputTarFile.open(QFile::WriteOnly))
 	{
 		progressDialog.close();
-		Alerts::DisplayError(QString("Failed to open file: \n%1").arg(tarFile->fileName()));
+		Alerts::DisplayError(QString("Failed to open file: \n%1").arg(outputTarFile.fileName()));
 
 		return (false);
 	}
@@ -407,10 +445,10 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 			return (false);
 		}
 
-		if (!WriteTarEntry(fileInfos[i].GetFilename(), tarFile, filename))
+		if (!WriteTarEntry(filename, fileInfos[i].GetFilename(), outputTarFile))
 		{
-			tarFile->resize(0);
-			tarFile->close();
+			outputTarFile.resize(0);
+			outputTarFile.close();
 
 			progressDialog.close();
 
@@ -421,8 +459,8 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 
 		if (progressDialog.wasCanceled())
 		{
-			tarFile->resize(0);
-			tarFile->close();
+			outputTarFile.resize(0);
+			outputTarFile.close();
 
 			progressDialog.close();
 
@@ -443,10 +481,10 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 		return (false);
 	}
 
-	if (!WriteTarEntry(firmwareInfo.GetPitFilename(), tarFile, pitFilename))
+	if (!WriteTarEntry(pitFilename, firmwareInfo.GetPitFilename(), outputTarFile))
 	{
-		tarFile->resize(0);
-		tarFile->close();
+		outputTarFile.resize(0);
+		outputTarFile.close();
 
 		return (false);
 	}
@@ -455,18 +493,18 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 
 	if (progressDialog.wasCanceled())
 	{
-		tarFile->resize(0);
-		tarFile->close();
+		outputTarFile.resize(0);
+		outputTarFile.close();
 
 		progressDialog.close();
 
 		return (false);
 	}
 
-	if (!WriteTarEntry(firmwareXmlFile.fileName(), tarFile, "firmware.xml"))
+	if (!WriteTarEntry("firmware.xml", firmwareXmlFile.fileName(), outputTarFile))
 	{
-		tarFile->resize(0);
-		tarFile->close();
+		outputTarFile.resize(0);
+		outputTarFile.close();
 
 		return (false);
 	}
@@ -478,97 +516,51 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QTemporaryFile *tarF
 	char emptyEntry[TarHeader::kBlockLength];
 	memset(emptyEntry, 0, TarHeader::kBlockLength);
 
-	tarFile->write(emptyEntry, TarHeader::kBlockLength);
-	tarFile->write(emptyEntry, TarHeader::kBlockLength);
+	outputTarFile.write(emptyEntry, TarHeader::kBlockLength);
+	outputTarFile.write(emptyEntry, TarHeader::kBlockLength);
 
-	tarFile->close();
+	outputTarFile.close();
 
 	return (true);
 }
 
-bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageData)
+bool Packaging::ExtractPackage(const QString& packagePath, PackageData& packageData)
 {
-	FILE *compressedPackageFile = fopen(packagePath.toStdString().c_str(), "rb");
+	QTemporaryDir outputDirectory;
 
-	if (!compressedPackageFile)
+	if (!outputDirectory.isValid())
 	{
-		Alerts::DisplayError(QString("Failed to open package:\n%1").arg(packagePath));
+		Alerts::DisplayError("Failed to create package output directory.");
 		return (false);
 	}
 
-	fseek(compressedPackageFile, 0, SEEK_END);
-	quint64 compressedFileSize = ftell(compressedPackageFile);
-	rewind(compressedPackageFile);
+	QTemporaryFile tarFile;
+	tarFile.open();
+	tarFile.close();
 
-	gzFile packageFile = gzdopen(fileno(compressedPackageFile), "rb");
+	QList<QString> decompressedFilePaths;
 
-	QTemporaryFile outputTar("XXXXXX.tar");
-
-	if (!outputTar.open())
+	if (!DecompressGZippedFile(packagePath, tarFile.fileName())
+		|| !ExtractTar(tarFile, QDir(outputDirectory.path()), decompressedFilePaths))
 	{
-		Alerts::DisplayError("Failed to open temporary TAR archive.");
-		gzclose(packageFile);
-
 		return (false);
 	}
-
-	char buffer[kExtractBufferLength];
-	int bytesRead;
-	quint64 totalBytesRead = 0;
-
-	QProgressDialog progressDialog("Decompressing package...", "Cancel", 0, compressedFileSize);
-	progressDialog.setWindowModality(Qt::ApplicationModal);
-	progressDialog.setWindowTitle("Heimdall Frontend");
-
-	do
-	{
-		bytesRead = gzread(packageFile, buffer, kExtractBufferLength);
-
-		if (bytesRead == -1)
-		{
-			progressDialog.close();
-			Alerts::DisplayError("Error decompressing archive.");
-
-			gzclose(packageFile);
-
-			return (false);
-		}
-
-		outputTar.write(buffer, bytesRead);
-
-		totalBytesRead += bytesRead;
-		progressDialog.setValue(totalBytesRead);
-
-		if (progressDialog.wasCanceled())
-		{
-			gzclose(packageFile);
-			progressDialog.close();
-
-			return (false);
-		}
-	} while (bytesRead > 0);
-
-	progressDialog.close();
-
-	outputTar.close();
-	gzclose(packageFile); // Closes packageFile and compressedPackageFile
-
-	if (!ExtractTar(outputTar, packageData))
-		return (false);
 
 	// Find and read firmware.xml
-	for (int i = 0; i < packageData->GetFiles().length(); i++)
+	for (const QString& path : decompressedFilePaths)
 	{
-		QTemporaryFile *file = packageData->GetFiles()[i];
-
-		if (file->fileTemplate() == "XXXXXX-firmware.xml")
+		if (path.endsWith("firmware.xml"))
 		{
-			if (!packageData->ReadFirmwareInfo(file))
+			if (!packageData.ReadFirmwareInfo(path))
 			{
-				packageData->Clear();
+				packageData.Clear();
 				return (false);
 			}
 
+			outputDirectory.setAutoRemove(false);
+
+			packageData.GetFilePaths().append(decompressedFilePaths);
+			packageData.SetPackagePath(outputDirectory.path());
 			return (true);
 		}
 	}
@@ -579,43 +571,38 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 
 bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo)
 {
-	FILE *compressedPackageFile = fopen(packagePath.toStdString().c_str(), "wb");
+	GZipFile packageFile(packagePath);
 
-	if (!compressedPackageFile)
+	if (!packageFile.Open(GZipFile::WriteOnly))
 	{
 		Alerts::DisplayError(QString("Failed to create package:\n%1").arg(packagePath));
 		return (false);
 	}
 
+	packageFile.SetTemporary(true);
+
 	QTemporaryFile tar("XXXXXX.tar");
 
-	if (!CreateTar(firmwareInfo, &tar))
+	if (!CreateTar(firmwareInfo, tar))
 	{
-		fclose(compressedPackageFile);
-		remove(packagePath.toStdString().c_str());
-
 		return (false);
 	}
 
 	if (!tar.open())
 	{
 		Alerts::DisplayError(QString("Failed to open temporary file: \n%1").arg(tar.fileName()));
-
-		fclose(compressedPackageFile);
-		remove(packagePath.toStdString().c_str());
-
 		return (false);
 	}
-	
-	gzFile packageFile = gzdopen(fileno(compressedPackageFile), "wb");
 
 	char buffer[kCompressBufferLength];
 	qint64 totalBytesRead = 0;
-	int bytesRead;
 
-	QProgressDialog progressDialog("Compressing package...", "Cancel", 0, tar.size());
+	quint64 tarSize = tar.size();
+	QProgressDialog progressDialog("Compressing package...", "Cancel", 0, 1000);
 	progressDialog.setWindowModality(Qt::ApplicationModal);
 	progressDialog.setWindowTitle("Heimdall Frontend");
+
+	int bytesRead;
 
 	do
 	{
@@ -625,42 +612,29 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 		{
 			progressDialog.close();
 			Alerts::DisplayError("Error reading temporary TAR file.");
-
-			gzclose(packageFile);
-			remove(packagePath.toStdString().c_str());
-
 			return (false);
 		}
 
-		if (gzwrite(packageFile, buffer, bytesRead) != bytesRead)
+		if (!packageFile.Write(buffer, bytesRead))
 		{
 			progressDialog.close();
 			Alerts::DisplayError("Error compressing package.");
-
-			gzclose(packageFile);
-			remove(packagePath.toStdString().c_str());
-
 			return (false);
 		}
 
 		totalBytesRead += bytesRead;
-		progressDialog.setValue(totalBytesRead);
+		progressDialog.setValue((1000ll * totalBytesRead) / tarSize);
 
 		if (progressDialog.wasCanceled())
 		{
-			gzclose(packageFile);
-			remove(packagePath.toStdString().c_str());
-
 			progressDialog.close();
-
 			return (false);
 		}
 	} while (bytesRead > 0);
 
 	progressDialog.close();
 
-	gzclose(packageFile); // Closes packageFile and compressedPackageFile
-
+	packageFile.SetTemporary(false);
 	return (true);
 }
 
@@ -709,14 +683,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 		bool validIndexOffset = true;
 
 		// Before we append a rename index we must ensure it doesn't produce further collisions.
-		for (int i = 0; i < fileInfos.length(); i++)
+		for (const FileInfo& fileInfo : fileInfos)
 		{
-			int lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+			int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
 
 			if (lastSlash < 0)
-				lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+				lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
 
-			QString otherFilename = fileInfos[i].GetFilename().mid(lastSlash + 1);
+			QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
 
 			if (otherFilename.length() > filename.length() + 1)
 			{
@@ -778,14 +752,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 
 					bool valid = true;
 
-					for (int i = 0; i < fileInfos.length(); i++)
+					for (const FileInfo& fileInfo : fileInfos)
 					{
-						int lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+						int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
 
 						if (lastSlash < 0)
-							lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+							lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
 
-						if (filename == fileInfos[i].GetFilename().mid(lastSlash + 1))
+						if (filename == fileInfo.GetFilename().mid(lastSlash + 1))
 						{
 							valid = false;
 							break;
@@ -809,14 +783,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QSt
 	unsigned int renameIndex = 0;
 
 	// Check for name clashes
-	for (int i = 0; i < fileInfos.length(); i++)
+	for (const FileInfo& fileInfo : fileInfos)
 	{
-		int lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+		int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
 
 		if (lastSlash < 0)
-			lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+			lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
 
-		QString otherFilename = fileInfos[i].GetFilename().mid(lastSlash + 1);
+		QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
 
 		if (filename == otherFilename)
 			renameIndex++;
@@ -842,14 +816,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QSt
 		bool validIndexOffset = true;
 
 		// Before we append a rename index we must ensure it doesn't produce further collisions.
-		for (int i = 0; i < fileInfos.length(); i++)
+		for (const FileInfo& fileInfo : fileInfos)
 		{
-			int lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+			int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
 
 			if (lastSlash < 0)
-				lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+				lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
 
-			QString otherFilename = fileInfos[i].GetFilename().mid(lastSlash + 1);
+			QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
 
 			if (otherFilename.length() > filename.length() + 1)
 			{
@@ -909,14 +883,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QSt
 				for (int i = 0; i < 8; i++)
 					filename.append(QChar(qrand() % ('Z' - 'A' + 1) + 'A'));
 
-				for (int i = 0; i < fileInfos.length(); i++)
+				for (const FileInfo& fileInfo : fileInfos)
 				{
-					int lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+					int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
 
 					if (lastSlash < 0)
-						lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+						lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
 
-					if (filename == fileInfos[i].GetFilename().mid(lastSlash + 1))
+					if (filename == fileInfo.GetFilename().mid(lastSlash + 1))
 					{
 						valid = false;
 						break;

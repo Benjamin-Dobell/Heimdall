@@ -53,11 +53,11 @@ void MainWindow::StartHeimdall(const QStringList& arguments)
 		QStringList paths;
 
 		// Ensure /usr/local/bin and /usr/bin are in PATH.
-		for (int i = 0; i < environment.length(); i++)
+		for (const QString& var : environment)
 		{
-			if (environment[i].left(5) == "PATH=")
+			if (var.left(5) == "PATH=")
 			{
-				paths = environment[i].mid(5).split(':');
+				paths = var.mid(5).split(':');
 				
 				if (!paths.contains("/usr/local/bin"))
 					paths.prepend("/usr/local/bin");
@@ -114,21 +114,20 @@ void MainWindow::UpdateUnusedPartitionIds(void)
 	}
 
 	// Remove any used partition IDs from unusedPartitionIds
-	QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
-
-	for (int i = 0; i < fileList.length(); i++)
-		unusedPartitionIds.removeOne(fileList[i].GetPartitionId());
+	for (const FileInfo& fileInfo : workingPackageData.GetFirmwareInfo().GetFileInfos())
+		unusedPartitionIds.removeOne(fileInfo.GetPartitionId());
 }
 
-bool MainWindow::ReadPit(QFile *file)
+bool MainWindow::ReadPit(const QString& path)
 {
-	if(!file->open(QIODevice::ReadOnly))
+	QFile pitFile(path);
+
+	if (!pitFile.open(QIODevice::ReadOnly))
 		return (false);
 
-	unsigned char *buffer = new unsigned char[file->size()];
+	unsigned char *buffer = new unsigned char[pitFile.size()];
 
-	file->read(reinterpret_cast<char *>(buffer), file->size());
-	file->close();
+	pitFile.read(reinterpret_cast<char *>(buffer), pitFile.size());
 
 	bool success = currentPitData.Unpack(buffer);
 	delete buffer;
@@ -176,15 +175,13 @@ void MainWindow::UpdatePackageUserInterface(void)
 		platformLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetName() + " ("
 			+ loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetVersion() + ")");
 
-		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetDeviceInfos().length(); i++)
+		for (const DeviceInfo& deviceInfo : loadedPackageData.GetFirmwareInfo().GetDeviceInfos())
 		{
-			const DeviceInfo& deviceInfo = loadedPackageData.GetFirmwareInfo().GetDeviceInfos()[i];
 			supportedDevicesListWidget->addItem(deviceInfo.GetManufacturer() + " " + deviceInfo.GetName() + ": " + deviceInfo.GetProduct());
 		}
 
-		for (int i = 0; i < loadedPackageData.GetFirmwareInfo().GetFileInfos().length(); i++)
+		for (const FileInfo& fileInfo : loadedPackageData.GetFirmwareInfo().GetFileInfos())
 		{
-			const FileInfo& fileInfo = loadedPackageData.GetFirmwareInfo().GetFileInfos()[i];
 			includedFilesListWidget->addItem(fileInfo.GetFilename());
 		}
 
@@ -247,9 +244,9 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 		bool allPartitionsValid = true;
 		QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
 
-		for (int i = 0; i < fileList.length(); i++)
+		for (const FileInfo& fileInfo : fileList)
 		{
-			if (fileList[i].GetFilename().isEmpty())
+			if (fileInfo.GetFilename().isEmpty())
 			{
 				allPartitionsValid = false;
 				break;
@@ -374,8 +371,8 @@ void MainWindow::UpdatePartitionNamesInterface(void)
 	{
 		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
 
-		for (int i = 0; i < unusedPartitionIds.length(); i++)
-			partitionNameComboBox->addItem(currentPitData.FindEntry(unusedPartitionIds[i])->GetPartitionName());
+		for (unsigned int id : unusedPartitionIds)
+			partitionNameComboBox->addItem(currentPitData.FindEntry(id)->GetPartitionName());
 
 		partitionNameComboBox->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
 		partitionNameComboBox->setCurrentIndex(unusedPartitionIds.length());
@@ -510,7 +507,7 @@ void MainWindow::SelectFirmwarePackage(void)
 
 	if (firmwarePackageLineEdit->text() != "")
 	{
-		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), &loadedPackageData))
+		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), loadedPackageData))
 			UpdatePackageUserInterface();
 		else
 			loadedPackageData.Clear();
@@ -533,21 +530,17 @@ void MainWindow::LoadFirmwarePackage(void)
 {
 	workingPackageData.Clear();
 	currentPitData.Clear();
-	
-	workingPackageData.GetFiles().append(loadedPackageData.GetFiles());
-	loadedPackageData.RemoveAllFiles();
 
-	const QList<FileInfo> packageFileInfos = loadedPackageData.GetFirmwareInfo().GetFileInfos();
-
-	for (int i = 0; i < packageFileInfos.length(); i++)
+	// Loaded packages FileInfo store filenames, but the working package FileInfo need absolute paths
+	for (const FileInfo& packageFileInfo : loadedPackageData.GetFirmwareInfo().GetFileInfos())
 	{
 		bool fileFound = false;
 
-		for (int j = 0; j < workingPackageData.GetFiles().length(); j++)
+		for (const QString& packageFilePath : loadedPackageData.GetFilePaths())
 		{
-			if (workingPackageData.GetFiles()[j]->fileTemplate() == ("XXXXXX-" + packageFileInfos[i].GetFilename()))
+			if (packageFilePath.endsWith(packageFileInfo.GetFilename()))
 			{
-				FileInfo partitionInfo(packageFileInfos[i].GetPartitionId(), QDir::current().absoluteFilePath(workingPackageData.GetFiles()[j]->fileName()));
+				FileInfo partitionInfo(packageFileInfo.GetPartitionId(), packageFilePath);
 				workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
 
 				fileFound = true;
@@ -556,27 +549,28 @@ void MainWindow::LoadFirmwarePackage(void)
 		}
 
 		if (!fileFound)
-			Alerts::DisplayWarning(QString("%1 is missing from the package.").arg(packageFileInfos[i].GetFilename()));
+			Alerts::DisplayWarning(QString("%1 is missing from the package.").arg(packageFileInfo.GetFilename()));
 	}
 
+	workingPackageData.GetFilePaths().append(loadedPackageData.GetFilePaths());
+	workingPackageData.SetPackagePath(loadedPackageData.GetPackagePath());
+
+	QString pitFilename = loadedPackageData.GetFirmwareInfo().GetPitFilename();
+
 	// Find the PIT file and read it
-	for (int i = 0; i < workingPackageData.GetFiles().length(); i++)
+	for (const QString& filePath : workingPackageData.GetFilePaths())
 	{
-		QTemporaryFile *file = workingPackageData.GetFiles()[i];
-
-		if (file->fileTemplate() == ("XXXXXX-" + loadedPackageData.GetFirmwareInfo().GetPitFilename()))
+		if (filePath.endsWith(pitFilename))
 		{
-			workingPackageData.GetFirmwareInfo().SetPitFilename(QDir::current().absoluteFilePath(file->fileName()));
+			workingPackageData.GetFirmwareInfo().SetPitFilename(filePath);
 
-			if (!ReadPit(file))
+			if (!ReadPit(filePath))
 			{
 				Alerts::DisplayError("Failed to read PIT file.");
-
-				loadedPackageData.Clear();
 				UpdatePackageUserInterface();
+				UpdateUnusedPartitionIds();
 
 				workingPackageData.Clear();
-				UpdateUnusedPartitionIds();
 				return;
 			}
 
@@ -584,21 +578,20 @@ void MainWindow::LoadFirmwarePackage(void)
 		}
 	}
 
-	UpdateUnusedPartitionIds();
 	workingPackageData.GetFirmwareInfo().SetRepartition(loadedPackageData.GetFirmwareInfo().GetRepartition());
 	workingPackageData.GetFirmwareInfo().SetNoReboot(loadedPackageData.GetFirmwareInfo().GetNoReboot());
 
-	loadedPackageData.Clear();
-	UpdatePackageUserInterface();
-	firmwarePackageLineEdit->clear();
+	loadedPackageData.Clear(false);
 
+	UpdateUnusedPartitionIds();
+	UpdatePackageUserInterface();
+
+	firmwarePackageLineEdit->clear();
 	partitionsListWidget->clear();
 
 	// Populate partitionsListWidget with partition names (from the PIT file)
-	for (int i = 0; i < workingPackageData.GetFirmwareInfo().GetFileInfos().length(); i++)
+	for (const FileInfo& partitionInfo : workingPackageData.GetFirmwareInfo().GetFileInfos())
 	{
-		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[i];
-
 		const PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo.GetPartitionId());
 
 		if (pitEntry)
@@ -609,11 +602,12 @@ void MainWindow::LoadFirmwarePackage(void)
 		{
 			Alerts::DisplayError("Firmware package includes invalid partition IDs.");
 
-			loadedPackageData.GetFirmwareInfo().Clear();
+			workingPackageData.Clear();
 			currentPitData.Clear();
-			UpdateUnusedPartitionIds();
 
+			UpdateUnusedPartitionIds();
 			partitionsListWidget->clear();
+
 			return;
 		}
 	}
@@ -803,9 +797,7 @@ void MainWindow::SelectPit(void)
 
 		currentPitData.Clear();
 
-		QFile pitFile(path);
-
-		if (ReadPit(&pitFile))
+		if (ReadPit(path))
 		{
 			workingPackageData.GetFirmwareInfo().SetPitFilename(path);
 
@@ -839,9 +831,7 @@ void MainWindow::SelectPit(void)
 
 			if (!workingPackageData.GetFirmwareInfo().GetPitFilename().isEmpty())
 			{
-				QFile originalPitFile(workingPackageData.GetFirmwareInfo().GetPitFilename());
-
-				if (ReadPit(&originalPitFile))
+				if (ReadPit(workingPackageData.GetFirmwareInfo().GetPitFilename()))
 				{
 					validPit = true;
 				}
@@ -919,13 +909,13 @@ void MainWindow::StartFlash(void)
 	arguments.append("--pit");
 	arguments.append(firmwareInfo.GetPitFilename());
 
-	for (int i = 0; i < fileInfos.length(); i++)
+	for (const FileInfo& fileInfo : fileInfos)
 	{
 		QString flag;
-		flag.sprintf("--%u", fileInfos[i].GetPartitionId());
+		flag.sprintf("--%u", fileInfo.GetPartitionId());
 
 		arguments.append(flag);
-		arguments.append(fileInfos[i].GetFilename());
+		arguments.append(fileInfo.GetFilename());
 	}
 
 	if (firmwareInfo.GetNoReboot())

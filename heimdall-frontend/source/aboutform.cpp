@@ -60,11 +60,11 @@ void AboutForm::RetrieveHeimdallVersion(void)
 		QStringList paths;
 
 		// Ensure /usr/bin is in PATH
-		for (int i = 0; i < environment.length(); i++)
+		for (const QString& var : environment)
 		{
-			if (environment[i].left(5) == "PATH=")
+			if (var.left(5) == "PATH=")
 			{
-				paths = environment[i].mid(5).split(':');
+				paths = var.mid(5).split(':');
 				paths.prepend("/usr/bin");
 				break;
 			}
