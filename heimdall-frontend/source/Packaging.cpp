@@ -46,7 +46,7 @@ const char *Packaging::ustarMagic = "ustar";
 
 bool Packaging::DecompressGZippedFile(const QString &path, const QString &outputPath)
 {
-	GZipFile gzipFile(path);
+	GZipFile gzipFile{path};
 
 	if (!gzipFile.Open(GZipFile::ReadOnly))
 	{
@@ -93,7 +93,7 @@ bool Packaging::DecompressGZippedFile(const QString &path, const QString &output
 
 	progressDialog.close();
 	return (true);
-}
+};
 
 bool Packaging::ExtractTar(QFile& tarFile, const QDir& outputDirectory, QList<QString>& outputFilePaths)
 {
@@ -387,9 +387,9 @@ bool Packaging::WriteTarEntry(const QString& entryFilename, const QString& fileP
 	return (true);
 }
 
-bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile)
+bool Packaging::CreateTar(const FirmwareInfo *firmwareInfo, QFile& outputTarFile)
 {
-	const QList<FileInfo>& fileInfos = firmwareInfo.GetFileInfos();
+	const QList<FileInfo *>& fileInfos = firmwareInfo->GetFileInfos();
 
 	QProgressDialog progressDialog("Packaging files...", "Cancel", 0, fileInfos.length() + 2);
 	progressDialog.setWindowModality(Qt::ApplicationModal);
@@ -406,7 +406,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 	}
 
 	QXmlStreamWriter xml(&firmwareXmlFile);
-	firmwareInfo.WriteXml(xml);
+	firmwareInfo->WriteXml(xml);
 	firmwareXmlFile.close();
 
 	if (!outputTarFile.open(QFile::WriteOnly))
@@ -424,7 +424,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 
 		for (int j = 0; j < i; j++)
 		{
-			if (fileInfos[i].GetFilename() == fileInfos[j].GetFilename())
+			if (fileInfos[i]->GetFilename() == fileInfos[j]->GetFilename())
 			{
 				skip = true;
 				break;
@@ -445,7 +445,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 			return (false);
 		}
 
-		if (!WriteTarEntry(filename, fileInfos[i].GetFilename(), outputTarFile))
+		if (!WriteTarEntry(filename, fileInfos[i]->GetFilename(), outputTarFile))
 		{
 			outputTarFile.resize(0);
 			outputTarFile.close();
@@ -468,12 +468,12 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 		}
 	}
 
-	int lastSlash = firmwareInfo.GetPitFilename().lastIndexOf('/');
+	int lastSlash = firmwareInfo->GetPitFilename().lastIndexOf('/');
 
 	if (lastSlash < 0)
-		lastSlash = firmwareInfo.GetPitFilename().lastIndexOf('\\');
+		lastSlash = firmwareInfo->GetPitFilename().lastIndexOf('\\');
 
-	QString pitFilename = ClashlessFilename(fileInfos, firmwareInfo.GetPitFilename().mid(lastSlash + 1));
+	QString pitFilename = ClashlessFilename(fileInfos, firmwareInfo->GetPitFilename().mid(lastSlash + 1));
 
 	if (pitFilename == "firmware.xml")
 	{
@@ -481,7 +481,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 		return (false);
 	}
 
-	if (!WriteTarEntry(pitFilename, firmwareInfo.GetPitFilename(), outputTarFile))
+	if (!WriteTarEntry(pitFilename, firmwareInfo->GetPitFilename(), outputTarFile))
 	{
 		outputTarFile.resize(0);
 		outputTarFile.close();
@@ -524,7 +524,7 @@ bool Packaging::CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile
 	return (true);
 }
 
-bool Packaging::ExtractPackage(const QString& packagePath, PackageData& packageData)
+bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageData)
 {
 	QTemporaryDir outputDirectory;
 
@@ -551,16 +551,16 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData& packageD
 	{
 		if (path.endsWith("firmware.xml"))
 		{
-			if (!packageData.ReadFirmwareInfo(path))
+			if (!packageData->ReadFirmwareInfo(path))
 			{
-				packageData.Clear();
+				packageData->Clear();
 				return (false);
 			}
 
 			outputDirectory.setAutoRemove(false);
 
-			packageData.GetFilePaths().append(decompressedFilePaths);
-			packageData.SetPackagePath(outputDirectory.path());
+			packageData->GetFilePaths().append(decompressedFilePaths);
+			packageData->SetPackagePath(outputDirectory.path());
 			return (true);
 		}
 	}
@@ -569,9 +569,9 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData& packageD
 	return (false);
 }
 
-bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo)
+bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo *firmwareInfo)
 {
-	GZipFile packageFile(packagePath);
+	GZipFile packageFile{packagePath};
 
 	if (!packageFile.Open(GZipFile::WriteOnly))
 	{
@@ -636,30 +636,30 @@ bool Packaging::BuildPackage(const QString& packagePath, const FirmwareInfo& fir
 
 	packageFile.SetTemporary(false);
 	return (true);
-}
+};
 
-QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileInfoIndex)
+QString Packaging::ClashlessFilename(const QList<FileInfo *>& fileInfos, int fileInfoIndex)
 {
-	int lastSlash = fileInfos[fileInfoIndex].GetFilename().lastIndexOf('/');
+	int lastSlash = fileInfos[fileInfoIndex]->GetFilename().lastIndexOf('/');
 
 	if (lastSlash < 0)
-		lastSlash = fileInfos[fileInfoIndex].GetFilename().lastIndexOf('\\');
+		lastSlash = fileInfos[fileInfoIndex]->GetFilename().lastIndexOf('\\');
 
-	QString filename = fileInfos[fileInfoIndex].GetFilename().mid(lastSlash + 1);
+	QString filename = fileInfos[fileInfoIndex]->GetFilename().mid(lastSlash + 1);
 	unsigned int renameIndex = 0;
 
 	// Check for name clashes
 	for (int i = 0; i < fileInfoIndex; i++)
 	{
-		lastSlash = fileInfos[i].GetFilename().lastIndexOf('/');
+		lastSlash = fileInfos[i]->GetFilename().lastIndexOf('/');
 
 		if (lastSlash < 0)
-			lastSlash = fileInfos[i].GetFilename().lastIndexOf('\\');
+			lastSlash = fileInfos[i]->GetFilename().lastIndexOf('\\');
 
-		QString otherFilename = fileInfos[i].GetFilename().mid(lastSlash + 1);
+		QString otherFilename = fileInfos[i]->GetFilename().mid(lastSlash + 1);
 
 		// If the filenames are the same, but the files themselves aren't the same (i.e. not the same path), then rename.
-		if (filename == otherFilename && fileInfos[i].GetFilename() != fileInfos[fileInfoIndex].GetFilename())
+		if (filename == otherFilename && fileInfos[i]->GetFilename() != fileInfos[fileInfoIndex]->GetFilename())
 			renameIndex++;
 	}
 
@@ -683,14 +683,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 		bool validIndexOffset = true;
 
 		// Before we append a rename index we must ensure it doesn't produce further collisions.
-		for (const FileInfo& fileInfo : fileInfos)
+		for (const FileInfo *fileInfo : fileInfos)
 		{
-			int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
+			int lastSlash = fileInfo->GetFilename().lastIndexOf('/');
 
 			if (lastSlash < 0)
-				lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
+				lastSlash = fileInfo->GetFilename().lastIndexOf('\\');
 
-			QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
+			QString otherFilename = fileInfo->GetFilename().mid(lastSlash + 1);
 
 			if (otherFilename.length() > filename.length() + 1)
 			{
@@ -752,14 +752,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 
 					bool valid = true;
 
-					for (const FileInfo& fileInfo : fileInfos)
+					for (const FileInfo *fileInfo : fileInfos)
 					{
-						int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
+						int lastSlash = fileInfo->GetFilename().lastIndexOf('/');
 
 						if (lastSlash < 0)
-							lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
+							lastSlash = fileInfo->GetFilename().lastIndexOf('\\');
 
-						if (filename == fileInfo.GetFilename().mid(lastSlash + 1))
+						if (filename == fileInfo->GetFilename().mid(lastSlash + 1))
 						{
 							valid = false;
 							break;
@@ -778,19 +778,19 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, int fileI
 	}
 }
 
-QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QString& filename)
+QString Packaging::ClashlessFilename(const QList<FileInfo *>& fileInfos, const QString& filename)
 {
 	unsigned int renameIndex = 0;
 
 	// Check for name clashes
-	for (const FileInfo& fileInfo : fileInfos)
+	for (const FileInfo *fileInfo : fileInfos)
 	{
-		int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
+		int lastSlash = fileInfo->GetFilename().lastIndexOf('/');
 
 		if (lastSlash < 0)
-			lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
+			lastSlash = fileInfo->GetFilename().lastIndexOf('\\');
 
-		QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
+		QString otherFilename = fileInfo->GetFilename().mid(lastSlash + 1);
 
 		if (filename == otherFilename)
 			renameIndex++;
@@ -816,14 +816,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QSt
 		bool validIndexOffset = true;
 
 		// Before we append a rename index we must ensure it doesn't produce further collisions.
-		for (const FileInfo& fileInfo : fileInfos)
+		for (const FileInfo *fileInfo : fileInfos)
 		{
-			int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
+			int lastSlash = fileInfo->GetFilename().lastIndexOf('/');
 
 			if (lastSlash < 0)
-				lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
+				lastSlash = fileInfo->GetFilename().lastIndexOf('\\');
 
-			QString otherFilename = fileInfo.GetFilename().mid(lastSlash + 1);
+			QString otherFilename = fileInfo->GetFilename().mid(lastSlash + 1);
 
 			if (otherFilename.length() > filename.length() + 1)
 			{
@@ -883,14 +883,14 @@ QString Packaging::ClashlessFilename(const QList<FileInfo>& fileInfos, const QSt
 				for (int i = 0; i < 8; i++)
 					filename.append(QChar(qrand() % ('Z' - 'A' + 1) + 'A'));
 
-				for (const FileInfo& fileInfo : fileInfos)
+				for (const FileInfo *fileInfo : fileInfos)
 				{
-					int lastSlash = fileInfo.GetFilename().lastIndexOf('/');
+					int lastSlash = fileInfo->GetFilename().lastIndexOf('/');
 
 					if (lastSlash < 0)
-						lastSlash = fileInfo.GetFilename().lastIndexOf('\\');
+						lastSlash = fileInfo->GetFilename().lastIndexOf('\\');
 
-					if (filename == fileInfo.GetFilename().mid(lastSlash + 1))
+					if (filename == fileInfo->GetFilename().mid(lastSlash + 1))
 					{
 						valid = false;
 						break;

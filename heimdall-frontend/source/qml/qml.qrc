@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>ArrayExtensions.js</file>
         <file>DropFiles.qml</file>
         <file>DropFilesForm.qml</file>
         <file>FileUtils.js</file>

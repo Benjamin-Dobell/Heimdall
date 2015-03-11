@@ -20,9 +20,10 @@
 
 // Qt
 #include <QApplication>
-#include <QQmlApplicationEngine>
+#include <QtQml>
 
 // Heimdall Frontend
+#include "Firmware.h"
 #include "mainwindow.h"
 
 #if defined(QT_STATIC)
@@ -37,9 +38,22 @@ QQmlDebuggingEnabler enabler;
 
 using namespace HeimdallFrontend;
 
+void registerQmlTypes()
+{
+	Firmware::Register();
+
+	DeviceInfo::Register();
+	PlatformInfo::Register();
+	FileInfo::Register();
+
+	PackageData::Register();
+}
+
 int main(int argc, char *argv[])
 {
 	QApplication application(argc, argv);
+
+	registerQmlTypes();
 
 	QQmlApplicationEngine engine;
 	engine.load(QUrl(QString("qrc:/main.qml")));

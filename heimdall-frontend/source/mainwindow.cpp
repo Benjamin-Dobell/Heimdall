@@ -114,8 +114,8 @@ void MainWindow::UpdateUnusedPartitionIds(void)
 	}
 
 	// Remove any used partition IDs from unusedPartitionIds
-	for (const FileInfo& fileInfo : workingPackageData.GetFirmwareInfo().GetFileInfos())
-		unusedPartitionIds.removeOne(fileInfo.GetPartitionId());
+	for (const FileInfo *fileInfo : workingPackageData.GetFirmwareInfo()->GetFileInfos())
+		unusedPartitionIds.removeOne(fileInfo->GetPartitionId());
 }
 
 bool MainWindow::ReadPit(const QString& path)
@@ -158,35 +158,35 @@ void MainWindow::UpdatePackageUserInterface(void)
 	}
 	else
 	{
-		firmwareNameLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetName());
-		versionLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetVersion());
+		firmwareNameLineEdit->setText(loadedPackageData.GetFirmwareInfo()->GetName());
+		versionLineEdit->setText(loadedPackageData.GetFirmwareInfo()->GetVersion());
 
 		QString developerNames;
 
-		if (!loadedPackageData.GetFirmwareInfo().GetDevelopers().isEmpty())
+		if (!loadedPackageData.GetFirmwareInfo()->GetDevelopers().isEmpty())
 		{
-			developerNames = loadedPackageData.GetFirmwareInfo().GetDevelopers()[0];
-			for (int i = 1; i < loadedPackageData.GetFirmwareInfo().GetDevelopers().length(); i++)
-				developerNames += ", " + loadedPackageData.GetFirmwareInfo().GetDevelopers()[i];
+			developerNames = loadedPackageData.GetFirmwareInfo()->GetDevelopers()[0];
+			for (int i = 1; i < loadedPackageData.GetFirmwareInfo()->GetDevelopers().length(); i++)
+				developerNames += ", " + loadedPackageData.GetFirmwareInfo()->GetDevelopers()[i];
 		}
 
 		developerNamesLineEdit->setText(developerNames);
 
-		platformLineEdit->setText(loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetName() + " ("
-			+ loadedPackageData.GetFirmwareInfo().GetPlatformInfo().GetVersion() + ")");
+		platformLineEdit->setText(loadedPackageData.GetFirmwareInfo()->GetPlatformInfo()->GetName() + " ("
+			+ loadedPackageData.GetFirmwareInfo()->GetPlatformInfo()->GetVersion() + ")");
 
-		for (const DeviceInfo& deviceInfo : loadedPackageData.GetFirmwareInfo().GetDeviceInfos())
+		for (const DeviceInfo *deviceInfo : loadedPackageData.GetFirmwareInfo()->GetDeviceInfos())
 		{
-			supportedDevicesListWidget->addItem(deviceInfo.GetManufacturer() + " " + deviceInfo.GetName() + ": " + deviceInfo.GetProduct());
+			supportedDevicesListWidget->addItem(deviceInfo->GetManufacturer() + " " + deviceInfo->GetName() + ": " + deviceInfo->GetProduct());
 		}
 
-		for (const FileInfo& fileInfo : loadedPackageData.GetFirmwareInfo().GetFileInfos())
+		for (const FileInfo *fileInfo : loadedPackageData.GetFirmwareInfo()->GetFileInfos())
 		{
-			includedFilesListWidget->addItem(fileInfo.GetFilename());
+			includedFilesListWidget->addItem(fileInfo->GetFilename());
 		}
 
-		repartitionRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetRepartition());
-		noRebootRadioButton->setChecked(loadedPackageData.GetFirmwareInfo().GetNoReboot());
+		repartitionRadioButton->setChecked(loadedPackageData.GetFirmwareInfo()->GetRepartition());
+		noRebootRadioButton->setChecked(loadedPackageData.GetFirmwareInfo()->GetNoReboot());
 	}
 
 	UpdateLoadPackageInterfaceAvailability();
@@ -229,8 +229,8 @@ void MainWindow::UpdateLoadPackageInterfaceAvailability(void)
 	}
 	else
 	{
-		developerHomepageButton->setEnabled(!loadedPackageData.GetFirmwareInfo().GetUrl().isEmpty());
-		developerDonateButton->setEnabled(!loadedPackageData.GetFirmwareInfo().GetDonateUrl().isEmpty());
+		developerHomepageButton->setEnabled(!loadedPackageData.GetFirmwareInfo()->GetUrl().isEmpty());
+		developerDonateButton->setEnabled(!loadedPackageData.GetFirmwareInfo()->GetDonateUrl().isEmpty());
 		loadFirmwareButton->setEnabled(!!(heimdallState & HeimdallState::Stopped));
 	}
 }
@@ -242,11 +242,11 @@ void MainWindow::UpdateFlashInterfaceAvailability(void)
 		partitionNameComboBox->setEnabled(partitionsListWidget->currentRow() >= 0);
 
 		bool allPartitionsValid = true;
-		QList<FileInfo>& fileList = workingPackageData.GetFirmwareInfo().GetFileInfos();
+		QList<FileInfo *>& fileList = workingPackageData.GetFirmwareInfo()->GetFileInfos();
 
-		for (const FileInfo& fileInfo : fileList)
+		for (const FileInfo *fileInfo : fileList)
 		{
-			if (fileInfo.GetFilename().isEmpty())
+			if (fileInfo->GetFilename().isEmpty())
 			{
 				allPartitionsValid = false;
 				break;
@@ -276,10 +276,10 @@ void MainWindow::UpdateCreatePackageInterfaceAvailability(void)
 {
 	if (!!(heimdallState & HeimdallState::Stopped))
 	{
-		const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
+		const FirmwareInfo *firmwareInfo = workingPackageData.GetFirmwareInfo();
 
-		bool fieldsPopulated = !(firmwareInfo.GetName().isEmpty() || firmwareInfo.GetVersion().isEmpty() || firmwareInfo.GetPlatformInfo().GetName().isEmpty()
-			|| firmwareInfo.GetPlatformInfo().GetVersion().isEmpty() || firmwareInfo.GetDevelopers().isEmpty() || firmwareInfo.GetDeviceInfos().isEmpty());
+		bool fieldsPopulated = !(firmwareInfo->GetName().isEmpty() || firmwareInfo->GetVersion().isEmpty() || firmwareInfo->GetPlatformInfo()->GetName().isEmpty()
+			|| firmwareInfo->GetPlatformInfo()->GetVersion().isEmpty() || firmwareInfo->GetDevelopers().isEmpty() || firmwareInfo->GetDeviceInfos().isEmpty());
 
 		buildPackageButton->setEnabled(fieldsPopulated);
 		addDeveloperButton->setEnabled(!addDeveloperButton->text().isEmpty());
@@ -369,12 +369,12 @@ void MainWindow::UpdatePartitionNamesInterface(void)
 
 	if (partitionsListWidgetRow >= 0)
 	{
-		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
+		const FileInfo *partitionInfo = workingPackageData.GetFirmwareInfo()->GetFileInfos()[partitionsListWidget->currentRow()];
 
 		for (unsigned int id : unusedPartitionIds)
 			partitionNameComboBox->addItem(currentPitData.FindEntry(id)->GetPartitionName());
 
-		partitionNameComboBox->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
+		partitionNameComboBox->addItem(currentPitData.FindEntry(partitionInfo->GetPartitionId())->GetPartitionName());
 		partitionNameComboBox->setCurrentIndex(unusedPartitionIds.length());
 	}
 
@@ -507,7 +507,7 @@ void MainWindow::SelectFirmwarePackage(void)
 
 	if (firmwarePackageLineEdit->text() != "")
 	{
-		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), loadedPackageData))
+		if (Packaging::ExtractPackage(firmwarePackageLineEdit->text(), &loadedPackageData))
 			UpdatePackageUserInterface();
 		else
 			loadedPackageData.Clear();
@@ -516,14 +516,14 @@ void MainWindow::SelectFirmwarePackage(void)
 
 void MainWindow::OpenDeveloperHomepage(void)
 {
-	if(!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetUrl(), QUrl::TolerantMode)))
-		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo().GetUrl()));
+	if(!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo()->GetUrl(), QUrl::TolerantMode)))
+		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo()->GetUrl()));
 }
 
 void MainWindow::OpenDeveloperDonationWebpage(void)
 {
-	if (!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo().GetDonateUrl(), QUrl::TolerantMode)))
-		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo().GetDonateUrl()));
+	if (!QDesktopServices::openUrl(QUrl(loadedPackageData.GetFirmwareInfo()->GetDonateUrl(), QUrl::TolerantMode)))
+		Alerts::DisplayWarning(QString("Cannot open invalid URL:\n%1").arg(loadedPackageData.GetFirmwareInfo()->GetDonateUrl()));
 }
 
 void MainWindow::LoadFirmwarePackage(void)
@@ -532,37 +532,37 @@ void MainWindow::LoadFirmwarePackage(void)
 	currentPitData.Clear();
 
 	// Loaded packages FileInfo store filenames, but the working package FileInfo need absolute paths
-	for (const FileInfo& packageFileInfo : loadedPackageData.GetFirmwareInfo().GetFileInfos())
+	for (const FileInfo *packageFileInfo : loadedPackageData.GetFirmwareInfo()->GetFileInfos())
 	{
 		bool fileFound = false;
 
 		for (const QString& packageFilePath : loadedPackageData.GetFilePaths())
 		{
-			if (packageFilePath.endsWith(packageFileInfo.GetFilename()))
+			if (packageFilePath.endsWith(packageFileInfo->GetFilename()))
 			{
-				FileInfo partitionInfo(packageFileInfo.GetPartitionId(), packageFilePath);
-				workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
+				FileInfo *partitionInfo = new FileInfo{packageFileInfo->GetPartitionId(), packageFilePath};
+				workingPackageData.GetFirmwareInfo()->GetFileInfos().append(partitionInfo);
 
 				fileFound = true;
 				break;
-			}
+			};
 		}
 
 		if (!fileFound)
-			Alerts::DisplayWarning(QString("%1 is missing from the package.").arg(packageFileInfo.GetFilename()));
+			Alerts::DisplayWarning(QString("%1 is missing from the package.").arg(packageFileInfo->GetFilename()));
 	}
 
 	workingPackageData.GetFilePaths().append(loadedPackageData.GetFilePaths());
 	workingPackageData.SetPackagePath(loadedPackageData.GetPackagePath());
 
-	QString pitFilename = loadedPackageData.GetFirmwareInfo().GetPitFilename();
+	QString pitFilename = loadedPackageData.GetFirmwareInfo()->GetPitFilename();
 
 	// Find the PIT file and read it
 	for (const QString& filePath : workingPackageData.GetFilePaths())
 	{
 		if (filePath.endsWith(pitFilename))
 		{
-			workingPackageData.GetFirmwareInfo().SetPitFilename(filePath);
+			workingPackageData.GetFirmwareInfo()->SetPitFilename(filePath);
 
 			if (!ReadPit(filePath))
 			{
@@ -578,8 +578,8 @@ void MainWindow::LoadFirmwarePackage(void)
 		}
 	}
 
-	workingPackageData.GetFirmwareInfo().SetRepartition(loadedPackageData.GetFirmwareInfo().GetRepartition());
-	workingPackageData.GetFirmwareInfo().SetNoReboot(loadedPackageData.GetFirmwareInfo().GetNoReboot());
+	workingPackageData.GetFirmwareInfo()->SetRepartition(loadedPackageData.GetFirmwareInfo()->GetRepartition());
+	workingPackageData.GetFirmwareInfo()->SetNoReboot(loadedPackageData.GetFirmwareInfo()->GetNoReboot());
 
 	loadedPackageData.Clear(false);
 
@@ -590,9 +590,9 @@ void MainWindow::LoadFirmwarePackage(void)
 	partitionsListWidget->clear();
 
 	// Populate partitionsListWidget with partition names (from the PIT file)
-	for (const FileInfo& partitionInfo : workingPackageData.GetFirmwareInfo().GetFileInfos())
+	for (const FileInfo *partitionInfo : workingPackageData.GetFirmwareInfo()->GetFileInfos())
 	{
-		const PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo.GetPartitionId());
+		const PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo->GetPartitionId());
 
 		if (pitEntry)
 		{
@@ -618,15 +618,15 @@ void MainWindow::LoadFirmwarePackage(void)
 	partitionFileBrowseButton->setEnabled(false);
 
 	repartitionCheckBox->setEnabled(true);
-	repartitionCheckBox->setChecked(workingPackageData.GetFirmwareInfo().GetRepartition());
+	repartitionCheckBox->setChecked(workingPackageData.GetFirmwareInfo()->GetRepartition());
 	noRebootCheckBox->setEnabled(true);
-	noRebootCheckBox->setChecked(workingPackageData.GetFirmwareInfo().GetNoReboot());
+	noRebootCheckBox->setChecked(workingPackageData.GetFirmwareInfo()->GetNoReboot());
 
 	partitionsListWidget->setEnabled(true);
 	addPartitionButton->setEnabled(true);
 	removePartitionButton->setEnabled(partitionsListWidget->currentRow() >= 0);
 
-	pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
+	pitLineEdit->setText(workingPackageData.GetFirmwareInfo()->GetPitFilename());
 
 	functionTabWidget->setCurrentWidget(flashTab);
 
@@ -640,20 +640,19 @@ void MainWindow::SelectPartitionName(int index)
 		unsigned int newPartitionIndex = unusedPartitionIds[index];
 		unusedPartitionIds.removeAt(index);
 
-		FileInfo& fileInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
-		unusedPartitionIds.append(fileInfo.GetPartitionId());
-		fileInfo.SetPartitionId(newPartitionIndex);
+		FileInfo *fileInfo = workingPackageData.GetFirmwareInfo()->GetFileInfos()[partitionsListWidget->currentRow()];
+		unusedPartitionIds.append(fileInfo->GetPartitionId());
+		fileInfo->SetPartitionId(newPartitionIndex);
 
 		PitEntry *pitEntry = currentPitData.FindEntry(newPartitionIndex);
-
 		QString title("File");
 
-		if (pitEntry && strlen(pitEntry->GetFlashFilename()) > 0)
+		if (strlen(pitEntry->GetFlashFilename()) > 0)
 			title += " (" + QString(pitEntry->GetFlashFilename()) + ")";
 
 		partitionFileGroup->setTitle(title);
 
-		if (!fileInfo.GetFilename().isEmpty())
+		if (!fileInfo->GetFilename().isEmpty())
 		{
 			QString partitionFilename = pitEntry->GetFlashFilename();
 			int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
@@ -662,9 +661,9 @@ void MainWindow::SelectPartitionName(int index)
 			{
 				QString partitionFileExtension = partitionFilename.mid(lastPeriod + 1);
 
-				lastPeriod = fileInfo.GetFilename().lastIndexOf(QChar('.'));
+				lastPeriod = fileInfo->GetFilename().lastIndexOf(QChar('.'));
 
-				if (lastPeriod < 0 || fileInfo.GetFilename().mid(lastPeriod + 1) != partitionFileExtension)
+				if (lastPeriod < 0 || fileInfo->GetFilename().mid(lastPeriod + 1) != partitionFileExtension)
 					Alerts::DisplayWarning(QString("%1 partition expects files with file extension \"%2\".").arg(pitEntry->GetPartitionName(), partitionFileExtension));
 			}
 		}
@@ -684,8 +683,8 @@ void MainWindow::SelectPartitionFile(void)
 
 	if (path != "")
 	{
-		FileInfo& fileInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[partitionsListWidget->currentRow()];
-		PitEntry *pitEntry = currentPitData.FindEntry(fileInfo.GetPartitionId());
+		FileInfo *fileInfo = workingPackageData.GetFirmwareInfo()->GetFileInfos()[partitionsListWidget->currentRow()];
+		PitEntry *pitEntry = currentPitData.FindEntry(fileInfo->GetPartitionId());
 
 		QString partitionFilename = pitEntry->GetFlashFilename();
 		int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
@@ -700,7 +699,7 @@ void MainWindow::SelectPartitionFile(void)
 				Alerts::DisplayWarning(QString("%1 partition expects files with file extension \"%2\".").arg(pitEntry->GetPartitionName(), partitionFileExtension));
 		}
 
-		fileInfo.SetFilename(path);
+		fileInfo->SetFilename(path);
 		partitionFileLineEdit->setText(path);
 
 		pitBrowseButton->setEnabled(true);
@@ -716,19 +715,19 @@ void MainWindow::SelectPartition(int row)
 {
 	if (row >= 0)
 	{
-		const FileInfo& partitionInfo = workingPackageData.GetFirmwareInfo().GetFileInfos()[row];
+		const FileInfo *partitionInfo = workingPackageData.GetFirmwareInfo()->GetFileInfos()[row];
 
 		UpdatePartitionNamesInterface();
 
-		partitionIdLineEdit->setText(QString::number(partitionInfo.GetPartitionId()));
-		partitionFileLineEdit->setText(partitionInfo.GetFilename());
+		partitionIdLineEdit->setText(QString::number(partitionInfo->GetPartitionId()));
+		partitionFileLineEdit->setText(partitionInfo->GetFilename());
 		partitionFileBrowseButton->setEnabled(true);
 
 		removePartitionButton->setEnabled(true);
 
 		QString title("File");
 
-		PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo.GetPartitionId());
+		PitEntry *pitEntry = currentPitData.FindEntry(partitionInfo->GetPartitionId());
 
 		if (pitEntry && strlen(pitEntry->GetFlashFilename()) > 0)
 			title += " (" + QString(pitEntry->GetFlashFilename()) + ")";
@@ -751,23 +750,23 @@ void MainWindow::SelectPartition(int row)
 
 void MainWindow::AddPartition(void)
 {
-	FileInfo partitionInfo(unusedPartitionIds.first(), "");
-	workingPackageData.GetFirmwareInfo().GetFileInfos().append(partitionInfo);
+	FileInfo *partitionInfo = new FileInfo{unusedPartitionIds.first(), ""};
+	workingPackageData.GetFirmwareInfo()->GetFileInfos().append(partitionInfo);
 	UpdateUnusedPartitionIds();
 
 	pitBrowseButton->setEnabled(false);
 	addPartitionButton->setEnabled(false);
 
-	partitionsListWidget->addItem(currentPitData.FindEntry(partitionInfo.GetPartitionId())->GetPartitionName());
+	partitionsListWidget->addItem(currentPitData.FindEntry(partitionInfo->GetPartitionId())->GetPartitionName());
 	partitionsListWidget->setCurrentRow(partitionsListWidget->count() - 1);
 	partitionsListWidget->setEnabled(false);
 
 	UpdateInterfaceAvailability();
-}
+};
 
 void MainWindow::RemovePartition(void)
 {
-	workingPackageData.GetFirmwareInfo().GetFileInfos().removeAt(partitionsListWidget->currentRow());
+	delete workingPackageData.GetFirmwareInfo()->GetFileInfos().takeAt(partitionsListWidget->currentRow());
 	UpdateUnusedPartitionIds();
 
 	QListWidgetItem *item = partitionsListWidget->currentItem();
@@ -788,18 +787,18 @@ void MainWindow::SelectPit(void)
 	if (validPit)
 	{
 		// In order to map files in the old PIT to file in the new one, we first must use partition names instead of IDs.
-		QList<FileInfo> fileInfos = workingPackageData.GetFirmwareInfo().GetFileInfos();
+		QList<FileInfo *>& fileInfos = workingPackageData.GetFirmwareInfo()->GetFileInfos();
 
 		int partitionNamesCount = fileInfos.length();
 		QString *partitionNames = new QString[fileInfos.length()];
 		for (int i = 0; i < fileInfos.length(); i++)
-			partitionNames[i] = currentPitData.FindEntry(fileInfos[i].GetPartitionId())->GetPartitionName();
+			partitionNames[i] = currentPitData.FindEntry(fileInfos[i]->GetPartitionId())->GetPartitionName();
 
 		currentPitData.Clear();
 
 		if (ReadPit(path))
 		{
-			workingPackageData.GetFirmwareInfo().SetPitFilename(path);
+			workingPackageData.GetFirmwareInfo()->SetPitFilename(path);
 
 			partitionsListWidget->clear();
 			int partitionInfoIndex = 0;
@@ -810,12 +809,12 @@ void MainWindow::SelectPit(void)
 				
 				if (pitEntry)
 				{
-					fileInfos[partitionInfoIndex++].SetPartitionId(pitEntry->GetIdentifier());
+					fileInfos[partitionInfoIndex++]->SetPartitionId(pitEntry->GetIdentifier());
 					partitionsListWidget->addItem(pitEntry->GetPartitionName());
 				}
 				else
 				{
-					fileInfos.removeAt(partitionInfoIndex);
+					delete fileInfos.takeAt(partitionInfoIndex);
 				}
 			}
 		}
@@ -829,9 +828,9 @@ void MainWindow::SelectPit(void)
 		{
 			Alerts::DisplayError("The file selected was not a valid PIT file.");
 
-			if (!workingPackageData.GetFirmwareInfo().GetPitFilename().isEmpty())
+			if (!workingPackageData.GetFirmwareInfo()->GetPitFilename().isEmpty())
 			{
-				if (ReadPit(workingPackageData.GetFirmwareInfo().GetPitFilename()))
+				if (ReadPit(workingPackageData.GetFirmwareInfo()->GetPitFilename()))
 				{
 					validPit = true;
 				}
@@ -849,7 +848,7 @@ void MainWindow::SelectPit(void)
 
 		delete [] partitionNames;
 
-		pitLineEdit->setText(workingPackageData.GetFirmwareInfo().GetPitFilename());
+		pitLineEdit->setText(workingPackageData.GetFirmwareInfo()->GetPitFilename());
 
 		repartitionCheckBox->setEnabled(validPit);
 		noRebootCheckBox->setEnabled(validPit);
@@ -865,14 +864,14 @@ void MainWindow::SelectPit(void)
 
 void MainWindow::SetRepartition(int enabled)
 {
-	workingPackageData.GetFirmwareInfo().SetRepartition(enabled);
+	workingPackageData.GetFirmwareInfo()->SetRepartition(enabled);
 
 	repartitionCheckBox->setChecked(enabled);
 }
 
 void MainWindow::SetNoReboot(int enabled)
 {
-	workingPackageData.GetFirmwareInfo().SetNoReboot(enabled);
+	workingPackageData.GetFirmwareInfo()->SetNoReboot(enabled);
 
 	noRebootCheckBox->setChecked(enabled);
 }
@@ -897,28 +896,28 @@ void MainWindow::StartFlash(void)
 	heimdallState = HeimdallState::Flashing;
 	heimdallFailed = false;
 
-	const FirmwareInfo& firmwareInfo = workingPackageData.GetFirmwareInfo();
-	const QList<FileInfo>& fileInfos = firmwareInfo.GetFileInfos();
+	const FirmwareInfo *firmwareInfo = workingPackageData.GetFirmwareInfo();
+	const QList<FileInfo *>& fileInfos = firmwareInfo->GetFileInfos();
 	
 	QStringList arguments;
 	arguments.append("flash");
 
-	if (firmwareInfo.GetRepartition())
+	if (firmwareInfo->GetRepartition())
 		arguments.append("--repartition");
 
 	arguments.append("--pit");
-	arguments.append(firmwareInfo.GetPitFilename());
+	arguments.append(firmwareInfo->GetPitFilename());
 
-	for (const FileInfo& fileInfo : fileInfos)
+	for (const FileInfo *fileInfo : fileInfos)
 	{
 		QString flag;
-		flag.sprintf("--%u", fileInfo.GetPartitionId());
+		flag.sprintf("--%u", fileInfo->GetPartitionId());
 
 		arguments.append(flag);
-		arguments.append(fileInfo.GetFilename());
+		arguments.append(fileInfo->GetFilename());
 	}
 
-	if (firmwareInfo.GetNoReboot())
+	if (firmwareInfo->GetNoReboot())
 	{
 		arguments.append("--no-reboot");
 		heimdallState |= HeimdallState::NoReboot;
@@ -937,36 +936,36 @@ void MainWindow::StartFlash(void)
 
 void MainWindow::FirmwareNameChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().SetName(text);
+	workingPackageData.GetFirmwareInfo()->SetName(text);
 	UpdateInterfaceAvailability();
 }
 
 void MainWindow::FirmwareVersionChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().SetVersion(text);
+	workingPackageData.GetFirmwareInfo()->SetVersion(text);
 	UpdateInterfaceAvailability();
 }
 
 void MainWindow::PlatformNameChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetName(text);
+	workingPackageData.GetFirmwareInfo()->GetPlatformInfo()->SetName(text);
 	UpdateInterfaceAvailability();
 }
 
 void MainWindow::PlatformVersionChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().GetPlatformInfo().SetVersion(text);
+	workingPackageData.GetFirmwareInfo()->GetPlatformInfo()->SetVersion(text);
 	UpdateInterfaceAvailability();
 }
 
 void MainWindow::HomepageUrlChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().SetUrl(text);
+	workingPackageData.GetFirmwareInfo()->SetUrl(text);
 }
 
 void MainWindow::DonateUrlChanged(const QString& text)
 {
-	workingPackageData.GetFirmwareInfo().SetDonateUrl(text);
+	workingPackageData.GetFirmwareInfo()->SetDonateUrl(text);
 }
 
 void MainWindow::DeveloperNameChanged(const QString& text)
@@ -985,7 +984,7 @@ void MainWindow::SelectDeveloper(int row)
 
 void MainWindow::AddDeveloper(void)
 {
-	workingPackageData.GetFirmwareInfo().GetDevelopers().append(createDeveloperNameLineEdit->text());
+	workingPackageData.GetFirmwareInfo()->GetDevelopers().append(createDeveloperNameLineEdit->text());
 
 	createDevelopersListWidget->addItem(createDeveloperNameLineEdit->text());
 	createDeveloperNameLineEdit->clear();
@@ -995,7 +994,7 @@ void MainWindow::AddDeveloper(void)
 
 void MainWindow::RemoveDeveloper(void)
 {
-	workingPackageData.GetFirmwareInfo().GetDevelopers().removeAt(createDevelopersListWidget->currentRow());
+	workingPackageData.GetFirmwareInfo()->GetDevelopers().removeAt(createDevelopersListWidget->currentRow());
 
 	QListWidgetItem *item = createDevelopersListWidget->currentItem();
 	createDevelopersListWidget->setCurrentRow(-1);
@@ -1023,8 +1022,8 @@ void MainWindow::SelectDevice(int row)
 
 void MainWindow::AddDevice(void)
 {
-	workingPackageData.GetFirmwareInfo().GetDeviceInfos().append(DeviceInfo(deviceManufacturerLineEdit->text(), deviceProductCodeLineEdit->text(),
-		deviceNameLineEdit->text()));
+	DeviceInfo *deviceInfo = new DeviceInfo{deviceManufacturerLineEdit->text(), deviceProductCodeLineEdit->text(), deviceNameLineEdit->text()};
+	workingPackageData.GetFirmwareInfo()->GetDeviceInfos().append(deviceInfo);
 
 	createDevicesListWidget->addItem(deviceManufacturerLineEdit->text() + " " + deviceNameLineEdit->text() + ": " + deviceProductCodeLineEdit->text());
 	deviceManufacturerLineEdit->clear();
@@ -1036,7 +1035,7 @@ void MainWindow::AddDevice(void)
 
 void MainWindow::RemoveDevice(void)
 {
-	workingPackageData.GetFirmwareInfo().GetDeviceInfos().removeAt(createDevicesListWidget->currentRow());
+	delete workingPackageData.GetFirmwareInfo()->GetDeviceInfos().takeAt(createDevicesListWidget->currentRow());
 
 	QListWidgetItem *item = createDevicesListWidget->currentItem();
 	createDevicesListWidget->setCurrentRow(-1);

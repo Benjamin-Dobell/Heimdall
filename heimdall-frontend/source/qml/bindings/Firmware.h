@@ -18,56 +18,36 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
+#ifndef FIRMWARE_H
+#define FIRMWARE_H
+
+// Qt
+#include <QQmlEngine>
+
 // Heimdall Frontend
-#import "GZipFile.h"
+#include "PackageData.h"
 
-using namespace HeimdallFrontend;
-
-GZipFile::GZipFile(const QString& path) :
-	file(path),
-	gzFile(nullptr),
-	temporary(false)
+namespace HeimdallFrontend
 {
-}
-
-GZipFile::~GZipFile()
-{
-	Close();
-
-	if (temporary)
+	class Firmware : public QObject
 	{
-		file.remove();
-	}
+		Q_OBJECT
+		Q_DISABLE_COPY(Firmware)
+
+		private:
+
+			Firmware();
+
+			static QObject *QmlInstance(QQmlEngine *engine, QJSEngine *scriptEngine);
+
+		public:
+
+			static void Register(void);
+
+			Q_INVOKABLE HeimdallFrontend::PackageData *extractArchive(const QString& url);
+	};
 }
 
-bool GZipFile::Open(Mode mode)
-{
-	if (!file.isOpen() && !file.open(mode == GZipFile::ReadOnly ? QFile::ReadOnly : QFile::WriteOnly))
-	{
-		return (false);
-	}
+Q_DECLARE_METATYPE(HeimdallFrontend::Firmware *)
 
-	gzFile = gzdopen(file.handle(), mode == GZipFile::ReadOnly ? "rb" : "wb");
-	return (gzFile != nullptr);
-}
-
-void GZipFile::Close()
-{
-	file.close();
-	gzclose(gzFile);
-}
-
-int GZipFile::Read(void *buffer, int length)
-{
-	return (length >= 0 && !file.isWritable() ? gzread(gzFile, buffer, length) : -1);
-}
-
-bool GZipFile::Write(void *buffer, int length)
-{
-	return (length >= 0 && gzwrite(gzFile, buffer, length) == length);
-}
-
-qint64 GZipFile::Offset() const
-{
-	return gzoffset(gzFile);
-}
+#endif

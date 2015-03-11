@@ -104,17 +104,17 @@ namespace HeimdallFrontend
 			static bool ExtractTar(QFile& tarFile, const QDir& outputDirectory, QList<QString>& outputFilePaths);
 
 			static bool WriteTarEntry(const QString& entryFilename, const QString& filePath, QFile& outputTarFile);
-			static bool CreateTar(const FirmwareInfo& firmwareInfo, QFile& outputTarFile); // Uses original TAR format.
+			static bool CreateTar(const FirmwareInfo *firmwareInfo, QFile& outputTarFile); // Uses original TAR format.
 
 		public:
 
 			static const char *ustarMagic;
 
-			static bool ExtractPackage(const QString& packagePath, PackageData& packageData);
-			static bool BuildPackage(const QString& packagePath, const FirmwareInfo& firmwareInfo);
+			static bool ExtractPackage(const QString& packagePath, PackageData *packageData);
+			static bool BuildPackage(const QString& packagePath, const FirmwareInfo *firmwareInfo);
 
-			static QString ClashlessFilename(const QList<FileInfo>& fileInfos, int fileInfoIndex);
-			static QString ClashlessFilename(const QList<FileInfo>& fileInfos, const QString& filename);
+			static QString ClashlessFilename(const QList<FileInfo *>& fileInfos, int fileInfoIndex);
+			static QString ClashlessFilename(const QList<FileInfo *>& fileInfos, const QString& filename);
 	};
 }
 

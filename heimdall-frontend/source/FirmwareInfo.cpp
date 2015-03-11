@@ -19,7 +19,7 @@
  THE SOFTWARE.*/
 
 // Qt
-#include "QRegExp"
+#include <QtQml>
 
 // Heimdall Frontend
 #include "Alerts.h"
@@ -27,6 +27,11 @@
 #include "Packaging.h"
 
 using namespace HeimdallFrontend;
+
+void DeviceInfo::Register(void)
+{
+	qmlRegisterType<DeviceInfo>("HeimdallFrontend", 1, 0, "DeviceInfo");
+}
 
 DeviceInfo::DeviceInfo()
 {
@@ -141,6 +146,10 @@ void DeviceInfo::WriteXml(QXmlStreamWriter& xml) const
 }
 
 
+void PlatformInfo::Register(void)
+{
+	qmlRegisterType<PlatformInfo>("HeimdallFrontend", 1, 0, "PlatformInfo");
+}
 
 PlatformInfo::PlatformInfo()
 {
@@ -244,6 +253,10 @@ void PlatformInfo::WriteXml(QXmlStreamWriter& xml) const
 }
 
 
+void FileInfo::Register(void)
+{
+	qmlRegisterType<FileInfo>("HeimdallFrontend", 1, 0, "FileInfo");
+}
 
 FileInfo::FileInfo()
 {
@@ -345,6 +358,20 @@ FirmwareInfo::FirmwareInfo()
 {
 	repartition = false;
 	noReboot = false;
+}
+
+
+FirmwareInfo::~FirmwareInfo()
+{
+	for (DeviceInfo *deviceInfo : deviceInfos)
+	{
+		delete deviceInfo;
+	}
+
+	for (FileInfo *fileInfo : fileInfos)
+	{
+		delete fileInfo;
+	}
 }
 
 void FirmwareInfo::Clear(void)
@@ -549,9 +576,9 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					{
 						if (xml.name() == "device")
 						{
-							DeviceInfo deviceInfo;
+							DeviceInfo *deviceInfo = new DeviceInfo{};
 
-							if (!deviceInfo.ParseXml(xml))
+							if (!deviceInfo->ParseXml(xml))
 								return (false);
 
 							deviceInfos.append(deviceInfo);
@@ -631,9 +658,9 @@ bool FirmwareInfo::ParseXml(QXmlStreamReader& xml)
 					{
 						if (xml.name() == "file")
 						{
-							FileInfo fileInfo;
+							FileInfo *fileInfo = new FileInfo{};
 
-							if (!fileInfo.ParseXml(xml))
+							if (!fileInfo->ParseXml(xml))
 								return (false);
 
 							fileInfos.append(fileInfo);
@@ -745,9 +772,9 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 
 	xml.writeStartElement("devices");
 
-	for (const DeviceInfo& deviceInfo : deviceInfos)
+	for (const DeviceInfo *deviceInfo : deviceInfos)
 	{
-		deviceInfo.WriteXml(xml);
+		deviceInfo->WriteXml(xml);
 	}
 
 	xml.writeEndElement();
@@ -775,7 +802,7 @@ void FirmwareInfo::WriteXml(QXmlStreamWriter& xml) const
 
 	for (int i = 0; i < fileInfos.length(); i++)
 	{
-		fileInfos[i].WriteXml(xml, Packaging::ClashlessFilename(fileInfos, i));
+		fileInfos[i]->WriteXml(xml, Packaging::ClashlessFilename(fileInfos, i));
 	}
 
 	xml.writeEndElement();

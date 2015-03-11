@@ -18,11 +18,19 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
+// Qt
+#include <QtQml>
+
 // Heimdall Frontend
 #include "Alerts.h"
 #include "PackageData.h"
 
 using namespace HeimdallFrontend;
+
+void PackageData::Register(void)
+{
+	qmlRegisterType<PackageData>("HeimdallFrontend", 1, 0, "PackageData");
+}
 
 PackageData::PackageData()
 {

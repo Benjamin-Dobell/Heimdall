@@ -2,7 +2,9 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
+import "ArrayExtensions.js" as ArrayExtensions
 import "FileUtils.js" as FileUtils
+import HeimdallFrontend 1.0 as Native
 
 DropFilesForm {
 	id: background
@@ -30,13 +32,16 @@ DropFilesForm {
 		if (count > 0) {
 			for (var i = 0; i < count; i++) {
 				if (FileUtils.isFile(urls[i])) {
-					var filename = FileUtils.filenameFromUrl(urls[i]);
-
-					fileModel.append({ icon: "drop_zone.svg", text: filename });
-
-					if (FileUtils.isArchive(filename)) {
-						fileUrls.push(FileUtils.extractArchive(urls[i]));
+					if (FileUtils.isArchive(urls[i])) {
+						var packageData = Native.Firmware.extractArchive(urls[i]);
+						packageData.filePaths.forEach(function(path) {
+							var filename = FileUtils.filenameFromPath(path);
+							fileModel.append({ icon: "drop_zone.svg", text: filename });
+						});
+						fileUrls.extend(packageData.filePaths);
 					} else {
+						var filename = FileUtils.filenameFromUrl(urls[i]);
+						fileModel.append({ icon: "drop_zone.svg", text: filename });
 						fileUrls.push(urls[i]);
 					}
 				}

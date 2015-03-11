@@ -18,56 +18,32 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
+// Qt
+#include <QtQml>
+
 // Heimdall Frontend
-#import "GZipFile.h"
+#include "Firmware.h"
+#include "Packaging.h"
 
 using namespace HeimdallFrontend;
 
-GZipFile::GZipFile(const QString& path) :
-	file(path),
-	gzFile(nullptr),
-	temporary(false)
+Firmware::Firmware()
 {
 }
 
-GZipFile::~GZipFile()
+QObject *Firmware::QmlInstance(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
-	Close();
-
-	if (temporary)
-	{
-		file.remove();
-	}
+	return new Firmware{};
 }
 
-bool GZipFile::Open(Mode mode)
+void Firmware::Register(void)
 {
-	if (!file.isOpen() && !file.open(mode == GZipFile::ReadOnly ? QFile::ReadOnly : QFile::WriteOnly))
-	{
-		return (false);
-	}
-
-	gzFile = gzdopen(file.handle(), mode == GZipFile::ReadOnly ? "rb" : "wb");
-	return (gzFile != nullptr);
+	qmlRegisterSingletonType<Firmware>("HeimdallFrontend", 1, 0, "Firmware", &Firmware::QmlInstance);
 }
 
-void GZipFile::Close()
+PackageData *Firmware::extractArchive(const QString &url)
 {
-	file.close();
-	gzclose(gzFile);
-}
-
-int GZipFile::Read(void *buffer, int length)
-{
-	return (length >= 0 && !file.isWritable() ? gzread(gzFile, buffer, length) : -1);
-}
-
-bool GZipFile::Write(void *buffer, int length)
-{
-	return (length >= 0 && gzwrite(gzFile, buffer, length) == length);
-}
-
-qint64 GZipFile::Offset() const
-{
-	return gzoffset(gzFile);
+	PackageData *packageData = new PackageData{};
+	Packaging::ExtractPackage(QUrl{url}.toLocalFile(), packageData);
+	return packageData;
 }

@@ -23,9 +23,12 @@ if(ENABLE_QML_DEBUGGING)
     add_definitions(-DENABLE_QML_DEBUGGING)
 endif(ENABLE_QML_DEBUGGING)
 
-include_directories(${LIBPIT_INCLUDE_DIRS})
+include_directories(${LIBPIT_INCLUDE_DIRS}
+    source/qml/bindings
+    source)
 
 set(HEIMDALL_FRONTEND_SOURCE_FILES
+    source/qml/bindings/Firmware.cpp
     source/aboutform.cpp
     source/Alerts.cpp
     source/FirmwareInfo.cpp
@@ -36,6 +39,7 @@ set(HEIMDALL_FRONTEND_SOURCE_FILES
     source/Packaging.cpp)
 
 set(HEIMDALL_FRONTEND_QML_FILES
+    source/qml/ArrayExtensions.js
     source/qml/DropFiles.qml
     source/qml/DropFilesForm.qml
     source/qml/FileUtils.js

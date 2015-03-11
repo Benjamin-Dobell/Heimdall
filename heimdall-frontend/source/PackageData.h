@@ -29,8 +29,14 @@
 
 namespace HeimdallFrontend
 {
-	class PackageData
+	class PackageData : public QObject
 	{
+		Q_OBJECT
+
+		Q_PROPERTY(HeimdallFrontend::FirmwareInfo *firmwareInfo READ GetFirmwareInfo)
+		Q_PROPERTY(QList<QString> filePaths READ GetFilePaths)
+		Q_PROPERTY(QString packagePath READ GetPackagePath)
+
 		private:
 
 			FirmwareInfo firmwareInfo;
@@ -38,6 +44,8 @@ namespace HeimdallFrontend
 			QDir packageDirectory;
 
 		public:
+
+			static void Register(void);
 
 			PackageData();
 			~PackageData();
@@ -47,14 +55,14 @@ namespace HeimdallFrontend
 
 			bool IsCleared(void) const;
 
-			const FirmwareInfo& GetFirmwareInfo(void) const
+			const FirmwareInfo *GetFirmwareInfo(void) const
 			{
-				return (firmwareInfo);
+				return (&firmwareInfo);
 			}
 
-			FirmwareInfo& GetFirmwareInfo(void)
+			FirmwareInfo *GetFirmwareInfo(void)
 			{
-				return (firmwareInfo);
+				return (&firmwareInfo);
 			}
 
 			const QList<QString>& GetFilePaths(void) const
@@ -78,5 +86,7 @@ namespace HeimdallFrontend
 			}
 	};
 }
+
+Q_DECLARE_METATYPE(HeimdallFrontend::PackageData *)
 
 #endif

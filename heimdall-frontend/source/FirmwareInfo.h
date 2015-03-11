@@ -28,8 +28,14 @@
 
 namespace HeimdallFrontend
 {
-	class DeviceInfo
-	{		
+	class DeviceInfo : public QObject
+	{
+		Q_OBJECT
+
+		Q_PROPERTY(QString manufacturer READ GetManufacturer)
+		Q_PROPERTY(QString product READ GetProduct)
+		Q_PROPERTY(QString name READ GetName)
+
 		private:
 
 			QString manufacturer;
@@ -37,6 +43,8 @@ namespace HeimdallFrontend
 			QString name;
 
 		public:
+
+			static void Register(void);
 
 			DeviceInfo();
 			DeviceInfo(const QString& manufacturer, const QString& product, const QString& name);
@@ -75,14 +83,21 @@ namespace HeimdallFrontend
 			}
 	};
 
-	class PlatformInfo
+	class PlatformInfo : public QObject
 	{
+		Q_OBJECT
+
+		Q_PROPERTY(QString name READ GetName)
+		Q_PROPERTY(QString version READ GetVersion)
+
 		private:
 
 			QString name;
 			QString version;
 
 		public:
+
+			static void Register(void);
 
 			PlatformInfo();
 
@@ -113,14 +128,21 @@ namespace HeimdallFrontend
 			}
 	};
 
-	class FileInfo
+	class FileInfo : public QObject
 	{
+		Q_OBJECT
+
+		Q_PROPERTY(int partitionId READ GetPartitionId)
+		Q_PROPERTY(QString filename READ GetFilename)
+
 		private:
 
 			unsigned int partitionId;
 			QString filename;
 
 		public:
+
+			static void Register(void);
 
 			FileInfo();
 			FileInfo(unsigned int partitionId, const QString& filename);
@@ -149,8 +171,27 @@ namespace HeimdallFrontend
 			}
 	};
 
-	class FirmwareInfo
+	class FirmwareInfo : public QObject
 	{
+		Q_OBJECT
+
+		Q_PROPERTY(QString name READ GetName)
+		Q_PROPERTY(QString version READ GetVersion)
+		Q_PROPERTY(HeimdallFrontend::PlatformInfo *platformInfo READ GetPlatformInfo)
+
+		Q_PROPERTY(QList<QString> developers READ GetDevelopers)
+		Q_PROPERTY(QString url READ GetUrl)
+		Q_PROPERTY(QString donateUrl READ GetDonateUrl)
+
+		Q_PROPERTY(QList<HeimdallFrontend::DeviceInfo *> deviceInfos READ GetDeviceInfos)
+
+		Q_PROPERTY(QString pitFilename READ GetPitFilename)
+		Q_PROPERTY(bool repartition READ GetRepartition)
+
+		Q_PROPERTY(bool noReboot READ GetNoReboot)
+
+		Q_PROPERTY(QList<HeimdallFrontend::FileInfo *> fileInfos READ GetFileInfos)
+
 		public:
 
 			enum
@@ -168,18 +209,21 @@ namespace HeimdallFrontend
 			QString url;
 			QString donateUrl;
 
-			QList<DeviceInfo> deviceInfos;
+			QList<DeviceInfo *> deviceInfos;
 
 			QString pitFilename;
 			bool repartition;
 
 			bool noReboot;
 
-			QList<FileInfo> fileInfos;
+			QList<FileInfo *> fileInfos;
 
 		public:
 
+			static void Register(void);
+
 			FirmwareInfo();
+			~FirmwareInfo();
 
 			void Clear(void);
 			bool IsCleared(void) const;
@@ -207,14 +251,14 @@ namespace HeimdallFrontend
 				this->version = version;
 			}
 
-			const PlatformInfo& GetPlatformInfo(void) const
+			const PlatformInfo *GetPlatformInfo(void) const
 			{
-				return (platformInfo);
+				return (&platformInfo);
 			}
 
-			PlatformInfo& GetPlatformInfo(void)
+			PlatformInfo *GetPlatformInfo(void)
 			{
-				return (platformInfo);
+				return (&platformInfo);
 			}
 
 			const QList<QString>& GetDevelopers(void) const
@@ -247,12 +291,12 @@ namespace HeimdallFrontend
 				this->donateUrl = donateUrl;
 			}
 
-			const QList<DeviceInfo>& GetDeviceInfos(void) const
+			const QList<DeviceInfo *>& GetDeviceInfos(void) const
 			{
 				return (deviceInfos);
 			}
 
-			QList<DeviceInfo>& GetDeviceInfos(void)
+			QList<DeviceInfo *>& GetDeviceInfos(void)
 			{
 				return (deviceInfos);
 			}
@@ -287,16 +331,20 @@ namespace HeimdallFrontend
 				this->noReboot = noReboot;
 			}
 
-			const QList<FileInfo>& GetFileInfos(void) const
+			const QList<FileInfo *>& GetFileInfos(void) const
 			{
 				return (fileInfos);
 			}
 
-			QList<FileInfo>& GetFileInfos(void)
+			QList<FileInfo *>& GetFileInfos(void)
 			{
 				return (fileInfos);
 			}
 	};
 }
+
+Q_DECLARE_METATYPE(HeimdallFrontend::DeviceInfo *)
+Q_DECLARE_METATYPE(HeimdallFrontend::PlatformInfo *)
+Q_DECLARE_METATYPE(HeimdallFrontend::FileInfo *)
 
 #endif
