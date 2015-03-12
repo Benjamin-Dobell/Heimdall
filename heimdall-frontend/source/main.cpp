@@ -45,6 +45,7 @@ void registerQmlTypes()
 	DeviceInfo::Register();
 	PlatformInfo::Register();
 	FileInfo::Register();
+	FirmwareInfo::Register();
 
 	PackageData::Register();
 }

@@ -353,6 +353,10 @@ void FileInfo::WriteXml(QXmlStreamWriter& xml, const QString& filename) const
 }
 
 
+void FirmwareInfo::Register(void)
+{
+	qmlRegisterType<FirmwareInfo>("HeimdallFrontend", 1, 0, "FirmwareInfo");
+}
 
 FirmwareInfo::FirmwareInfo()
 {

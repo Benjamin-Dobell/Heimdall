@@ -1,15 +1,15 @@
 /* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,7 @@
 
 // Qt
 #include <QFile>
+#include <QQmlListProperty>
 #include <QString>
 #include <QXmlStreamReader>
 
@@ -183,14 +184,14 @@ namespace HeimdallFrontend
 		Q_PROPERTY(QString url READ GetUrl)
 		Q_PROPERTY(QString donateUrl READ GetDonateUrl)
 
-		Q_PROPERTY(QList<HeimdallFrontend::DeviceInfo *> deviceInfos READ GetDeviceInfos)
+		Q_PROPERTY(QQmlListProperty<HeimdallFrontend::DeviceInfo> deviceInfos READ GetDeviceInfosListProperty)
 
 		Q_PROPERTY(QString pitFilename READ GetPitFilename)
 		Q_PROPERTY(bool repartition READ GetRepartition)
 
 		Q_PROPERTY(bool noReboot READ GetNoReboot)
 
-		Q_PROPERTY(QList<HeimdallFrontend::FileInfo *> fileInfos READ GetFileInfos)
+		Q_PROPERTY(QQmlListProperty<HeimdallFrontend::FileInfo> fileInfos READ GetFileInfosListProperty)
 
 		public:
 
@@ -217,6 +218,46 @@ namespace HeimdallFrontend
 			bool noReboot;
 
 			QList<FileInfo *> fileInfos;
+
+			static void DeviceInfoAppend(QQmlListProperty<DeviceInfo> *property, DeviceInfo *deviceInfo)
+			{
+				qobject_cast<FirmwareInfo *>(property->object)->deviceInfos.append(deviceInfo);
+			}
+
+			static int DeviceInfoCount(QQmlListProperty<DeviceInfo> *property)
+			{
+				return qobject_cast<FirmwareInfo *>(property->object)->deviceInfos.length();
+			}
+
+			static DeviceInfo *DeviceInfoAtIndex(QQmlListProperty<DeviceInfo> *property, int index)
+			{
+				return qobject_cast<FirmwareInfo *>(property->object)->deviceInfos[index];
+			}
+
+			static void DeviceInfoClearAll(QQmlListProperty<DeviceInfo> *property)
+			{
+				qobject_cast<FirmwareInfo *>(property->object)->deviceInfos.clear();
+			}
+
+			static void FileInfoAppend(QQmlListProperty<FileInfo> *property, FileInfo *fileInfo)
+			{
+				qobject_cast<FirmwareInfo *>(property->object)->fileInfos.append(fileInfo);
+			}
+
+			static int FileInfoCount(QQmlListProperty<FileInfo> *property)
+			{
+				return qobject_cast<FirmwareInfo *>(property->object)->fileInfos.length();
+			}
+
+			static FileInfo *FileInfoAtIndex(QQmlListProperty<FileInfo> *property, int index)
+			{
+				return qobject_cast<FirmwareInfo *>(property->object)->fileInfos[index];
+			}
+
+			static void FileInfoClearAll(QQmlListProperty<FileInfo> *property)
+			{
+				qobject_cast<FirmwareInfo *>(property->object)->fileInfos.clear();
+			}
 
 		public:
 
@@ -301,6 +342,12 @@ namespace HeimdallFrontend
 				return (deviceInfos);
 			}
 
+			QQmlListProperty<DeviceInfo> GetDeviceInfosListProperty(void)
+			{
+				return QQmlListProperty<DeviceInfo>{this, nullptr, &FirmwareInfo::DeviceInfoAppend, &FirmwareInfo::DeviceInfoCount,
+					&FirmwareInfo::DeviceInfoAtIndex, &FirmwareInfo::DeviceInfoClearAll};
+			}
+
 			const QString& GetPitFilename(void) const
 			{
 				return (pitFilename);
@@ -339,6 +386,12 @@ namespace HeimdallFrontend
 			QList<FileInfo *>& GetFileInfos(void)
 			{
 				return (fileInfos);
+			}
+
+			QQmlListProperty<FileInfo> GetFileInfosListProperty(void)
+			{
+				return QQmlListProperty<FileInfo>{this, nullptr, &FirmwareInfo::FileInfoAppend, &FirmwareInfo::FileInfoCount,
+					&FirmwareInfo::FileInfoAtIndex, &FirmwareInfo::FileInfoClearAll};
 			}
 	};
 }
