@@ -393,6 +393,11 @@ namespace HeimdallFrontend
 				return QQmlListProperty<FileInfo>{this, nullptr, &FirmwareInfo::FileInfoAppend, &FirmwareInfo::FileInfoCount,
 					&FirmwareInfo::FileInfoAtIndex, &FirmwareInfo::FileInfoClearAll};
 			}
+
+			void CopyFrom(const FirmwareInfo& firmwareInfo)
+			{
+				// TODO:
+			}
 	};
 }
 

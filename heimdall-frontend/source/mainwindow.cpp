@@ -553,7 +553,6 @@ void MainWindow::LoadFirmwarePackage(void)
 	}
 
 	workingPackageData.GetFilePaths().append(loadedPackageData.GetFilePaths());
-	workingPackageData.SetPackagePath(loadedPackageData.GetPackagePath());
 
 	QString pitFilename = loadedPackageData.GetFirmwareInfo()->GetPitFilename();
 
@@ -581,7 +580,8 @@ void MainWindow::LoadFirmwarePackage(void)
 	workingPackageData.GetFirmwareInfo()->SetRepartition(loadedPackageData.GetFirmwareInfo()->GetRepartition());
 	workingPackageData.GetFirmwareInfo()->SetNoReboot(loadedPackageData.GetFirmwareInfo()->GetNoReboot());
 
-	loadedPackageData.Clear(false);
+	workingPackageData.GetOwnedDirectories().append(loadedPackageData.GetOwnedDirectories());
+	loadedPackageData.GetOwnedDirectories().clear();
 
 	UpdateUnusedPartitionIds();
 	UpdatePackageUserInterface();

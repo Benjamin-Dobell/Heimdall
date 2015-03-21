@@ -15,6 +15,10 @@ DropFilesForm {
 		id: fileModel
 	}
 
+	Native.PackageData {
+		id: packageData
+	}
+
 	function setFileGridVisible(visible) {
 		if (fileGridContainer.visible !== visible) {
 			dropFilesContainer.visible = !visible;

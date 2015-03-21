@@ -560,7 +560,7 @@ bool Packaging::ExtractPackage(const QString& packagePath, PackageData *packageD
 			outputDirectory.setAutoRemove(false);
 
 			packageData->GetFilePaths().append(decompressedFilePaths);
-			packageData->SetPackagePath(outputDirectory.path());
+			packageData->GetOwnedDirectories().append(outputDirectory.path());
 			return (true);
 		}
 	}

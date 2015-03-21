@@ -38,17 +38,17 @@ PackageData::PackageData()
 
 PackageData::~PackageData()
 {
-	Clear(true);
+	Clear();
 }
 
-void PackageData::Clear(bool deletePackageDirectory)
+void PackageData::Clear(void)
 {
-	if (deletePackageDirectory)
+	for (QDir& dir : ownedDirectories)
 	{
-		packageDirectory.removeRecursively();
+		dir.removeRecursively();
 	}
 
-	packageDirectory.setPath(QString());
+	ownedDirectories.clear();
 	firmwareInfo.Clear();
 	filePaths.clear();
 }
@@ -71,7 +71,7 @@ bool PackageData::ReadFirmwareInfo(const QString& path)
 
 bool PackageData::IsCleared(void) const
 {
-	return (packageDirectory.path().length() == 0
+	return (ownedDirectories.length() == 0
 			&& firmwareInfo.IsCleared()
 			&& filePaths.isEmpty());
 }
