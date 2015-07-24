@@ -1,15 +1,15 @@
 /* Copyright (c) 2010-2013 Benjamin Dobell, Glass Echidna
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,7 +20,7 @@
 
 // C Standard Library
 #include <stdio.h>
-
+#include <stdlib.h>
 // libusb
 #include <libusb.h>
 
@@ -51,7 +51,7 @@
 #include "SendFilePartResponse.h"
 #include "SessionSetupPacket.h"
 #include "SessionSetupResponse.h"
-
+void *valloc(size_t size);
 // Future versions of libusb will use usb_interface instead of interface.
 #define usb_interface interface
 
@@ -364,7 +364,7 @@ bool BridgeManager::InitialiseProtocol(void)
 		{
 			if (verbose)
 				Interface::PrintErrorSameLine(" Retrying...\n");
-			
+
 			// Wait longer each retry
 			Sleep(retryDelay * (attempt + 1));
 		}
@@ -608,7 +608,7 @@ int BridgeManager::Initialise(bool resume)
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
 			break;
 	}
-	
+
 	result = FindDeviceInterface();
 
 	if (result != BridgeManager::kInitialiseSucceeded)
@@ -839,7 +839,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 
 	unsigned int attempt = 0;
 	unsigned int maxAttempts = (retry) ? kReceivePacketMaxAttempts : 1;
-	
+
 	// max(250, communicationDelay)
 	int retryDelay = (communicationDelay > 250) ? communicationDelay : 250;
 
@@ -849,7 +849,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 		{
 			if (verbose)
 				Interface::PrintErrorSameLine(" Retrying...\n");
-			
+
 			// Wait longer each retry
 			Sleep(retryDelay * (attempt + 1));
 		}
@@ -1066,10 +1066,10 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 			delete [] buffer;
 			return (0);
 		}
-		
+
 		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
 		success = ReceivePacket(receiveFilePartPacket);
-		
+
 		if (!success)
 		{
 			Interface::PrintError("Failed to receive PIT file part #%d!\n", i);
@@ -1084,6 +1084,18 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 
 		delete receiveFilePartPacket;
 	}
+ 
+  Interface::Print("PIT file data received, read 'empty' packet...\n");
+  int dataTransferred = 0;
+  int timeout = 1000;
+  unsigned char* bufferEmpty = (unsigned char*)valloc(1);
+
+  int result = libusb_bulk_transfer(deviceHandle, inEndpoint, bufferEmpty, 1, &dataTransferred, timeout);
+
+  delete bufferEmpty;
+
+  Interface::Print("PIT file data receive completed, send kRequestEndTransfer...\n");
+
 
 	// End file transfer
 	pitFilePacket = new PitFilePacket(PitFilePacket::kRequestEndTransfer);
