@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 // zlib
-#include "zlib.h"
+#include "../include/zlib.h"
 
 // Qt
 #include <QDateTime>
