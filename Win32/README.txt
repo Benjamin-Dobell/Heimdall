@@ -543,5 +543,5 @@ Appendix B - Installing Heimdall Suite from Source
 
         mkdir build
         cd build
-        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/c/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
         make
