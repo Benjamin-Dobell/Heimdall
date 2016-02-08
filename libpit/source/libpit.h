@@ -208,12 +208,12 @@ namespace libpit
 			void SetPartitionName(const char *partitionName)
 			{
 				// This isn't strictly necessary but ensures no junk is left in our PIT file.
-				memset(this->partitionName, 0, 64);
+				memset(this->partitionName, 0, kPartitionNameMaxLength);
 
-				if (strlen(partitionName) < 64)
+				if (strlen(partitionName) < kPartitionNameMaxLength)
 					strcpy(this->partitionName, partitionName);
 				else
-					memcpy(this->partitionName, partitionName, 63);
+					memcpy(this->partitionName, partitionName, kPartitionNameMaxLength - 1);
 			}
 
 			const char *GetFlashFilename(void) const
@@ -226,10 +226,10 @@ namespace libpit
 				// This isn't strictly necessary but ensures no junk is left in our PIT file.
 				memset(this->flashFilename, 0, kFlashFilenameMaxLength);
 
-				if (strlen(partitionName) < 32)
+				if (strlen(partitionName) < kFlashFilenameMaxLength)
 					strcpy(this->flashFilename, flashFilename);
 				else
-					memcpy(this->flashFilename, flashFilename, 31);
+					memcpy(this->flashFilename, flashFilename, kFlashFilenameMaxLength - 1);
 			}
 
 			const char *GetFotaFilename(void) const
@@ -242,10 +242,10 @@ namespace libpit
 				// This isn't strictly necessary but ensures no junk is left in our PIT file.
 				memset(this->fotaFilename, 0, kFotaFilenameMaxLength);
 
-				if (strlen(partitionName) < 32)
+				if (strlen(partitionName) < kFotaFilenameMaxLength)
 					strcpy(this->fotaFilename, fotaFilename);
 				else
-					memcpy(this->fotaFilename, fotaFilename, 31);
+					memcpy(this->fotaFilename, fotaFilename, kFotaFilenameMaxLength - 1);
 			}
 	};
 
