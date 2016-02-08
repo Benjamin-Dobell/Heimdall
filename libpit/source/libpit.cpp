@@ -21,6 +21,28 @@
 // libpit
 #include "libpit.h"
 
+namespace
+{
+        bool ComparisonPred(char a, char b)
+        {
+                return std::tolower(a) == std::tolower(b);
+        }
+
+        bool CaseInsensitiveCompare(const std::string &a, const std::string& b)
+        {
+                if (a.length() == b.length())
+                {
+                        return std::equal(b.begin(), b.end(),
+                                           a.begin(), ComparisonPred);
+                }
+                else
+                {
+                        return (false);
+                }
+        }
+}
+
+
 using namespace libpit;
 
 PitEntry::PitEntry()
@@ -49,8 +71,8 @@ bool PitEntry::Matches(const PitEntry *otherPitEntry) const
 	if (binaryType == otherPitEntry->binaryType && deviceType == otherPitEntry->deviceType && identifier == otherPitEntry->identifier
 		&& attributes == otherPitEntry->attributes && updateAttributes == otherPitEntry->updateAttributes && blockSizeOrOffset == otherPitEntry->blockSizeOrOffset
 		&& blockCount == otherPitEntry->blockCount && fileOffset == otherPitEntry->fileOffset && fileSize == otherPitEntry->fileSize
-		&& strcmp(partitionName, otherPitEntry->partitionName) == 0 && strcmp(flashFilename, otherPitEntry->flashFilename) == 0
-		&& strcmp(fotaFilename, otherPitEntry->fotaFilename) == 0)
+		&& CaseInsensitiveCompare(partitionName, otherPitEntry->partitionName) && CaseInsensitiveCompare(flashFilename, otherPitEntry->flashFilename)
+		&& CaseInsensitiveCompare(fotaFilename, otherPitEntry->fotaFilename))
 	{
 		return (true);
 	}
@@ -59,8 +81,6 @@ bool PitEntry::Matches(const PitEntry *otherPitEntry) const
 		return (false);
 	}
 }
-
-
 
 PitData::PitData()
 {
@@ -255,7 +275,7 @@ PitEntry *PitData::FindEntry(const char *partitionName)
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->IsFlashable() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->IsFlashable() && CaseInsensitiveCompare(entries[i]->GetPartitionName(), partitionName))
 			return (entries[i]);
 	}
 
@@ -266,7 +286,7 @@ const PitEntry *PitData::FindEntry(const char *partitionName) const
 {
 	for (unsigned int i = 0; i < entries.size(); i++)
 	{
-		if (entries[i]->IsFlashable() && strcmp(entries[i]->GetPartitionName(), partitionName) == 0)
+		if (entries[i]->IsFlashable() && CaseInsensitiveCompare(entries[i]->GetPartitionName(), partitionName))
 			return (entries[i]);
 	}
 
