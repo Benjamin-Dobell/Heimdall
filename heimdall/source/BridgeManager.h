@@ -80,8 +80,8 @@ namespace Heimdall
 
 			enum
 			{
-				kDefaultTimeoutSend = 3000,
-				kDefaultTimeoutReceive = 3000,
+				kDefaultTimeoutSend = 6000,
+				kDefaultTimeoutReceive = 6000,
 				kDefaultTimeoutEmptyTransfer = 100
 			};
 
