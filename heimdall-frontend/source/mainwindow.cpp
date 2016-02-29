@@ -131,7 +131,7 @@ bool MainWindow::ReadPit(QFile *file)
 	file->close();
 
 	bool success = currentPitData.Unpack(buffer);
-	delete buffer;
+	delete[] buffer;
 
 	if (!success)
 		currentPitData.Clear();
