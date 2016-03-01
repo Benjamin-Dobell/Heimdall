@@ -10,10 +10,10 @@ find_path(LIBUSB_INCLUDE_DIR
 )
 
 if (libusb_USE_STATIC_LIBS AND NOT MSVC)
-    set (LIBUSB_LIB_PREFIX "lib" CACHE INTERNAL "libusb library name prefox passed to find_library")
+    set (LIBUSB_LIB_PREFIX "lib" CACHE INTERNAL "libusb library name prefix passed to find_library")
     set (LIBUSB_LIB_SUFFIX ".a" CACHE INTERNAL "libusb library name suffix passed to find_library")
 else (libusb_USE_STATIC_LIBS AND NOT MSVC)
-    set (LIBUSB_LIB_PREFIX "" CACHE INTERNAL "libusb library name prefox passed to find_library")
+    set (LIBUSB_LIB_PREFIX "" CACHE INTERNAL "libusb library name prefix passed to find_library")
     set (LIBUSB_LIB_SUFFIX "" CACHE INTERNAL "libusb library name suffix passed to find_library")
 endif (libusb_USE_STATIC_LIBS AND NOT MSVC)
 

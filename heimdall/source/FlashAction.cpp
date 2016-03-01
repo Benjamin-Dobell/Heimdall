@@ -185,7 +185,7 @@ static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<Par
 
 	if (totalBytesResult != 0)
 	{
-		Interface::PrintError("Unexpected session total bytes response!\nExpected: 0\nReceived:%d\n", totalBytesResponse);
+		Interface::PrintError("Unexpected session total bytes response!\nExpected: 0\nReceived:%d\n", totalBytesResult);
 		return (false);
 	}
 

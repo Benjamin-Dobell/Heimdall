@@ -131,7 +131,7 @@ bool MainWindow::ReadPit(QFile *file)
 	file->close();
 
 	bool success = currentPitData.Unpack(buffer);
-	delete buffer;
+	delete[] buffer;
 
 	if (!success)
 		currentPitData.Clear();
@@ -659,7 +659,7 @@ void MainWindow::SelectPartitionName(int index)
 
 		partitionFileGroup->setTitle(title);
 
-		if (!fileInfo.GetFilename().isEmpty())
+		if (pitEntry && !fileInfo.GetFilename().isEmpty())
 		{
 			QString partitionFilename = pitEntry->GetFlashFilename();
 			int lastPeriod = partitionFilename.lastIndexOf(QChar('.'));
