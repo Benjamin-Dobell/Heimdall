@@ -74,7 +74,7 @@ namespace Heimdall
 		void PrintPit(const libpit::PitData *pitData);
 
 		void SetStdoutErrors(bool enabled);
-	};
+	}
 }
 
 #endif

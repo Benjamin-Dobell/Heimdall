@@ -28,7 +28,7 @@ namespace Heimdall
 		extern const char *usage;
 
 		int Execute(int argc, char **argv);
-	};
+	}
 }
 
 #endif
