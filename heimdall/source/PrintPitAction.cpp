@@ -139,7 +139,7 @@ int PrintPitAction::Execute(int argc, char **argv)
 
 		// Load the local pit file into memory.
 		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
-		size_t dataRead = fread(pitFileBuffer, 1, localPitFileSize, localPitFile); // dataRead is discarded, it's here to remove warnings.
+		(void)fread(pitFileBuffer, 1, localPitFileSize, localPitFile);
 		FileClose(localPitFile);
 
 		PitData *pitData = new PitData();
