@@ -46,9 +46,7 @@ namespace Heimdall
 
 				// min(fileSize, size)
 				unsigned int bytesToRead = (fileSize < size) ? fileSize - position : size;
-				
-				// bytesRead is discarded (it's just there to stop GCC warnings)
-				unsigned int bytesRead = fread(data, 1, bytesToRead, file);
+				(void)fread(data, 1, bytesToRead, file);
 			}
 
 			SendFilePartPacket(unsigned char *buffer, unsigned int size) : OutboundPacket(size)
