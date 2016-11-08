@@ -1,15 +1,15 @@
 /* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -483,7 +483,7 @@ int BridgeManager::Initialise(bool resume)
 			libusb_set_debug(libusbContext, LIBUSB_LOG_LEVEL_DEBUG);
 			break;
 	}
-	
+
 	result = FindDeviceInterface();
 
 	if (result != BridgeManager::kInitialiseSucceeded)
@@ -737,7 +737,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, int emptyT
 	if (receivedSize < 0)
 		return (false);
 
-	if (receivedSize != packet->GetSize() && !packet->IsSizeVariable())
+	if (static_cast<unsigned int>(receivedSize) != packet->GetSize() && !packet->IsSizeVariable())
 	{
 		if (verbose)
 			Interface::PrintError("Incorrect packet size received - expected size = %d, received size = %d.\n", packet->GetSize(), receivedSize);
@@ -937,7 +937,7 @@ int BridgeManager::ReceivePitFile(unsigned char **pitBuffer) const
 		}
 
 		int receiveEmptyTransferFlags = (i == transferCount - 1) ? kEmptyTransferAfter : kEmptyTransferNone;
-		
+
 		ReceiveFilePartPacket *receiveFilePartPacket = new ReceiveFilePartPacket();
 		success = ReceivePacket(receiveFilePartPacket, kDefaultTimeoutReceive, receiveEmptyTransferFlags);
 
