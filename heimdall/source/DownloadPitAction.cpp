@@ -1,15 +1,15 @@
 /* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -72,7 +72,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
-	
+
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
 
@@ -148,7 +148,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 
 	if (fileSize > 0)
 	{
-		if (fwrite(pitBuffer, 1, fileSize, outputPitFile) != fileSize)
+		if (fwrite(pitBuffer, 1, fileSize, outputPitFile) != static_cast<size_t>(fileSize))
 		{
 			Interface::PrintError("Failed to write PIT data to output file.\n");
 			success = false;
@@ -163,7 +163,7 @@ int DownloadPitAction::Execute(int argc, char **argv)
 		success = false;
 
 	delete bridgeManager;
-	
+
 	FileClose(outputPitFile);
 	delete [] pitBuffer;
 
