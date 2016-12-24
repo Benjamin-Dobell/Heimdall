@@ -398,7 +398,7 @@ static bool setTFlashMode(BridgeManager *bridgeManager)
 	}
 
 	TFlashModeResponse *tFlashModeResponse = new TFlashModeResponse();
-	success = bridgeManager->ReceivePacket(tFlashModeResponse);
+	success = bridgeManager->ReceivePacket(tFlashModeResponse, 5000);
 	unsigned int result = tFlashModeResponse->GetResult();
 	delete tFlashModeResponse;
 
