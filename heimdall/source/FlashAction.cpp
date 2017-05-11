@@ -24,14 +24,13 @@
 // Heimdall
 #include "Arguments.h"
 #include "BridgeManager.h"
+#include "EnableTFlashPacket.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
 #include "FlashAction.h"
 #include "Heimdall.h"
 #include "Interface.h"
 #include "SessionSetupResponse.h"
-#include "TFlashModePacket.h"
-#include "TFlashModeResponse.h"
 #include "TotalBytesPacket.h"
 #include "Utility.h"
 
@@ -383,34 +382,34 @@ static PitData *getPitData(BridgeManager *bridgeManager, FILE *pitFile, bool rep
 	return (pitData);
 }
 
-static bool setTFlashMode(BridgeManager *bridgeManager)
+static bool enableTFlash(BridgeManager *bridgeManager)
 {
 	bool success;
 
-	TFlashModePacket *tFlashModePacket = new TFlashModePacket();
-	success = bridgeManager->SendPacket(tFlashModePacket);
-	delete tFlashModePacket;
+	EnableTFlashPacket *enableTFlashPacket = new EnableTFlashPacket();
+	success = bridgeManager->SendPacket(enableTFlashPacket);
+	delete enableTFlashPacket;
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to request T-Flash mode!\n");
+		Interface::PrintError("Failed to send T-Flash packet!\n");
 		return false;
 	}
 
-	TFlashModeResponse *tFlashModeResponse = new TFlashModeResponse();
-	success = bridgeManager->ReceivePacket(tFlashModeResponse, 5000);
-	unsigned int result = tFlashModeResponse->GetResult();
-	delete tFlashModeResponse;
+	SessionSetupResponse *enableTFlashResponse = new SessionSetupResponse();
+	success = bridgeManager->ReceivePacket(enableTFlashResponse, 5000);
+	unsigned int result = enableTFlashResponse->GetResult();
+	delete enableTFlashResponse;
 
 	if (!success)
 	{
-		Interface::PrintError("Failed to receive T-Flash mode result!\n");
+		Interface::PrintError("Failed to receive T-Flash response!\n");
 		return false;
 	}
 
-	if(result)
+	if (result)
 	{
-		Interface::PrintError("Failed to set T-Flash mode (received: %d)!\n", result);
+		Interface::PrintError("Unexpected T-Flash response!\nExpected: 0\nReceived: %d\n", result);
 		return false;
 	}
 
@@ -459,7 +458,7 @@ int FlashAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
-	bool tflash_mode = arguments.GetArgument("tflash") != nullptr;
+	bool tflash = arguments.GetArgument("tflash") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
@@ -546,7 +545,7 @@ int FlashAction::Execute(int argc, char **argv)
 		return (1);
 	}
 
-	if (tflash_mode && !setTFlashMode(bridgeManager))
+	if (tflash && !enableTFlash(bridgeManager))
 	{
 		closeFiles(partitionFiles, pitFile);
 		delete bridgeManager;

@@ -36,7 +36,8 @@ namespace Heimdall
 				kDeviceType = 1, // ?
 				kTotalBytes = 2,
 				//kEnableSomeSortOfFlag = 3,
-				kFilePartSize = 5
+				kFilePartSize = 5,
+				kEnableTFlash = 8
 			};
 
 		private:

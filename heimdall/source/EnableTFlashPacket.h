@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2017 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -18,46 +18,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef TFLASHMODEPACKET_H
-#define TFLASHMODEPACKET_H
+#ifndef ENABLETFLASHPACKET_H
+#define ENABLETFLASHPACKET_H
 
 // Heimdall
-#include "ControlPacket.h"
+#include "SessionSetupPacket.h"
 
 namespace Heimdall
 {
-	class TFlashModePacket : public ControlPacket
+	class EnableTFlashPacket : public SessionSetupPacket
 	{
 		public:
 
-			enum
+			EnableTFlashPacket() : SessionSetupPacket(SessionSetupPacket::kEnableTFlash)
 			{
-				kRequestTFlashMode		= 0x08
-			};
-
-		protected:
-
-			enum
-			{
-				kDataSize = ControlPacket::kDataSize + 4
-			};
-
-		private:
-
-			unsigned int subcmd = TFlashModePacket::kRequestTFlashMode;
-
-		public:
-
-			TFlashModePacket(void) : ControlPacket(ControlPacket::kControlTypeSession)
-			{
-
-			}
-
-			virtual void Pack(void)
-			{
-				ControlPacket::Pack();
-
-				PackInteger(ControlPacket::kDataSize, subcmd);
 			}
 	};
 }
