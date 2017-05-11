@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna
+/* Copyright (c) 2010-2017 Benjamin Dobell, Glass Echidna
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ const char *version = "v1.4.1";
 const char *actionUsage = "Usage: heimdall <action> <action arguments>\n";
 
 const char *releaseInfo = "Heimdall %s\n\n\
-Copyright (c) 2010-2014 Benjamin Dobell, Glass Echidna\n\
+Copyright (c) 2010-2017 Benjamin Dobell, Glass Echidna\n\
 http://www.glassechidna.com.au/\n\n\
 This software is provided free of charge. Copying and redistribution is\nencouraged.\n\n\
 If you appreciate this software and you would like to support future\ndevelopment please consider donating:\n\
