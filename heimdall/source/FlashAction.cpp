@@ -24,6 +24,7 @@
 // Heimdall
 #include "Arguments.h"
 #include "BridgeManager.h"
+#include "EnableTFlashPacket.h"
 #include "EndModemFileTransferPacket.h"
 #include "EndPhoneFileTransferPacket.h"
 #include "FlashAction.h"
@@ -47,8 +48,10 @@ Arguments:\n\
     --repartition --pit <filename> [--<partition name> <filename> ...]\n\
     [--<partition identifier> <filename> ...] [--verbose] [--no-reboot]\n\
     [--resume] [--stdout-errors] [--usb-log-level <none/error/warning/debug>]\n\
+    [--tflash]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
     (or identifiers) can be obtained by executing the print-pit action.\n\
+    T-Flash mode allows to flash the inserted SD-card instead of the internal MMC.\n\
 Note: --no-reboot causes the device to remain in download mode after the action\n\
       is completed. If you wish to perform another action whilst remaining in\n\
       download mode, then the following action must specify the --resume flag.\n\
@@ -379,6 +382,40 @@ static PitData *getPitData(BridgeManager *bridgeManager, FILE *pitFile, bool rep
 	return (pitData);
 }
 
+static bool enableTFlash(BridgeManager *bridgeManager)
+{
+	bool success;
+
+	EnableTFlashPacket *enableTFlashPacket = new EnableTFlashPacket();
+	success = bridgeManager->SendPacket(enableTFlashPacket);
+	delete enableTFlashPacket;
+
+	if (!success)
+	{
+		Interface::PrintError("Failed to send T-Flash packet!\n");
+		return false;
+	}
+
+	SessionSetupResponse *enableTFlashResponse = new SessionSetupResponse();
+	success = bridgeManager->ReceivePacket(enableTFlashResponse, 5000);
+	unsigned int result = enableTFlashResponse->GetResult();
+	delete enableTFlashResponse;
+
+	if (!success)
+	{
+		Interface::PrintError("Failed to receive T-Flash response!\n");
+		return false;
+	}
+
+	if (result)
+	{
+		Interface::PrintError("Unexpected T-Flash response!\nExpected: 0\nReceived: %d\n", result);
+		return false;
+	}
+
+	return true;
+}
+
 int FlashAction::Execute(int argc, char **argv)
 {
 	// Setup argument types
@@ -393,6 +430,7 @@ int FlashAction::Execute(int argc, char **argv)
 	argumentTypes["verbose"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
+	argumentTypes["tflash"] = kArgumentTypeFlag;
 
 	argumentTypes["pit"] = kArgumentTypeString;
 	shortArgumentAliases["pit"] = "pit";
@@ -420,6 +458,7 @@ int FlashAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
+	bool tflash = arguments.GetArgument("tflash") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
 		Interface::SetStdoutErrors(true);
@@ -499,6 +538,14 @@ int FlashAction::Execute(int argc, char **argv)
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())
+	{
+		closeFiles(partitionFiles, pitFile);
+		delete bridgeManager;
+
+		return (1);
+	}
+
+	if (tflash && !enableTFlash(bridgeManager))
 	{
 		closeFiles(partitionFiles, pitFile);
 		delete bridgeManager;

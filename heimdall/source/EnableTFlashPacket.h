@@ -18,56 +18,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#ifndef SESSIONSETUPPACKET_H
-#define SESSIONSETUPPACKET_H
+#ifndef ENABLETFLASHPACKET_H
+#define ENABLETFLASHPACKET_H
 
 // Heimdall
-#include "ControlPacket.h"
+#include "SessionSetupPacket.h"
 
 namespace Heimdall
 {
-	class SessionSetupPacket : public ControlPacket
+	class EnableTFlashPacket : public SessionSetupPacket
 	{
 		public:
 
-			enum
+			EnableTFlashPacket() : SessionSetupPacket(SessionSetupPacket::kEnableTFlash)
 			{
-				kBeginSession = 0,
-				kDeviceType = 1, // ?
-				kTotalBytes = 2,
-				//kEnableSomeSortOfFlag = 3,
-				kFilePartSize = 5,
-				kEnableTFlash = 8
-			};
-
-		private:
-
-			unsigned int request;
-
-		protected:
-
-			enum
-			{
-				kDataSize = ControlPacket::kDataSize + 4
-			};
-
-		public:
-
-			SessionSetupPacket(unsigned int request) : ControlPacket(ControlPacket::kControlTypeSession)
-			{
-				this->request = request;
-			}
-
-			unsigned int GetRequest(void) const
-			{
-				return (request);
-			}
-
-			void Pack(void)
-			{
-				ControlPacket::Pack();
-
-				PackInteger(ControlPacket::kDataSize, request);
 			}
 	};
 }
