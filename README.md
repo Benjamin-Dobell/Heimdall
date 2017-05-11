@@ -16,7 +16,7 @@ However, several third-parties have reported success running Heimdall on ARM chi
 ## How does Heimdall work?
 
 Heimdall connects to a mobile device over USB and interacts with low-level software
-running on device, known as Loke. Loke and Heimdall communicate via the custom
+running on the device, known as Loke. Loke and Heimdall communicate via the custom
 Samsung-developed protocol typically referred to as the 'Odin 3 protocol'.
 
 USB communication in Heimdall is handled by the popular open-source USB library, [libusb](http://libusb.info).
