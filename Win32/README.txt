@@ -24,7 +24,7 @@ Driver Installation Instructions:
 
     3. From the menu chose Options -> List All Devices.
 
-    4. From the USB Device list chose "Samsung USB Composite DEvice".
+    4. From the USB Device list chose "Samsung USB Composite Device".
 
     5. Press "Install Driver", click "Yes" to the prompt and if you receive
        a message about being unable to verify the publisher of the driver
@@ -70,7 +70,7 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
     3. From the "Load Package" tab, under the "Heimdall Firmware Package"
        section click the "Browse" button.
 
-    4. Use the dialogue that appears to navigate to, and select, the Heimdall
+    4. Use the dialog that appears to navigate to, and select, the Heimdall
        firmware package that you wish to flash.
 
     5. You will see progress bars appear as the package is decompressed and
@@ -90,15 +90,15 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
        a URL you may be able to contact them by pressing the "Homepage" button.
 
     7. If you've verified your device is supported you may continue to press
-       the "Load / Customise" button.
+       the "Load / Customize" button.
 
     8. You should now be looking at the "Flash" tab. If not verify that you did
-       in fact push the "Load / Customise" button.
+       in fact push the "Load / Customize" button.
 
-       Generally, you won't NEED or WANT to customise a firmware package! In
+       Generally, you won't NEED or WANT to customize a firmware package! In
        which case you can safely move on to step 9.
 
-       Nonetheless, the "Flash" tab provides you with a means to customise the
+       Nonetheless, the "Flash" tab provides you with a means to customize the
        firmware package before flashing it to your device. See "Performing a
        Custom Flash with Heimdall Frontend" for more details.
 
@@ -130,7 +130,7 @@ Performing a Custom Flash with Heimdall Frontend:
     Firmware Package for you. In doing so then you don't have to worry about
     making mistakes due to inexperience.
 
-    If you're looking to customise an existing Heimdall Firmware Package then
+    If you're looking to customize an existing Heimdall Firmware Package then
     follow steps 1-8 of "Flashing Heimdall Firmware Package with Heimdall
     Frontend" then start from below with step 5.
 
@@ -149,11 +149,11 @@ Performing a Custom Flash with Heimdall Frontend:
     3. Open the Heimdall Frontend (heimdall-frontend) executable.
 
     4. Select the "Flash" tab. From the "Flash" tab you're able to completely
-       customise a flash. 
+       customize a flash. 
 
     5. Before you can chose which partitions you want to flash with particular
        files you MUST first select a PIT file. To do this click the "Browse"
-       button in the "PIT" section. This will open a dialogue allowing you to
+       button in the "PIT" section. This will open a dialog allowing you to
        navigate to and select a valid PIT (.pit) file.
 
        If you do not already have a valid PIT file stored on your computer you
@@ -177,7 +177,7 @@ Performing a Custom Flash with Heimdall Frontend:
 
     9. When you've specified a file name then you'll be able to see the updated
        information in the partition list to the right. You can select any
-       partition from this list and customise it as you see fit.
+       partition from this list and customize it as you see fit.
 
        You can also remove a partition from the list by selecting it and
        clicking the "Remove" button. Removing a partition from the list doesn't
@@ -235,19 +235,19 @@ Flashing Firmware from Command Line:
     4. Put your Galaxy S device into download mode and plug it in..
 
     5. Open command prompt and navigate to the directory where you installed
-       heimdall.
+       Heimdall.
 
        NOTE: Adding Heimdall to your PATH variable will allow you to run
              Heimdall from any directory.
 
     6. Type the following to list all the functionality Heimdall supports:
 
-            heimdall help
+            Heimdall help
 
     7. Before flashing, you must first know the names of the partitions you
        wish to flash. These can be obtained by executing:
 
-            heimdall print-pit --no-reboot
+            Heimdall print-pit --no-reboot
 
        The inclusion of --no-reboot ensures the phone will not reboot after PIT
        file has been downloaded and displayed. After executing a command with
@@ -390,7 +390,7 @@ How to Create a Heimdall Firmware Package:
     enabled. If it's still disabled then you know you're missing some required
     information. In particular you must specify at least one developer and at
     least one supported device. Pressing the "Build" button will bring up a
-    save dialogue where you must chose a file name for your particular package.
+    save dialog where you must chose a file name for your particular package.
     Don't worry about specifying the ".tar.gz" extension Heimdall Frontend will
     take care of this automatically.
 
@@ -517,16 +517,16 @@ be included.
 
 Appendix B - Installing Heimdall Suite from Source
 
-    Heimdall and Heimdall Frontend both utilise CMake for managing the build
+    Heimdall and Heimdall Frontend both utilize CMake for managing the build
     process. CMake can generate files for various build systems including GNU
     Make and Visual Studio. However, official packages are compiled with GNU
     Make and MinGW-W64 GCC/G++.
 
     NOTE: Official builds use MinGW-W64 simply because on-going cross-platform
           development is simpler when using just the one IDE (Jetbrain's CLion)
-          and similar toolchains.
+          and similar tool chains.
 
-    1. Setup a MinGW-W64 build environment by utilising MSYS2:
+    1. Setup a MinGW-W64 build environment by utilizing MSYS2:
 
         http://msys2.github.io/
 
