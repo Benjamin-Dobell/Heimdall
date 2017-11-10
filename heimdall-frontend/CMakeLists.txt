@@ -50,3 +50,7 @@ set_property(TARGET heimdall-frontend
 target_link_libraries(heimdall-frontend pit)
 target_link_libraries(heimdall-frontend Qt5::Widgets)
 target_link_libraries(heimdall-frontend z)
+install (TARGETS heimdall-frontend
+		RUNTIME	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
