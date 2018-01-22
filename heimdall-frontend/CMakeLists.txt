@@ -52,5 +52,7 @@ target_link_libraries(heimdall-frontend Qt5::Widgets)
 target_link_libraries(heimdall-frontend z)
 install (TARGETS heimdall-frontend
 		RUNTIME	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		RESOURCE DESTINATION ${CMAKE_INSTALL_PREFIX}
+		BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
