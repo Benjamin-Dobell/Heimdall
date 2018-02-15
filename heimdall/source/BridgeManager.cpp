@@ -1024,7 +1024,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	}
 
 	FileSeek(file, 0, SEEK_END);
-	unsigned int fileSize = (unsigned int)FileTell(file);
+	unsigned long fileSize = (unsigned long)FileTell(file);
 	FileRewind(file);
 
 	ResponsePacket *fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
