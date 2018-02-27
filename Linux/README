@@ -490,3 +490,7 @@ Appendix B - Installing Heimdall Suite from Source:
             cmake -DCMAKE_BUILD_TYPE=Release ..
             make
 
+    4. Debian/Ubuntu users may need to use the following command after compiling
+       to make the program available to the operating system:
+
+            sudo cp bin/* /usr/local/bin
