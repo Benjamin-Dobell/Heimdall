@@ -7,6 +7,9 @@ if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND (NOT DEFINED libusb_USE_STATIC
 endif((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND (NOT DEFINED libusb_USE_STATIC_LIBS))
 
 find_package(libusb REQUIRED)
+#find_library(CF CoreFoundation)
+#find_library(IOK IOKit)
+#target_link_libraries(heimdall ${CF} ${IOK})
 
 set(LIBPIT_INCLUDE_DIRS
     ../libpit/source)
@@ -15,6 +18,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+else(NOT MINGW)
+	set(CMAKE_EXE_LINKER_FLAGS "-lobjc -framework IOKit -framework CoreFoundation")
 endif(MINGW)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
