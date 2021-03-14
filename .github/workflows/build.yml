@@ -1,0 +1,44 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt -y install build-essential cmake zlib1g-dev libgl1-mesa-dev libgl1-mesa-glx libusb-1.0-0-dev qt5-default
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make
+
+  win-build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          make
+          mingw-w64-x86_64
+          mingw-w64-x86_64-clang
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-libusb
+          mingw-w64-x86_64-qt5-static
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        export PATH="/mingw64/bin:$PATH"
+        mkdir build
+        cd build
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
+        make
