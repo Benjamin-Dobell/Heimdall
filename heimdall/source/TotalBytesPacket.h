@@ -30,16 +30,16 @@ namespace Heimdall
 	{
 		private:
 
-			unsigned int totalBytes;
+			unsigned long totalBytes;
 
 		public:
 
-			TotalBytesPacket(unsigned int totalBytes) : SessionSetupPacket(SessionSetupPacket::kTotalBytes)
+			TotalBytesPacket(unsigned long totalBytes) : SessionSetupPacket(SessionSetupPacket::kTotalBytes)
 			{
 				this->totalBytes = totalBytes;
 			}
 
-			unsigned int GetTotalBytes(void) const
+			unsigned long GetTotalBytes(void) const
 			{
 				return (totalBytes);
 			}
@@ -49,6 +49,7 @@ namespace Heimdall
 				SessionSetupPacket::Pack();
 
 				PackInteger(SessionSetupPacket::kDataSize, totalBytes);
+				PackInteger(SessionSetupPacket::kDataSize + 4, totalBytes>>32);
 			}
 	};
 }
