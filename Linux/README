@@ -490,3 +490,17 @@ Appendix B - Installing Heimdall Suite from Source:
             cmake -DCMAKE_BUILD_TYPE=Release ..
             make
 
+If you just want the command line tool, then compilation (and download times) can be sped up (qt and OpenGl are not necessary). Exact commands for Ubuntu 14.04, and debian jessie are:
+
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake git libusb-1.0-0-dev
+
+            git clone git://github.com/Benjamin-Dobell/Heimdall.git
+
+            mkdir ./Heimdall/build
+            cd ./Heimdall/build
+
+            cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_FRONTEND=ON ..
+            make
+            sudo cp bin/heimdall /usr/local/bin
+
