@@ -533,7 +533,7 @@ Appendix B - Installing Heimdall Suite from Source
     2. After installing MSYS2 a command prompt will launch, enter:
 
         Pacman -Syu
-        Pacman -S mingw-w64-x86_64 mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-libusb mingw-w64-x86_64-qt5-static make
+        Pacman -S mingw-w64-x86_64 mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-libusb mingw-w64-x86_64-qt5-static make mingw-w64-x86_64-jasper mingw-w64-x86_64-libwebp
 
     3. Add the MinGW-W64 binaries to your PATH environment variable:
 
