@@ -23,6 +23,7 @@ find_library(LIBUSB_LIBRARY
     PATHS
         /usr/local/lib
         /opt/local/lib
+        /usr/local/Cellar/libusb/1.0.21
         /usr/lib
 )
 
