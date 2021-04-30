@@ -105,7 +105,7 @@ namespace Heimdall
 			};
 
 		private:
-
+			void handleLibUSBError(int);
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
 
 			bool verbose;

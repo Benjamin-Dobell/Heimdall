@@ -293,6 +293,39 @@ void BridgeManager::ReleaseDeviceInterface(void)
 	Interface::Print("\n");
 }
 
+void BridgeManager::handleLibUSBError(int result)
+{
+  if ((result == LIBUSB_ERROR_TIMEOUT) 
+	 || (result == LIBUSB_ERROR_PIPE)
+	 || (result == LIBUSB_ERROR_OVERFLOW)
+	 || (result == LIBUSB_ERROR_NO_DEVICE))
+    //	 || (result == LIBUSB_ERROR))
+    { 
+		Interface::PrintError(
+						  (result ==  LIBUSB_ERROR_NO_DEVICE) ?
+						  "Failed to receive handshake response.\nUSB error:no device\n" 
+						  : 
+						  (result == LIBUSB_ERROR_OVERFLOW) ?
+						  "Failed to receive handshake response.\nUSB error:overflow\n"
+						  : 
+						  (result == LIBUSB_ERROR_PIPE) ?
+						  "Failed to receive handshake response.\nUSB error:pipe\n"
+						  :
+						  (result == LIBUSB_ERROR_TIMEOUT) ?
+						  "Failed to receive handshake response.\nUSB error:timeout\n"
+						  :
+						  //						  (result == LIBUSB_ERROR) ? 
+						  //						  "Failed to receive handshake response. USB general error"
+						  //						  :
+						  "Failed to receive handshake response. Result: %d\n"
+						  , result);
+    }
+  else 
+    {
+	 Interface::PrintError("Failed to receive handshake response. Result: %d\n", result);
+    }
+}
+
 bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
@@ -318,7 +351,7 @@ bool BridgeManager::InitialiseProtocol(void)
 	if (result != LIBUSB_SUCCESS)
 	{
 		if (verbose)
-			Interface::PrintError("Failed to receive handshake response. Result: %d\n", result);
+		  handleLibUSBError(result);
 	}
 	else
 	{
