@@ -303,6 +303,11 @@ bool BridgeManager::InitialiseProtocol(void)
 	memcpy(dataBuffer, "ODIN", 4);
 	memset(dataBuffer + 4, 0, 1);
 
+	if (libusb_reset_device(deviceHandle))
+	{
+		Interface::PrintError("Failed to reset device!");
+	}
+
 	if (!SendBulkTransfer(dataBuffer, 4, 1000))
 	{
 		Interface::PrintError("Failed to send handshake!");
