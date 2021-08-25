@@ -28,10 +28,25 @@ namespace Heimdall
 {
 	class BeginSessionPacket : public SessionSetupPacket
 	{
+		protected:
+
+			enum
+			{
+				kDataSize = SessionSetupPacket::kDataSize + 4
+			};
+
 		public:
 
 			BeginSessionPacket() : SessionSetupPacket(SessionSetupPacket::kBeginSession)
 			{
+			}
+
+			void Pack(void)
+			{
+				SessionSetupPacket::Pack();
+
+				/* Odin protocol version. */
+				PackInteger(SessionSetupPacket::kDataSize, 0x4);
 			}
 	};
 }

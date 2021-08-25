@@ -147,19 +147,19 @@ static void closeFiles(vector<PartitionFile>& partitionFiles, FILE *& pitFile)
 
 static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<PartitionFile>& partitionFiles, FILE *pitFile, bool repartition)
 {
-	unsigned int totalBytes = 0;
+	unsigned long totalBytes = 0;
 
 	for (vector<PartitionFile>::const_iterator it = partitionFiles.begin(); it != partitionFiles.end(); it++)
 	{
 		FileSeek(it->file, 0, SEEK_END);
-		totalBytes += (unsigned int)FileTell(it->file);
+		totalBytes += (unsigned long)FileTell(it->file);
 		FileRewind(it->file);
 	}
 
 	if (repartition)
 	{
 		FileSeek(pitFile, 0, SEEK_END);
-		totalBytes += (unsigned int)FileTell(pitFile);
+		totalBytes += (unsigned long)FileTell(pitFile);
 		FileRewind(pitFile);
 	}
 
@@ -320,7 +320,7 @@ static PitData *getPitData(BridgeManager *bridgeManager, FILE *pitFile, bool rep
 		// Load the local pit file into memory.
 
 		FileSeek(pitFile, 0, SEEK_END);
-		unsigned int localPitFileSize = (unsigned int)FileTell(pitFile);
+		unsigned long localPitFileSize = (unsigned long)FileTell(pitFile);
 		FileRewind(pitFile);
 
 		unsigned char *pitFileBuffer = new unsigned char[localPitFileSize];
