@@ -2,6 +2,8 @@
 
 Heimdall is a cross-platform open-source tool suite used to flash firmware (aka ROMs) onto Samsung mobile devices.
 
+This is a fork of the original repository with a few crucial pull requests merged. 
+
 ## Supported Platforms
 
 Officially, AMD64/x86-64 (64-bit) or x86 (32-bit) computers running:
