@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.11)
 
 project(heimdall-frontend)
 
@@ -10,8 +10,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON) # moc files are generated in build (current) d
 
 find_package(Qt5Widgets REQUIRED)
 find_package(ZLIB REQUIRED)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
@@ -40,6 +38,7 @@ add_executable(heimdall-frontend WIN32
     ${HEIMDALL_FRONTEND_SOURCE_FILES}
     ${HEIMDALL_FRONTEND_FORMS}
     ${HEIMDALL_FRONTEND_RESOURCES})
+target_compile_features(heimdall-frontend PRIVATE cxx_std_11)
 
 include(LargeFiles)
 use_large_files(heimdall-frontend YES)

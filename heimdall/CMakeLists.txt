@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.11)
 
 project(heimdall)
 
@@ -10,8 +10,6 @@ find_package(libusb REQUIRED)
 
 set(LIBPIT_INCLUDE_DIRS
     ../libpit/source)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
@@ -43,6 +41,7 @@ set(HEIMDALL_SOURCE_FILES
 include(LargeFiles)
 use_large_files(heimdall YES)
 add_executable(heimdall ${HEIMDALL_SOURCE_FILES})
+target_compile_features(heimdall PRIVATE cxx_std_11)
 
 target_link_libraries(heimdall PRIVATE pit)
 target_link_libraries(heimdall PRIVATE ${LIBUSB_LIBRARY})
