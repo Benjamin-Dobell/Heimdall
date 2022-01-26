@@ -1,4 +1,4 @@
-Heimdall (c) 2010-2017 Benjamin Dobell, Glass Echidna
+Heimdall (c) 2010-2022 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
 
 DISCLAIMER:
