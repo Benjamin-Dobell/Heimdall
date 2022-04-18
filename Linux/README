@@ -66,7 +66,8 @@ Flashing Heimdall Firmware Package with Heimdall Frontend:
 
        Download mode can be accessed several different ways depending on your
        particular device model. If you're unsure how to do this please search
-       online for the appropriate method.
+       online for the appropriate method. For example, for the S3 through S8,
+       power off, then press Power+Volume down+Home/Bixby.
 
    10. Press the "Start" button.
 
@@ -195,7 +196,7 @@ Flashing Firmware from Command Line:
 
        NOTE: If you want to use the CSC then extract it last.
 
-    4. Put your Galaxy S device into download mode and plug it in..
+    4. Put your Galaxy S device into download mode and plug it in.
 
     5. Open a terminal and navigate to the directory where you extracted
        the ROM/firmware files.
@@ -489,4 +490,18 @@ Appendix B - Installing Heimdall Suite from Source:
             cd build
             cmake -DCMAKE_BUILD_TYPE=Release ..
             make
+
+If you just want the command line tool, then compilation (and download times) can be sped up (qt and OpenGl are not necessary). Exact commands for Ubuntu 14.04, and debian jessie are:
+
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake git libusb-1.0-0-dev
+
+            git clone git://github.com/Benjamin-Dobell/Heimdall.git
+
+            mkdir ./Heimdall/build
+            cd ./Heimdall/build
+
+            cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_FRONTEND=ON ..
+            make
+            sudo cp bin/heimdall /usr/local/bin
 

@@ -18,6 +18,10 @@ jobs:
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build (linux)
+        path: build
 
   win-build:
     runs-on: windows-latest
@@ -42,3 +46,25 @@ jobs:
         cd build
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
         make
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build (windows)
+        path: build
+
+  macos-build:
+    runs-on: macos-10.15
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install packages
+        shell: bash
+        run: brew install libusb qt5 cmake
+
+      - name: Build
+        shell: bash
+        run: mkdir build && cd build && cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/usr/local/opt/qt5/lib/cmake/Qt5Widgets .. && make
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build (macos)
+          path: build

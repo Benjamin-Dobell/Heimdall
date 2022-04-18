@@ -11,7 +11,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON) # moc files are generated in build (current) d
 find_package(Qt5Widgets REQUIRED)
 find_package(ZLIB REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+if(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lobjc -framework IOKit -framework CoreFoundation")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+endif()
 
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
@@ -52,5 +59,7 @@ target_link_libraries(heimdall-frontend Qt5::Widgets)
 target_link_libraries(heimdall-frontend z)
 install (TARGETS heimdall-frontend
 		RUNTIME	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR})
+		BUNDLE	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		BUNDLE DESTINATION /Applications)
 

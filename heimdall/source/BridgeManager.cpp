@@ -303,6 +303,11 @@ bool BridgeManager::InitialiseProtocol(void)
 	memcpy(dataBuffer, "ODIN", 4);
 	memset(dataBuffer + 4, 0, 1);
 
+	if (libusb_reset_device(deviceHandle))
+	{
+		Interface::PrintError("Failed to reset device!");
+	}
+
 	if (!SendBulkTransfer(dataBuffer, 4, 1000))
 	{
 		Interface::PrintError("Failed to send handshake!");
@@ -1024,7 +1029,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 	}
 
 	FileSeek(file, 0, SEEK_END);
-	unsigned int fileSize = (unsigned int)FileTell(file);
+	unsigned long fileSize = (unsigned long)FileTell(file);
 	FileRewind(file);
 
 	ResponsePacket *fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
@@ -1052,7 +1057,7 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			lastSequenceSize++;
 	}
 
-	unsigned int bytesTransferred = 0;
+	unsigned long bytesTransferred = 0;
 	unsigned int currentPercent;
 	unsigned int previousPercent = 0;
 	Interface::Print("0%%");
