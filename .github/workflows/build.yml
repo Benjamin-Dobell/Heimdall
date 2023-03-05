@@ -11,7 +11,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt -y install build-essential cmake zlib1g-dev libgl1-mesa-dev libgl1-mesa-glx libusb-1.0-0-dev qt5-default
+        sudo apt -y install build-essential cmake zlib1g-dev libgl1-mesa-dev libgl1-mesa-glx libusb-1.0-0-dev qtbase5-dev
+
     - name: Build
       run: |
         mkdir build
@@ -29,11 +30,11 @@ jobs:
         update: true
         install: >-
           make
-          mingw-w64-x86_64
           mingw-w64-x86_64-clang
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-libusb
           mingw-w64-x86_64-qt5-static
+
     - name: Build
       shell: msys2 {0}
       run: |
@@ -43,5 +44,5 @@ jobs:
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
         make
 
-    - name: Step 3 - Use the Upload Artifact GitHub Action
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v2
