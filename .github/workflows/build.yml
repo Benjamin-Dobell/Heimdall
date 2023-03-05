@@ -20,6 +20,12 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
 
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux
+        path: ./bin
+
   win-build:
     runs-on: windows-latest
 
@@ -45,4 +51,7 @@ jobs:
         make
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows
+        path: ./bin
