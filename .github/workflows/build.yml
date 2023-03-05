@@ -24,7 +24,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: linux
-        path: ./bin
+        path: ./
 
   win-build:
     runs-on: windows-latest
@@ -54,4 +54,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: windows
-        path: ./bin
+        path: ./
