@@ -11,13 +11,22 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt -y install build-essential cmake zlib1g-dev libgl1-mesa-dev libgl1-mesa-glx libusb-1.0-0-dev qt5-default
+        sudo apt -y install build-essential cmake zlib1g-dev libgl1-mesa-dev libgl1-mesa-glx libusb-1.0-0-dev qtbase5-dev
+
     - name: Build
       run: |
         mkdir build
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
+        cd ..
+        cp ./Linux/README ./build/bin/
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux
+        path: ./build/bin/
 
   win-build:
     runs-on: windows-latest
@@ -29,16 +38,31 @@ jobs:
         update: true
         install: >-
           make
-          mingw-w64-x86_64
           mingw-w64-x86_64-clang
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-libusb
+          mingw-w64-x86_64-qt5-base
           mingw-w64-x86_64-qt5-static
+          mingw-w64-x86_64-qt5-tools          
+
     - name: Build
       shell: msys2 {0}
       run: |
         export PATH="/mingw64/bin:$PATH"
         mkdir build
         cd build
-        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
         make
+        cd bin
+        windeployqt.exe heimdall-frontend.exe
+        cd ..
+        cd ..
+        mkdir ./build/bin/Drivers/
+        cp ./Win32/README.txt ./build/bin/
+        cp ./Win32/Drivers/zadig.exe ./build/bin/Drivers/
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows
+        path: ./build/bin/
