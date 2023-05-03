@@ -48,7 +48,7 @@ jobs:
         export PATH="/mingw64/bin:$PATH"
         mkdir build
         cd build
-        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
+        cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
         make
         mkdir ./build/bin/Drivers/
         cp ./Win32/README.txt ./build/bin/
