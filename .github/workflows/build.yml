@@ -51,6 +51,7 @@ jobs:
         cd build
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
         make
+        windeployqt heimdall-frontend.exe
         cd ..
         mkdir ./build/bin/Drivers/
         cp ./Win32/README.txt ./build/bin/
