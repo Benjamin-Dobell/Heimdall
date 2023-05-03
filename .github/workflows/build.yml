@@ -19,7 +19,7 @@ jobs:
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
-        cp ./Linux/README.txt ./build/bin/
+        cp ./Linux/README ./build/bin/
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
