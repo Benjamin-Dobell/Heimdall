@@ -19,6 +19,7 @@ jobs:
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
+        cd ..
         cp ./Linux/README ./build/bin/
 
     - name: Upload Artifacts
@@ -50,6 +51,7 @@ jobs:
         cd build
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
         make
+        cd ..
         mkdir ./build/bin/Drivers/
         cp ./Win32/README.txt ./build/bin/
         cp ./Win32/Drivers/zadig.exe ./build/bin/Drivers/
