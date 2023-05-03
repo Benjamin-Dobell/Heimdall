@@ -43,6 +43,7 @@ jobs:
           mingw-w64-x86_64-libusb
           mingw-w64-x86_64-qt5-base
           mingw-w64-x86_64-qt5-tools
+          mingw-w64-qt5-static
 
     - name: Build
       shell: msys2 {0}
