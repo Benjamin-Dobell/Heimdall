@@ -19,12 +19,13 @@ jobs:
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make
+        cp ./Linux/README.txt ./build/bin/
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: linux
-        path: ./
+        path: ./build/bin/
 
   win-build:
     runs-on: windows-latest
@@ -49,9 +50,12 @@ jobs:
         cd build
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DQt5Widgets_DIR=/d/a/_temp/msys/msys64/mingw64/qt5-static/lib/cmake/Qt5Widgets ..
         make
+        mkdir ./build/bin/Drivers/
+        cp ./Win32/README.txt ./build/bin/
+        cp ./Win32/Drivers/zadig.exe ./build/bin/Drivers/
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: windows
-        path: ./
+        path: ./build/bin/
