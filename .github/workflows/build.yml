@@ -42,6 +42,7 @@ jobs:
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-libusb
           mingw-w64-x86_64-qt5-base
+          mingw-w64-x86_64-qt5-tools
 
     - name: Build
       shell: msys2 {0}
@@ -51,7 +52,7 @@ jobs:
         cd build
         cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
         make
-        windeployqt heimdall-frontend.exe
+        windeployqt.exe heimdall-frontend.exe
         cd ..
         mkdir ./build/bin/Drivers/
         cp ./Win32/README.txt ./build/bin/
