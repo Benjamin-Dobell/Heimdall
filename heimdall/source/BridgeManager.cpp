@@ -260,15 +260,19 @@ bool BridgeManager::ClaimDeviceInterface(void)
 bool BridgeManager::SetupDeviceInterface(void)
 {
 	Interface::Print("Setting up interface...\n");
+	
+	if(dont_set_libusb_interface_alt_setting) {
+		Interface::Print("Skipping alt interface setting...\n");
+	} else {
+		int result = libusb_set_interface_alt_setting(deviceHandle, interfaceIndex, altSettingIndex);
 
-	int result = libusb_set_interface_alt_setting(deviceHandle, interfaceIndex, altSettingIndex);
-
-	if (result != LIBUSB_SUCCESS)
-	{
-		Interface::PrintError("Setting up interface failed!\n");
-		return (false);
+		if (result != LIBUSB_SUCCESS)
+		{
+			Interface::PrintError("Setting up interface failed!\n");
+			return (false);
+		}
 	}
-
+	
 	Interface::Print("\n");
 	return (true);
 }
@@ -341,10 +345,11 @@ bool BridgeManager::InitialiseProtocol(void)
 	return (false);
 }
 
-BridgeManager::BridgeManager(bool verbose)
+BridgeManager::BridgeManager(bool verbose, bool dont_set_libusb_interface_alt_setting)
 {
 	this->verbose = verbose;
-
+	this->dont_set_libusb_interface_alt_setting = dont_set_libusb_interface_alt_setting;
+	
 	libusbContext = nullptr;
 	deviceHandle = nullptr;
 	heimdallDevice = nullptr;
