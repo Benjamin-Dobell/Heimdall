@@ -42,11 +42,11 @@ const char *FlashAction::usage = "Action: flash\n\
 Arguments:\n\
     [--<partition name> <filename> ...]\n\
     [--<partition identifier> <filename> ...]\n\
-    [--pit <filename>] [--verbose] [--no-reboot] [--resume] [--stdout-errors]\n\
+    [--pit <filename>] [--verbose] [--dont_set_libusb_interface_alt_setting] [--no-reboot] [--resume] [--stdout-errors]\n\
     [--usb-log-level <none/error/warning/debug>]\n\
   or:\n\
     --repartition --pit <filename> [--<partition name> <filename> ...]\n\
-    [--<partition identifier> <filename> ...] [--verbose] [--no-reboot]\n\
+    [--<partition identifier> <filename> ...] [--verbose] [--dont_set_libusb_interface_alt_setting] [--no-reboot]\n\
     [--resume] [--stdout-errors] [--usb-log-level <none/error/warning/debug>]\n\
     [--tflash]\n\
 Description: Flashes one or more firmware files to your phone. Partition names\n\
@@ -428,6 +428,7 @@ int FlashAction::Execute(int argc, char **argv)
 	argumentTypes["no-reboot"] = kArgumentTypeFlag;
 	argumentTypes["resume"] = kArgumentTypeFlag;
 	argumentTypes["verbose"] = kArgumentTypeFlag;
+	argumentTypes["dont_set_libusb_interface_alt_setting"] = kArgumentTypeFlag;
 	argumentTypes["stdout-errors"] = kArgumentTypeFlag;
 	argumentTypes["usb-log-level"] = kArgumentTypeString;
 	argumentTypes["tflash"] = kArgumentTypeFlag;
@@ -458,6 +459,7 @@ int FlashAction::Execute(int argc, char **argv)
 	bool reboot = arguments.GetArgument("no-reboot") == nullptr;
 	bool resume = arguments.GetArgument("resume") != nullptr;
 	bool verbose = arguments.GetArgument("verbose") != nullptr;
+	bool dont_set_libusb_interface_alt_setting = arguments.GetArgument("dont_set_libusb_interface_alt_setting") != nullptr;
 	bool tflash = arguments.GetArgument("tflash") != nullptr;
 	
 	if (arguments.GetArgument("stdout-errors") != nullptr)
@@ -534,7 +536,7 @@ int FlashAction::Execute(int argc, char **argv)
 
 	// Perform flash
 
-	BridgeManager *bridgeManager = new BridgeManager(verbose);
+	BridgeManager *bridgeManager = new BridgeManager(verbose, dont_set_libusb_interface_alt_setting);
 	bridgeManager->SetUsbLogLevel(usbLogLevel);
 
 	if (bridgeManager->Initialise(resume) != BridgeManager::kInitialiseSucceeded || !bridgeManager->BeginSession())

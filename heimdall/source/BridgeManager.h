@@ -109,6 +109,7 @@ namespace Heimdall
 			static const DeviceIdentifier supportedDevices[kSupportedDeviceCount];
 
 			bool verbose;
+			bool dont_set_libusb_interface_alt_setting;
 
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
@@ -145,7 +146,7 @@ namespace Heimdall
 
 		public:
 
-			BridgeManager(bool verbose);
+			BridgeManager(bool verbose, bool dont_set_libusb_interface_alt_setting = false);
 			~BridgeManager();
 
 			bool DetectDevice(void);
