@@ -159,7 +159,7 @@ namespace libpit
 				this->updateAttributes = updateAttributes;
 			}
 			
-			// Different versions of Loke (secondary bootloaders) on different devices intepret this differently.
+			// Different versions of Loke (secondary bootloaders) on different devices interpret this differently.
 			unsigned int GetBlockSizeOrOffset(void) const
 			{
 				return blockSizeOrOffset;

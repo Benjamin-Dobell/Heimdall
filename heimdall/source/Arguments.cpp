@@ -138,7 +138,7 @@ bool Arguments::ParseArguments(int argc, char **argv, int argi)
 			}
 		}
 
-		// Handle wilcards
+		// Handle wildcards
 		
 		unsigned int unsignedIntName;
 		
