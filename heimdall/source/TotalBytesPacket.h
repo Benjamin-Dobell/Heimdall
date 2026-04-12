@@ -30,16 +30,16 @@ namespace Heimdall
 	{
 		private:
 
-			unsigned int totalBytes;
+			unsigned long long totalBytes;
 
 		public:
 
-			TotalBytesPacket(unsigned int totalBytes) : SessionSetupPacket(SessionSetupPacket::kTotalBytes)
+			TotalBytesPacket(unsigned long long totalBytes) : SessionSetupPacket(SessionSetupPacket::kTotalBytes)
 			{
 				this->totalBytes = totalBytes;
 			}
 
-			unsigned int GetTotalBytes(void) const
+			unsigned long long GetTotalBytes(void) const
 			{
 				return (totalBytes);
 			}
@@ -48,7 +48,13 @@ namespace Heimdall
 			{
 				SessionSetupPacket::Pack();
 
-				PackInteger(SessionSetupPacket::kDataSize, totalBytes);
+				// 64-bit little-endian at offset 8 (SessionSetupPacket::kDataSize).
+				// Thor uses WriteLong here — Samsung Loke requires 8 bytes for
+				// flash sessions larger than 4 GiB.
+				PackInteger(SessionSetupPacket::kDataSize,
+					(unsigned int)(totalBytes & 0xFFFFFFFF));
+				PackInteger(SessionSetupPacket::kDataSize + 4,
+					(unsigned int)(totalBytes >> 32));
 			}
 	};
 }

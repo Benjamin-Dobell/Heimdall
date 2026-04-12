@@ -20,6 +20,7 @@
 
 // C Standard Library
 #include <cstdio>
+#include <cstring>
 
 // libusb
 #include <libusb.h>
@@ -61,6 +62,152 @@
 
 using namespace libpit;
 using namespace Heimdall;
+
+// ---------------------------------------------------------------------------
+// Android sparse image support
+// Samsung Odin expands simg → raw before sending; Heimdall must do the same.
+// ---------------------------------------------------------------------------
+static const uint32_t kAndroidSparseMagic    = 0xED26FF3Au;
+static const uint16_t kSparseChunkRaw        = 0xCAC1u;
+static const uint16_t kSparseChunkFill       = 0xCAC2u;
+static const uint16_t kSparseChunkDontCare   = 0xCAC3u;
+static const uint16_t kSparseChunkCRC32      = 0xCAC4u;
+
+struct SparseFileHeader {
+	uint32_t magic;
+	uint16_t major_version;
+	uint16_t minor_version;
+	uint16_t file_hdr_sz;
+	uint16_t chunk_hdr_sz;
+	uint32_t blk_sz;
+	uint32_t total_blks;
+	uint32_t total_chunks;
+	uint32_t image_checksum;
+};
+
+struct SparseChunkHeader {
+	uint16_t chunk_type;
+	uint16_t reserved;
+	uint32_t chunk_sz;   // in blocks
+	uint32_t total_sz;   // in bytes, including this header
+};
+
+// Streaming expander for Android sparse images.
+// Call Read() repeatedly to get sequential raw bytes.
+class SparseReader {
+public:
+	SparseReader(FILE *f, const SparseFileHeader &hdr)
+		: file(f), blk_sz(hdr.blk_sz),
+		  total_blks(hdr.total_blks), total_chunks(hdr.total_chunks),
+		  chunk_hdr_sz(hdr.chunk_hdr_sz),
+		  chunks_done(0), chunk_output_remaining(0),
+		  current_type(0), fill_value(0)
+	{
+		expanded_size = (uint64_t)hdr.total_blks * hdr.blk_sz;
+	}
+
+	uint64_t ExpandedSize() const { return expanded_size; }
+
+	// Fill buf with up to 'size' expanded bytes. Returns bytes written, 0 at
+	// end-of-image, -1 on read error.
+	int Read(unsigned char *buf, unsigned int size)
+	{
+		unsigned int written = 0;
+		while (written < size) {
+			// Load the next chunk if the current one is exhausted.
+			if (chunk_output_remaining == 0) {
+				if (chunks_done >= total_chunks)
+					break; // end of image
+				if (!LoadNextChunk())
+					return -1;
+			}
+
+			unsigned int want = size - written;
+			unsigned int avail = (chunk_output_remaining < want) ?
+				(unsigned int)chunk_output_remaining : want;
+
+			switch (current_type) {
+			case kSparseChunkRaw:
+				if (fread(buf + written, 1, avail, file) != avail)
+					return -1;
+				break;
+			case kSparseChunkFill: {
+				// Fill with the 4-byte pattern.
+				for (unsigned int i = 0; i < avail; i++) {
+					unsigned int byte_in_pattern =
+						(unsigned int)(chunk_fill_consumed + i) % 4;
+					buf[written + i] =
+						(unsigned char)(fill_value >> (byte_in_pattern * 8));
+				}
+				chunk_fill_consumed += avail;
+				break;
+			}
+			case kSparseChunkDontCare:
+				memset(buf + written, 0, avail);
+				break;
+			default:
+				return -1;
+			}
+
+			written += avail;
+			chunk_output_remaining -= avail;
+		}
+		return (int)written;
+	}
+
+private:
+	FILE    *file;
+	uint32_t blk_sz;
+	uint32_t total_blks;
+	uint32_t total_chunks;
+	uint16_t chunk_hdr_sz;
+	uint64_t expanded_size;
+
+	uint32_t chunks_done;
+	uint64_t chunk_output_remaining; // expanded bytes left in current chunk
+	uint16_t current_type;
+	uint32_t fill_value;
+	uint32_t chunk_fill_consumed;    // bytes consumed from fill pattern so far
+
+	bool LoadNextChunk()
+	{
+		SparseChunkHeader ch;
+		if (fread(&ch, 1, sizeof(ch), file) != sizeof(ch))
+			return false;
+
+		// Skip any extra bytes in the chunk header (future format versions).
+		if (chunk_hdr_sz > sizeof(ch))
+			FileSeek(file, chunk_hdr_sz - sizeof(ch), SEEK_CUR);
+
+		current_type = ch.chunk_type;
+		uint64_t output_bytes = (uint64_t)ch.chunk_sz * blk_sz;
+
+		switch (ch.chunk_type) {
+		case kSparseChunkRaw:
+			// Raw data follows in the file; output_bytes == data bytes.
+			break;
+		case kSparseChunkFill:
+			if (fread(&fill_value, 1, 4, file) != 4)
+				return false;
+			chunk_fill_consumed = 0;
+			break;
+		case kSparseChunkDontCare:
+			break;
+		case kSparseChunkCRC32:
+			// CRC chunk: skip 4-byte crc, produces no output.
+			FileSeek(file, 4, SEEK_CUR);
+			output_bytes = 0;
+			break;
+		default:
+			Interface::PrintError("Unknown sparse chunk type 0x%04X\n", ch.chunk_type);
+			return false;
+		}
+
+		chunk_output_remaining = output_bytes;
+		chunks_done++;
+		return true;
+	}
+};
 
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
 	DeviceIdentifier(BridgeManager::kVidSamsung, BridgeManager::kPidGalaxyS),
@@ -297,6 +444,40 @@ bool BridgeManager::InitialiseProtocol(void)
 {
 	Interface::Print("Initialising protocol...\n");
 
+	// Diagnostic: print the negotiated USB speed and bulk endpoint max packet
+	// sizes. On macOS, modern Samsung devices often negotiate at SuperSpeed
+	// (USB 3.0) with 1024-byte max bulk packets. That's a hostile case for
+	// Heimdall's 1024-byte control packets and 1 MiB file parts because both
+	// are exact multiples of the max packet size — which means a ZLP is
+	// required to terminate the transfer, and libusb's sync API won't add one
+	// automatically.
+	if (heimdallDevice)
+	{
+		int speed = libusb_get_device_speed(heimdallDevice);
+		const char *speedStr = "unknown";
+		switch (speed)
+		{
+			case LIBUSB_SPEED_LOW: speedStr = "LOW (1.5 Mbit/s, USB 1.0)"; break;
+			case LIBUSB_SPEED_FULL: speedStr = "FULL (12 Mbit/s, USB 1.1)"; break;
+			case LIBUSB_SPEED_HIGH: speedStr = "HIGH (480 Mbit/s, USB 2.0)"; break;
+			case LIBUSB_SPEED_SUPER: speedStr = "SUPER (5 Gbit/s, USB 3.0)"; break;
+#ifdef LIBUSB_SPEED_SUPER_PLUS
+			case LIBUSB_SPEED_SUPER_PLUS: speedStr = "SUPER+ (10 Gbit/s, USB 3.1)"; break;
+#endif
+		}
+		Interface::Print("USB speed: %s\n", speedStr);
+		if (inEndpoint >= 0)
+		{
+			int inMax = libusb_get_max_packet_size(heimdallDevice, (unsigned char)inEndpoint);
+			Interface::Print("  inEndpoint  0x%02X max packet size: %d\n", (unsigned int)inEndpoint, inMax);
+		}
+		if (outEndpoint >= 0)
+		{
+			int outMax = libusb_get_max_packet_size(heimdallDevice, (unsigned char)outEndpoint);
+			Interface::Print("  outEndpoint 0x%02X max packet size: %d\n", (unsigned int)outEndpoint, outMax);
+		}
+	}
+
 	unsigned char dataBuffer[7];
 
 	// Send "ODIN"
@@ -523,13 +704,32 @@ bool BridgeManager::BeginSession(void)
 	unsigned int deviceDefaultPacketSize = beginSessionResponse.GetResult();
 
 	Interface::Print("\nSome devices may take up to 2 minutes to respond.\nPlease be patient!\n\n");
+	Interface::Print("deviceDefaultPacketSize (from BeginSession response): %u (0x%08X)\n",
+		deviceDefaultPacketSize, deviceDefaultPacketSize);
 	Sleep(3000); // Give the user time to read the message.
 
 	if (deviceDefaultPacketSize != 0) // 0 means changing the packet size is not supported.
 	{
-		fileTransferSequenceTimeout = 120000; // 2 minutes!
-		fileTransferPacketSize = 1048576; // 1 MiB
-		fileTransferSequenceMaxLength = 30; // Therefore, fileTransferPacketSize * fileTransferSequenceMaxLength == 30 MiB per sequence.
+		// The BeginSession response encodes a bootloader version at bytes 6-7
+		// of the response. Thor's reverse engineering found that:
+		//   version 0 or 1 → 128 KiB packets, 240 per sequence (30 MiB)
+		//   version >= 2   → 1 MiB packets, 30 per sequence (30 MiB)
+		// Decode the version from the response we already read.
+		unsigned int blVersion = (deviceDefaultPacketSize >> 16) & 0xFFFF;
+		Interface::Print("Bootloader protocol version: %u\n", blVersion);
+
+		if (blVersion >= 2)
+		{
+			fileTransferSequenceTimeout = 600000; // 10 minutes
+			fileTransferPacketSize = 1048576;     // 1 MiB
+			fileTransferSequenceMaxLength = 30;   // 30 MiB per sequence
+		}
+		else
+		{
+			fileTransferSequenceTimeout = 600000;
+			fileTransferPacketSize = 131072;      // 128 KiB
+			fileTransferSequenceMaxLength = 240;  // 30 MiB per sequence
+		}
 
 		FilePartSizePacket filePartSizePacket(fileTransferPacketSize);
 
@@ -543,6 +743,12 @@ bool BridgeManager::BeginSession(void)
 
 		if (!ReceivePacket(&filePartSizeResponse))
 			return (false);
+
+		Interface::Print("FilePartSizePacket result: %u (0x%08X)\n",
+			filePartSizeResponse.GetResult(), filePartSizeResponse.GetResult());
+		Interface::Print("Configured: packetSize=%u seqMaxLen=%u seqTotal=%u bytes\n",
+			fileTransferPacketSize, fileTransferSequenceMaxLength,
+			fileTransferPacketSize * fileTransferSequenceMaxLength);
 
 		if (filePartSizeResponse.GetResult() != 0)
 		{
@@ -629,6 +835,10 @@ bool BridgeManager::SendBulkTransfer(unsigned char *data, int length, int timeou
 			if (verbose)
 				Interface::PrintErrorSameLine(" Retrying...\n");
 
+			// Clear a halted/stalled endpoint before retrying (common on macOS after long transfers)
+			if (result == LIBUSB_ERROR_PIPE)
+				libusb_clear_halt(deviceHandle, outEndpoint);
+
 			// Wait longer each retry
 			Sleep(retryDelay * (i + 1));
 
@@ -673,6 +883,10 @@ int BridgeManager::ReceiveBulkTransfer(unsigned char *data, int length, int time
 		{
 			if (verbose)
 				Interface::PrintErrorSameLine(" Retrying...\n");
+
+			// Clear a halted/stalled endpoint before retrying (common on macOS after long transfers)
+			if (result == LIBUSB_ERROR_PIPE)
+				libusb_clear_halt(deviceHandle, inEndpoint);
 
 			// Wait longer each retry
 			Sleep(retryDelay * (i + 1));
@@ -1013,19 +1227,35 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		return (false);
 	}
 
+	// Determine file size.
+	FileSeek(file, 0, SEEK_END);
+	uint64_t fileSize = (uint64_t)FileTell(file);
+	FileRewind(file);
+
+	Interface::Print("File size: %llu bytes\n", (unsigned long long)fileSize);
+
+	// Note: Samsung bootloaders from Loke v2+ natively handle Android sparse
+	// images, so we do NOT expand them on the host. Thor confirms this:
+	// it has zero sparse handling and just streams the file bytes verbatim.
+	// The previous sparse expansion path has been removed.
+	SparseReader *sparseReader = nullptr;
+
+	// SetTotalBytes is sent once by FlashAction::sendTotalTransferSize()
+	// before any file flashes begin. Do NOT send it again here — sending
+	// conflicting totals confuses the bootloader's session accounting and
+	// causes Loke error -5 (Auth) on the second sequence.
+
+	// Start the actual file transfer.
 	FileTransferPacket *flashFileTransferPacket = new FileTransferPacket(FileTransferPacket::kRequestFlash);
-	bool success = SendPacket(flashFileTransferPacket);
+	bool success = SendPacket(flashFileTransferPacket); // default: kEmptyTransferAfter
 	delete flashFileTransferPacket;
 
 	if (!success)
 	{
+		delete sparseReader;
 		Interface::PrintError("Failed to initialise file transfer!\n");
 		return (false);
 	}
-
-	FileSeek(file, 0, SEEK_END);
-	unsigned int fileSize = (unsigned int)FileTell(file);
-	FileRewind(file);
 
 	ResponsePacket *fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
 	success = ReceivePacket(fileTransferResponse);
@@ -1033,28 +1263,34 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 	if (!success)
 	{
+		delete sparseReader;
 		Interface::PrintError("Failed to confirm transfer initialisation!\n");
 		return (false);
 	}
 
-	unsigned int sequenceCount = fileSize / (fileTransferSequenceMaxLength * fileTransferPacketSize);
+	uint64_t seqBytes64 = (uint64_t)fileTransferSequenceMaxLength * fileTransferPacketSize;
+	uint64_t sequenceCount64 = fileSize / seqBytes64;
 	unsigned int lastSequenceSize = fileTransferSequenceMaxLength;
-	unsigned int partialPacketByteCount = fileSize % fileTransferPacketSize;
+	unsigned int partialPacketByteCount = (unsigned int)(fileSize % fileTransferPacketSize);
 
-	if (fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize) != 0)
+	if (fileSize % seqBytes64 != 0)
 	{
-		sequenceCount++;
-
-		unsigned int lastSequenceBytes = fileSize % (fileTransferSequenceMaxLength * fileTransferPacketSize);
-		lastSequenceSize = lastSequenceBytes / fileTransferPacketSize;
-
+		sequenceCount64++;
+		uint64_t lastSeqBytes = fileSize % seqBytes64;
+		lastSequenceSize = (unsigned int)(lastSeqBytes / fileTransferPacketSize);
 		if (partialPacketByteCount != 0)
 			lastSequenceSize++;
 	}
 
-	unsigned int bytesTransferred = 0;
+	unsigned int sequenceCount = (unsigned int)sequenceCount64;
+	uint64_t bytesTransferred = 0;
 	unsigned int currentPercent;
 	unsigned int previousPercent = 0;
+
+	// Per-packet staging buffer — reused across retries so a retry sends the
+	// same bytes that were already acknowledged by the file-part response.
+	unsigned char *packetBuf = new unsigned char[fileTransferPacketSize];
+
 	Interface::Print("0%%");
 
 	for (unsigned int sequenceIndex = 0; sequenceIndex < sequenceCount; sequenceIndex++)
@@ -1064,34 +1300,74 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 		unsigned int sequenceTotalByteCount = sequenceSize * fileTransferPacketSize;
 
 		FlashPartFileTransferPacket *beginFileTransferPacket = new FlashPartFileTransferPacket(sequenceTotalByteCount);
-		success = SendPacket(beginFileTransferPacket);
+		success = SendPacket(beginFileTransferPacket); // default: kEmptyTransferAfter
 		delete beginFileTransferPacket;
 
 		if (!success)
 		{
 			Interface::PrintErrorSameLine("\n");
 			Interface::PrintError("Failed to begin file transfer sequence!\n");
+			delete[] packetBuf;
+			delete sparseReader;
 			return (false);
 		}
 
-		fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
-		bool success = ReceivePacket(fileTransferResponse);
-		delete fileTransferResponse;
-
-		if (!success)
+		// Read begin-sequence response with full diagnostics (instead of using ReceivePacket which hides details).
 		{
-			Interface::PrintErrorSameLine("\n");
-			Interface::PrintError("Failed to confirm beginning of file transfer sequence!\n");
-			return (false);
+			unsigned char beginRespBuf[8];
+			memset(beginRespBuf, 0, sizeof(beginRespBuf));
+			int br = ReceiveBulkTransfer(beginRespBuf, sizeof(beginRespBuf), kDefaultTimeoutReceive);
+			if (br < 0 || beginRespBuf[0] != ResponsePacket::kResponseTypeFileTransfer)
+			{
+				Interface::PrintErrorSameLine("\n");
+				Interface::PrintError("Failed to confirm beginning of file transfer sequence %u! (br=%d)\n",
+					sequenceIndex, br);
+				if (br > 0)
+				{
+					Interface::PrintError("  Raw: %02X %02X %02X %02X  %02X %02X %02X %02X\n",
+						beginRespBuf[0], beginRespBuf[1], beginRespBuf[2], beginRespBuf[3],
+						beginRespBuf[4], beginRespBuf[5], beginRespBuf[6], beginRespBuf[7]);
+				}
+				delete[] packetBuf;
+				delete sparseReader;
+				return (false);
+			}
+			if (sequenceIndex < 3)
+			{
+				Interface::Print("\n[seq %u] Begin OK. Resp: %02X %02X %02X %02X  %02X %02X %02X %02X\n",
+					sequenceIndex,
+					beginRespBuf[0], beginRespBuf[1], beginRespBuf[2], beginRespBuf[3],
+					beginRespBuf[4], beginRespBuf[5], beginRespBuf[6], beginRespBuf[7]);
+			}
 		}
 
 		for (unsigned int filePartIndex = 0; filePartIndex < sequenceSize; filePartIndex++)
 		{
-			// NOTE: This empty transfer thing is entirely ridiculous, but sadly it seems to be required.
+			// Original Heimdall empty transfer behavior (restored).
 			int sendEmptyTransferFlags = (filePartIndex == 0) ? kEmptyTransferNone : kEmptyTransferBefore;
 
-			// Send
-			SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
+			// Read one packet's worth of data into the staging buffer.
+			memset(packetBuf, 0, fileTransferPacketSize);
+			if (sparseReader)
+			{
+				int r = sparseReader->Read(packetBuf, fileTransferPacketSize);
+				if (r < 0)
+				{
+					Interface::PrintErrorSameLine("\n");
+					Interface::PrintError("Failed to read from sparse image!\n");
+					delete[] packetBuf;
+					delete sparseReader;
+					return (false);
+				}
+			}
+			else
+			{
+				(void)fread(packetBuf, 1, fileTransferPacketSize, file);
+			}
+
+
+			// Send (use buffer constructor so retries resend identical bytes)
+			SendFilePartPacket *sendFilePartPacket = new SendFilePartPacket(packetBuf, fileTransferPacketSize);
 			success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
 			delete sendFilePartPacket;
 
@@ -1099,6 +1375,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			{
 				Interface::PrintErrorSameLine("\n");
 				Interface::PrintError("Failed to send file part packet!\n");
+				delete[] packetBuf;
+				delete sparseReader;
 				return (false);
 			}
 
@@ -1106,7 +1384,6 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			SendFilePartResponse *sendFilePartResponse = new SendFilePartResponse();
 			success = ReceivePacket(sendFilePartResponse);
 			int receivedPartIndex = sendFilePartResponse->GetPartIndex();
-
 			delete sendFilePartResponse;
 
 			if (!success)
@@ -1119,8 +1396,8 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 					Interface::PrintErrorSameLine("\n");
 					Interface::PrintError("Retrying...");
 
-					// Send
-					sendFilePartPacket = new SendFilePartPacket(file, fileTransferPacketSize);
+					// Resend the same buffer — do NOT re-read from file/sparse stream.
+					sendFilePartPacket = new SendFilePartPacket(packetBuf, fileTransferPacketSize);
 					success = SendPacket(sendFilePartPacket, kDefaultTimeoutSend, sendEmptyTransferFlags);
 					delete sendFilePartPacket;
 
@@ -1128,20 +1405,22 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 					{
 						Interface::PrintErrorSameLine("\n");
 						Interface::PrintError("Failed to send file part packet!\n");
+						delete[] packetBuf;
+						delete sparseReader;
 						return (false);
 					}
 
-					// Response
 					sendFilePartResponse = new SendFilePartResponse();
 					success = ReceivePacket(sendFilePartResponse);
 					unsigned int receivedPartIndex = sendFilePartResponse->GetPartIndex();
-
 					delete sendFilePartResponse;
 
 					if (receivedPartIndex != filePartIndex)
 					{
 						Interface::PrintErrorSameLine("\n");
 						Interface::PrintError("Expected file part index: %d Received: %d\n", filePartIndex, receivedPartIndex);
+						delete[] packetBuf;
+						delete sparseReader;
 						return (false);
 					}
 
@@ -1150,13 +1429,19 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 				}
 
 				if (!success)
+				{
+					delete[] packetBuf;
+					delete sparseReader;
 					return (false);
+				}
 			}
 
 			if (receivedPartIndex != filePartIndex)
 			{
 				Interface::PrintErrorSameLine("\n");
 				Interface::PrintError("Expected file part index: %d Received: %d\n", filePartIndex, receivedPartIndex);
+				delete[] packetBuf;
+				delete sparseReader;
 				return (false);
 			}
 
@@ -1190,7 +1475,14 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 
 		if (destination == EndFileTransferPacket::kDestinationPhone)
 		{
-			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, fileIdentifier, isLastSequence);
+			// NOTE: The "unknown1" field here is where modern (2019+) Samsung
+			// bootloaders diverge from the Loke protocol Heimdall implements.
+			// Tested values that all still fail at seq 1 on super.img flashes:
+			//   0, sequence index, partition offset
+			// Fixing this requires a USB packet capture of Odin flashing the
+			// same super.img to see what the real protocol wants.
+			EndPhoneFileTransferPacket *endPhoneFileTransferPacket = new EndPhoneFileTransferPacket(
+				sequenceEffectiveByteCount, 0, deviceType, fileIdentifier, isLastSequence);
 
 			success = SendPacket(endPhoneFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
 			delete endPhoneFileTransferPacket;
@@ -1199,35 +1491,69 @@ bool BridgeManager::SendFile(FILE *file, unsigned int destination, unsigned int 
 			{
 				Interface::PrintErrorSameLine("\n");
 				Interface::PrintError("Failed to end phone file transfer sequence!\n");
+				delete[] packetBuf;
+				delete sparseReader;
 				return (false);
 			}
 		}
 		else // destination == EndFileTransferPacket::kDestinationModem
 		{
-			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(sequenceEffectiveByteCount, 0, deviceType, isLastSequence);
+			EndModemFileTransferPacket *endModemFileTransferPacket = new EndModemFileTransferPacket(
+				sequenceEffectiveByteCount, 0, deviceType, isLastSequence);
 
-			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferBeforeAndAfter);
+			success = SendPacket(endModemFileTransferPacket, kDefaultTimeoutSend, kEmptyTransferNone);
 			delete endModemFileTransferPacket;
 
 			if (!success)
 			{
 				Interface::PrintErrorSameLine("\n");
 				Interface::PrintError("Failed to end modem file transfer sequence!\n");
+				delete[] packetBuf;
+				delete sparseReader;
 				return (false);
 			}
 		}
 
-		fileTransferResponse = new ResponsePacket(ResponsePacket::kResponseTypeFileTransfer);
-		success = ReceivePacket(fileTransferResponse, fileTransferSequenceTimeout);
-		delete fileTransferResponse;
-
-		if (!success)
+		// Wait for the device to confirm it has committed this sequence to flash.
+		// Read a larger buffer in case the device sends an extended error packet.
+		unsigned char seqEndBuf[64];
+		memset(seqEndBuf, 0, sizeof(seqEndBuf));
+		int seqEndReceived = ReceiveBulkTransfer(seqEndBuf, sizeof(seqEndBuf), fileTransferSequenceTimeout);
+		if (seqEndReceived < 0)
 		{
 			Interface::PrintErrorSameLine("\n");
-			Interface::PrintError("Failed to confirm end of file transfer sequence!\n");
+			Interface::PrintError("Failed to confirm end of file transfer sequence! (libusb error %d: %s)\n",
+				seqEndReceived, libusb_error_name(seqEndReceived));
+			delete[] packetBuf;
+			delete sparseReader;
 			return (false);
 		}
+		else if (seqEndBuf[0] != ResponsePacket::kResponseTypeFileTransfer)
+		{
+			Interface::PrintErrorSameLine("\n");
+			Interface::PrintError("Failed to confirm end of file transfer sequence %u! (%d bytes received)\n",
+				sequenceIndex, seqEndReceived);
+			Interface::PrintError("  Raw response:\n");
+			for (int i = 0; i < seqEndReceived; i++)
+			{
+				if (i % 16 == 0) Interface::PrintError("    ");
+				Interface::PrintError("%02X ", seqEndBuf[i]);
+				if (i % 16 == 15) Interface::PrintError("\n");
+			}
+			if (seqEndReceived % 16 != 0) Interface::PrintError("\n");
+			delete[] packetBuf;
+			delete sparseReader;
+			return (false);
+		}
+
+		// Give the device a short window to finish its internal write flush
+		// before we start the next sequence. This helps some bootloaders that
+		// return the seq-end ack before the actual flash commit completes.
+		Sleep(50);
 	}
+
+	delete[] packetBuf;
+	delete sparseReader;
 
 	if (!verbose)
 		Interface::Print("\n");

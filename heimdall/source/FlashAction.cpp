@@ -147,21 +147,23 @@ static void closeFiles(vector<PartitionFile>& partitionFiles, FILE *& pitFile)
 
 static bool sendTotalTransferSize(BridgeManager *bridgeManager, const vector<PartitionFile>& partitionFiles, FILE *pitFile, bool repartition)
 {
-	unsigned int totalBytes = 0;
+	unsigned long long totalBytes = 0;
 
 	for (vector<PartitionFile>::const_iterator it = partitionFiles.begin(); it != partitionFiles.end(); it++)
 	{
 		FileSeek(it->file, 0, SEEK_END);
-		totalBytes += (unsigned int)FileTell(it->file);
+		totalBytes += (unsigned long long)FileTell(it->file);
 		FileRewind(it->file);
 	}
 
 	if (repartition)
 	{
 		FileSeek(pitFile, 0, SEEK_END);
-		totalBytes += (unsigned int)FileTell(pitFile);
+		totalBytes += (unsigned long long)FileTell(pitFile);
 		FileRewind(pitFile);
 	}
+
+	Interface::Print("SetTotalBytes(%llu)\n", totalBytes);
 
 	bool success;
 	
@@ -269,6 +271,29 @@ static bool flashFile(BridgeManager *bridgeManager, const PartitionFlashInfo& pa
 	else // partitionFlashInfo.pitEntry->GetBinaryType() == PitEntry::kBinaryTypeApplicationProcessor
 	{
 		Interface::Print("Uploading %s\n", partitionFlashInfo.pitEntry->GetPartitionName());
+
+		// Diagnostic: full PIT entry info for this partition.
+		const libpit::PitEntry *pe = partitionFlashInfo.pitEntry;
+		unsigned long long partitionBytes =
+			(unsigned long long)pe->GetBlockCount() * (unsigned long long)pe->GetBlockSizeOrOffset();
+		Interface::Print("PIT entry for %s:\n", pe->GetPartitionName());
+		Interface::Print("  binaryType=%u deviceType=%u identifier=%u\n",
+			pe->GetBinaryType(), pe->GetDeviceType(), pe->GetIdentifier());
+		Interface::Print("  attributes=0x%X (%s%s) updateAttributes=0x%X\n",
+			pe->GetAttributes(),
+			(pe->GetAttributes() & libpit::PitEntry::kAttributeWrite) ? "WRITE " : "",
+			(pe->GetAttributes() & libpit::PitEntry::kAttributeSTL) ? "STL " : "",
+			pe->GetUpdateAttributes());
+		Interface::Print("  blockSizeOrOffset=%u blockCount=%u (partition size=%llu bytes)\n",
+			pe->GetBlockSizeOrOffset(), pe->GetBlockCount(), partitionBytes);
+		Interface::Print("  flashFilename=\"%s\" fotaFilename=\"%s\"\n",
+			pe->GetFlashFilename(), pe->GetFotaFilename());
+
+		if (!(pe->GetAttributes() & libpit::PitEntry::kAttributeWrite))
+		{
+			Interface::PrintWarning("Partition %s does not have kAttributeWrite set in PIT — device may reject flash.\n",
+				pe->GetPartitionName());
+		}
 
 		if (bridgeManager->SendFile(partitionFlashInfo.file, EndPhoneFileTransferPacket::kDestinationPhone,
 			partitionFlashInfo.pitEntry->GetDeviceType(), partitionFlashInfo.pitEntry->GetIdentifier()))
@@ -553,19 +578,21 @@ int FlashAction::Execute(int argc, char **argv)
 		return (1);
 	}
 
-	bool success = sendTotalTransferSize(bridgeManager, partitionFiles, pitFile, repartition);
+	// Thor's ordering: DumpPIT first, THEN SetTotalBytes, THEN flash.
+	// Heimdall originally sent SetTotalBytes before PIT download which
+	// can put the session in the wrong state on modern bootloaders.
+	PitData *pitData = getPitData(bridgeManager, pitFile, repartition);
+	bool success = false;
 
-	if (success)
+	if (pitData)
 	{
-		PitData *pitData = getPitData(bridgeManager, pitFile, repartition);
-	
-		if (pitData)
-			success = flashPartitions(bridgeManager, partitionFiles, pitData, repartition);
-		else
-			success = false;
+		success = sendTotalTransferSize(bridgeManager, partitionFiles, pitFile, repartition);
 
-		delete pitData;
+		if (success)
+			success = flashPartitions(bridgeManager, partitionFiles, pitData, repartition);
 	}
+
+	delete pitData;
 
 	if (!bridgeManager->EndSession(reboot))
 		success = false;
