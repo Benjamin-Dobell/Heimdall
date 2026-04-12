@@ -27,8 +27,10 @@
 
 #if (!(defined _MSC_VER) || (_MSC_VER < 1700))
 
+#if !defined(__cplusplus) || __cplusplus < 201103L
 #ifndef nullptr
 #define nullptr 0
+#endif
 #endif
 
 #endif

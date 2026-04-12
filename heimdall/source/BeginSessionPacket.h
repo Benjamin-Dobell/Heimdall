@@ -33,6 +33,18 @@ namespace Heimdall
 			BeginSessionPacket() : SessionSetupPacket(SessionSetupPacket::kBeginSession)
 			{
 			}
+
+			// Override Pack to include a protocol-version hint at offset 8.
+			// Thor (github.com/Samsung-Loki/Thor) writes int.MaxValue here as
+			// a "catch-all" to tell the bootloader "I support any version" —
+			// on modern (Loke v2+) devices, not writing this can cause the
+			// device to fall back to legacy mode and reject multi-sequence
+			// flashes.
+			void Pack(void)
+			{
+				SessionSetupPacket::Pack();
+				PackInteger(SessionSetupPacket::kDataSize, 0x7FFFFFFFu);
+			}
 	};
 }
 
