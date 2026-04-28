@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.10)
 
 project(heimdall-frontend)
 
@@ -8,7 +8,7 @@ set(LIBPIT_INCLUDE_DIRS
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # moc files are generated in build (current) directory
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(ZLIB REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
@@ -52,5 +52,6 @@ target_link_libraries(heimdall-frontend Qt5::Widgets)
 target_link_libraries(heimdall-frontend z)
 install (TARGETS heimdall-frontend
 		RUNTIME	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR})
+		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        BUNDLE DESTINATION  "/Applications/${EXEC_NAME}.app")
 

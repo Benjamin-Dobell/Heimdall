@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.10)
 
 project(heimdall)
 
@@ -11,7 +11,8 @@ find_package(libusb REQUIRED)
 set(LIBPIT_INCLUDE_DIRS
     ../libpit/source)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
@@ -46,6 +47,14 @@ add_executable(heimdall ${HEIMDALL_SOURCE_FILES})
 
 target_link_libraries(heimdall PRIVATE pit)
 target_link_libraries(heimdall PRIVATE ${LIBUSB_LIBRARY})
+
+if(APPLE)
+find_library(CORE_FOUNDATION CoreFoundation REQUIRED)
+find_library(IOKIT IOKit REQUIRED)
+find_library(SECURITY Security REQUIRED)
+target_link_libraries(heimdall PRIVATE ${CORE_FOUNDATION} ${IOKIT} ${SECURITY})
+endif(APPLE)
+
 install (TARGETS heimdall
 		RUNTIME	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		LIBRARY	DESTINATION ${CMAKE_INSTALL_LIBDIR})
