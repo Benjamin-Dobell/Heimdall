@@ -490,3 +490,41 @@ Appendix B - Installing Heimdall Suite from Source:
             cmake -DCMAKE_BUILD_TYPE=Release ..
             make
 
+    4. Optionally, install Heimdall Suite system-wide:
+
+            sudo make install
+
+
+    NOTE: sudo make install does not install the udev rules file. See
+          Appendix C below to allow device access without root.
+
+
+
+Appendix C - Granting Non-Root USB Access (Linux):
+
+By default, libusb requires write access to USB device nodes, which is
+restricted to root on most Linux distributions. Without the appropriate
+udev rule, Heimdall will fail with:
+
+    libusb: error [_get_usbfs_fd] libusb couldn't open USB device: Permission denied
+    ERROR: Failed to access device. libusb error: -3
+
+To grant your user account access to Samsung devices without using sudo:
+
+    1. Copy the bundled udev rules file to the system rules directory:
+
+            sudo cp heimdall/60-heimdall.rules /etc/udev/rules.d/
+
+    2. Reload udev rules:
+
+            sudo udevadm control --reload-rules && sudo udevadm trigger
+
+    3. Unplug and reconnect your device.
+
+    Heimdall should now be accessible without root. If your distribution uses
+    a plugdev group for USB access, ensure your user is a member:
+
+            sudo usermod -aG plugdev $USER
+
+    Log out and back in for group changes to take effect.
+

@@ -38,6 +38,8 @@ appropriate platform specific README:
 
  - Linux/README ([online](https://raw.githubusercontent.com/Benjamin-Dobell/Heimdall/master/Linux/README))
 
+> **Note for Linux users:** If Heimdall reports a `Permission denied` USB error when run as a normal user, you need to install the bundled udev rules. See **Appendix C** in `Linux/README` for instructions.
+
 #### OS X
 
  - OSX/README.txt ([online](https://raw.githubusercontent.com/Benjamin-Dobell/Heimdall/master/OSX/README.txt))
