@@ -19,6 +19,7 @@
  THE SOFTWARE.*/
 
 // C Standard Library
+#include <stdint.h>
 #include <stdio.h>
 
 // Heimdall
@@ -223,6 +224,36 @@ static bool setupPartitionFlashInfo(const vector<PartitionFile>& partitionFiles,
 			{
 				Interface::PrintError("Partition \"%s\" does not exist in the specified PIT.\n", it->argumentName);
 				return (false);
+			}
+		}
+
+		// Validate file size against partition capacity before flashing.
+		// Samsung devices use either 512-byte or 4096-byte eMMC blocks depending on
+		// the device age, and the PIT does not encode the block size directly. We
+		// bracket between the two known values: if the file exceeds the maximum
+		// plausible capacity (blockCount * 4096) we abort; if it only exceeds the
+		// minimum (blockCount * 512) we warn but continue, as the partition may
+		// actually be large enough on devices with 4096-byte blocks.
+		unsigned int blockCount = pitEntry->GetBlockCount();
+		if (blockCount > 0)
+		{
+			FileSeek(it->file, 0, SEEK_END);
+			uint64_t fileSize = (uint64_t)FileTell(it->file);
+			FileRewind(it->file);
+
+			uint64_t minCapacity = (uint64_t)blockCount * 512;
+			uint64_t maxCapacity = (uint64_t)blockCount * 4096;
+
+			if (fileSize > maxCapacity)
+			{
+				Interface::PrintError("File for partition \"%s\" is too large: %llu bytes exceeds maximum possible partition capacity of %llu bytes (%u blocks * 4096).\n",
+					pitEntry->GetPartitionName(), (unsigned long long)fileSize, (unsigned long long)maxCapacity, blockCount);
+				return (false);
+			}
+			else if (fileSize > minCapacity)
+			{
+				Interface::Print("WARNING: File for partition \"%s\" may exceed partition capacity on devices with 512-byte blocks: %llu bytes vs %llu bytes (%u blocks * 512). Proceeding anyway.\n",
+					pitEntry->GetPartitionName(), (unsigned long long)fileSize, (unsigned long long)minCapacity, blockCount);
 			}
 		}
 
