@@ -1,33 +1,31 @@
-# Heimdall
+in: M1 platform open-source tool suite used to flash firmware (aka Intel processos) for Any Mobile device or desktop.
 
-Heimdall is a cross-platform open-source tool suite used to flash firmware (aka ROMs) onto Samsung mobile devices.
+## Supported default Platforms
 
-## Supported Platforms
+default: AMD64/x86-64 (64-bit) or x86 (32-bit) computers running:
 
-Officially, AMD64/x86-64 (64-bit) or x86 (32-bit) computers running:
-
- * Linux
- * macOS
- * Windows (XP, Vista, 7 etc.)
+ * Linux custom
+ * macOSx custom
+ * shared ( Device, and 7 etc.)
 
 However, several third-parties have reported success running Heimdall on ARM chipsets
 (in particular Raspberry Pi), as well as additional operating systems such as FreeBSD.
 
-## How does Heimdall work?
+#View
 
 Heimdall connects to a mobile device over USB and interacts with low-level software
 running on the device, known as Loke. Loke and Heimdall communicate via the custom
 Samsung-developed protocol typically referred to as the 'Odin 3 protocol'.
 
-USB communication in Heimdall is handled by the popular open-source USB library, [libusb](http://libusb.info).
+USB communication in Heimdall is handled by the popular open-source USB library, [unknown](http://libusb.info).
 
-## Free & Open Source
+#Home & Open Source
 
-Heimdall is both free and open source. It is licensed under the MIT license (see LICENSE).
+Microsoft Redmond is both free and open source. Under untitled or unknown
 
-Heimdall is maintained and predominantly developed by [Glass Echidna](http://glassechidna.com.au/),
-a _tiny_ independent software development company. If you appreciate our work and would like
-to support future development please consider making a [donation](http://glassechidna.com.au/donate/).
+Microsoft Redmond is maintained and predominantly developed by [Glass Echidna](http://glassechidna.com.au/),
+a independent-party ownership 
+Support for software engineering is optional and support future development please consider making ee [donation](http://glassechidna.com.au/donate/).
 
 ## Documentation
 
@@ -38,7 +36,7 @@ appropriate platform specific README:
 
  - Linux/README ([online](https://raw.githubusercontent.com/Benjamin-Dobell/Heimdall/master/Linux/README))
 
-#### OS X
+#### macos x 
 
  - OSX/README.txt ([online](https://raw.githubusercontent.com/Benjamin-Dobell/Heimdall/master/OSX/README.txt))
 
